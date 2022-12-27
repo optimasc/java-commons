@@ -1,0 +1,123 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"  xmlns:dex="http://optimasc.com/"> 
+
+<xsd:simpleType name="myInteger">
+  <xsd:restriction base="xsd:integer">
+    <xsd:enumeration value="2"/>
+    <xsd:enumeration value="3"/>
+    <xsd:enumeration value="4"/>
+    <!-- and so on ... -->
+  </xsd:restriction>
+</xsd:simpleType>
+
+
+<xsd:simpleType name="USState">
+  <xsd:restriction base="xsd:string">
+    <xsd:enumeration value="AK"/>
+    <xsd:enumeration value="AL"/>
+    <xsd:enumeration value="AR"/>
+    <!-- and so on ... -->
+  </xsd:restriction>
+</xsd:simpleType>
+
+
+<xsd:simpleType name="MyLimitedInteger">
+  <xsd:restriction base="xsd:int">
+    <xsd:minInclusive value="0"/>
+    <xsd:maxInclusive value="12"/>
+    <!-- and so on ... -->
+  </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="Text">
+  <xsd:restriction base="xsd:string">
+    <xsd:minLength value="0"/>
+    <xsd:maxLength value="1024"/>
+    <!-- and so on ... -->
+  </xsd:restriction>
+</xsd:simpleType>
+
+
+<xsd:simpleType name="shortNormalizedString">
+        <xsd:annotation>
+        	<xsd:documentation>Used as a short description metadata element which is limited to 250 characters.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+    <xsd:minLength value="0"/>
+    <xsd:maxLength value="250"/>
+    <!-- and so on ... -->
+  </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="DCMITYPE">
+  <xsd:restriction base="xsd:string">
+    <xsd:enumeration value="Collection"/>
+    <xsd:enumeration value="Dataset"/>
+    <xsd:enumeration value="Event"/>
+    <xsd:enumeration value="Image"/>
+    <xsd:enumeration value="InteractiveResource"/>
+    <xsd:enumeration value="MovingImage"/>
+    <xsd:enumeration value="PhysicalObject"/>
+    <xsd:enumeration value="Service"/>
+    <xsd:enumeration value="Software"/>
+    <xsd:enumeration value="Sound"/>
+    <xsd:enumeration value="StillImage"/>
+    <xsd:enumeration value="Text"/>
+    <!-- and so on ... -->
+  </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="ratingLevel">
+        <xsd:annotation>
+        	<xsd:documentation>Rating of the resource, from 0 to 100.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:unsignedByte">
+    <xsd:minInclusive value="0"/>
+    <xsd:maxInclusive value="100"/>
+    <!-- and so on ... -->
+  </xsd:restriction>
+</xsd:simpleType>
+
+
+<xsd:simpleType name="LicenseType">
+        <xsd:annotation>
+        	<xsd:documentation>Represents the general licensing terms of the resource.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+    <xsd:enumeration value="unknown"/>
+    <xsd:enumeration value="shareware"/>
+    <xsd:enumeration value="adware"/>
+    <xsd:enumeration value="demo"/>
+    <xsd:enumeration value="commercial"/>
+    <xsd:enumeration value="public domain"/>
+    <xsd:enumeration value="open source"/>
+    <!-- and so on ... -->
+  </xsd:restriction>
+</xsd:simpleType>
+
+
+
+
+
+
+
+    <xsd:simpleType name="MyBoolean">
+    	<xsd:restriction base="xsd:boolean"></xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="LanguageTag">
+    	<xsd:restriction base="xsd:string">
+    <xsd:enumeration value="x-default"/>
+    <xsd:enumeration value="en"/>
+    <xsd:enumeration value="es"/>
+    <xsd:enumeration value="de"/>
+    <xsd:enumeration value="fr"/>
+    <xsd:enumeration value="ja"/>
+    <xsd:enumeration value="ru"/>
+    <xsd:enumeration value="zh"/>
+    		<xsd:pattern
+    			value="(((en-GB-oed|i-ami|i-bnn|i-default|i-enochian|i-hak|i-klingon|i-lux|i-mingo|i-navajo|i-pwn|i-tao|i-tay|i-tsu|sgn-BE-FR|sgn-BE-NL|sgn-CH-DE)|(art-lojban|cel-gaulish|no-bok|no-nyn|zh-guoyu|zh-hakka|zh-min|zh-min-nan|zh-xiang))|((([A-Za-z]{2,3}(-([A-Za-z]{3}(-[A-Za-z]{3}){0,2}))?)|[A-Za-z]{4}|[A-Za-z]{5,8})(-([A-Za-z]{4}))?(-([A-Za-z]{2}|[0-9]{3}))?(-([A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(-([0-9A-WY-Za-wy-z](-[A-Za-z0-9]{2,8})+))*(-(x(-[A-Za-z0-9]{1,8})+))?)|(x(-[A-Za-z0-9]{1,8})+))">
+    		</xsd:pattern>
+    	</xsd:restriction>
+    </xsd:simpleType>
+</xsd:schema>
+ 
