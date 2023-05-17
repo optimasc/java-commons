@@ -9,7 +9,7 @@ import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.derived.DateType;
 import com.optimasc.datatypes.primitives.BinaryType;
-import com.optimasc.datatypes.primitives.IntegerType;
+import com.optimasc.datatypes.primitives.IntegralType;
 import com.optimasc.datatypes.primitives.RealType;
 import com.optimasc.datatypes.primitives.StringType;
 import com.optimasc.datatypes.primitives.TimeType;
@@ -424,7 +424,7 @@ public class BaseIndexableDataset implements IndexableDataset
       throw new IllegalArgumentException(
           "Trying to write an integer value to a non-integer field.");
     }
-    IntegerType intType = (IntegerType) tableMetadata.getDatatype(columnIndex);
+    IntegralType intType = (IntegralType) tableMetadata.getDatatype(columnIndex);
     try
     {
       intType.validate(x);
