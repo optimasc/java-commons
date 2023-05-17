@@ -1,11 +1,13 @@
 package com.optimasc.datatypes;
 
-/** Represents constraints / restrictions
- *  on integer values.
+/** Represents the lower and upper bounds on exact ordered
+ *  values. The representation must be convered to an
+ *  integral value, see specific datatype information
+ *  for integral value representation.
  *
  * @author Carl Eric Codere
  */
-public interface IntegerRangeFacet
+public interface BoundedRangeFacet
 {
   /** Set the minimum allowed value of this integer. */
   public void setMinInclusive(long value);

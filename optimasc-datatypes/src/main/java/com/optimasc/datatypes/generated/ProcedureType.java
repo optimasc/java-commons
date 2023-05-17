@@ -7,9 +7,10 @@ package com.optimasc.datatypes.generated;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.VariableInstance;
 import com.optimasc.datatypes.aggregate.ClassType;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
 import java.text.ParseException;
 import java.util.Vector;
@@ -18,13 +19,13 @@ import java.util.Vector;
  *
  * @author Carl
  */
-public class ProcedureType extends Datatype {
+public class ProcedureType extends Type {
 
     /** The return type of this routine */
-    protected Datatype   returnType;
+    protected Type   returnType;
 
-  // Contains the fields
-  protected Vector parameters;
+  // Contains the parameters
+  protected Vector formalParameters;
 
   protected ClassType parent;
 
@@ -39,8 +40,8 @@ public class ProcedureType extends Datatype {
    */
    public ProcedureType()
    {
-       super(0);
-       parameters = new Vector();
+       super(false);
+       formalParameters = new Vector();
        returnType = null;
    }
 
@@ -57,27 +58,27 @@ public class ProcedureType extends Datatype {
    
     public Datatype getParameterType(int index)
     {
-        return (Datatype)parameters.elementAt(index);
+        return (Datatype)formalParameters.elementAt(index);
     }
 
     public VariableInstance getParameter(int index)
     {
-        return (VariableInstance)parameters.elementAt(index);
+        return (VariableInstance)formalParameters.elementAt(index);
     }
 
     public int getParameterCount()
     {
-        return parameters.size();
+        return formalParameters.size();
     }
 
 
 
     public void addParameter(VariableInstance param)
     {
-        parameters.addElement(param);
+        formalParameters.addElement(param);
     }
 
-    public Datatype getReturnType()
+    public Type getReturnType()
     {
         return returnType;
     }
@@ -102,7 +103,7 @@ public class ProcedureType extends Datatype {
         return 0;
     }
 
-    public Object accept(DatatypeVisitor v, Object arg)
+    public Object accept(TypeVisitor v, Object arg)
     {
         return v.visit(this,arg);
     }

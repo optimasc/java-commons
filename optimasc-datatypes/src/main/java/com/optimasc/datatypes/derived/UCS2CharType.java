@@ -8,20 +8,20 @@ package com.optimasc.datatypes.derived;
 import java.text.ParseException;
 
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.primitives.CharType;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.primitives.CharacterType;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Represents an UCS-2 character.
  *
  * @author Carl Eric Codere
  */
-public class UCS2CharType extends CharType {
+public class UCS2CharType extends CharacterType {
   
 
     public UCS2CharType()
     {
       super();
-      setRepertoireList("UTF-16BE");
+      setCharSetName("UTF-16BE");
     }
 
     public int getSize()
@@ -29,21 +29,45 @@ public class UCS2CharType extends CharType {
         return 2;
     }
 
-    public Object accept(DatatypeVisitor v, Object arg)
+    public Object accept(TypeVisitor v, Object arg)
     {
         return v.visit(this,arg);
     }
 
     public boolean isValidCharacter(int c)
     {
-      if ((c >= 0) && (c <= 0xFFFF))
+      if ((c >= 0) && (c <= Character.MAX_VALUE))
       {
-            return true;
+        // Surrogate values are not allowed.
+        if (Character.getType(c)==Character.SURROGATE)
+        {
+          return false;
+        }
+        // Private values are not allowed.
+        if (Character.getType(c)==Character.PRIVATE_USE)
+        {
+          return false;
+        }
+        return true;
       }
       return false;
     }
 
+    public Class getClassType()
+    {
+      return Character.class;
+    }
 
+    public long getMinInclusive()
+    {
+      return 0;
+    }
+
+    public long getMaxInclusive()
+    {
+      return 0xFFFF;
+    }
+    
     
     
 }

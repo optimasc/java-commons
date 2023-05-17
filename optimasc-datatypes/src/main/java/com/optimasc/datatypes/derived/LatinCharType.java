@@ -8,20 +8,20 @@ package com.optimasc.datatypes.derived;
 import java.text.ParseException;
 
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.primitives.CharType;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.primitives.CharacterType;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /**
  * 
  * @author Carl Eric Codere
  */
-public class LatinCharType extends CharType
+public class LatinCharType extends CharacterType
 {
 
   public LatinCharType()
   {
     super();
-    setRepertoireList("ISO-8859-1");
+    setCharSetName("ISO-8859-1");
   }
 
   public int getSize()
@@ -29,7 +29,7 @@ public class LatinCharType extends CharType
     return 1;
   }
 
-  public Object accept(DatatypeVisitor v, Object arg)
+  public Object accept(TypeVisitor v, Object arg)
   {
     return v.visit(this, arg);
   }
@@ -42,6 +42,22 @@ public class LatinCharType extends CharType
     }
     return false;
   }
+
+  public Class getClassType()
+  {
+    return Byte.class;
+  }
+
+  public long getMinInclusive()
+  {
+    return 0;
+  }
+
+  public long getMaxInclusive()
+  {
+    return 255;
+  }
+  
   
 
 }

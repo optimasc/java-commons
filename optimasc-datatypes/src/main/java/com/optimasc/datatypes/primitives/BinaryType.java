@@ -8,7 +8,7 @@ import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.LengthFacet;
 import com.optimasc.datatypes.LengthHelper;
 import com.optimasc.datatypes.PatternFacet;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /**
  * This class is used to represent a binary datatype. It includes a minLength
@@ -51,7 +51,7 @@ public class BinaryType extends Datatype implements LengthFacet, PatternFacet, D
    */
   public BinaryType()
   {
-    super(Datatype.BINARY);
+    super(Datatype.BINARY,false);
     lengthHelper = new LengthHelper();
     setMinLength(0);
     setMaxLength(Integer.MAX_VALUE);
@@ -75,7 +75,7 @@ public class BinaryType extends Datatype implements LengthFacet, PatternFacet, D
     bArray = (byte[]) value;
     if ((bArray.length < getMinLength()) || (bArray.length > getMaxLength()))
     {
-      DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE,
+      DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,
           "The byte array does not match the datatype specification");
     }
   }
@@ -110,7 +110,7 @@ public class BinaryType extends Datatype implements LengthFacet, PatternFacet, D
     return lengthHelper.getMaxLength();
   }
 
-  public Object accept(DatatypeVisitor v, Object arg)
+  public Object accept(TypeVisitor v, Object arg)
   {
     return v.visit(this, arg);
   }
@@ -207,6 +207,17 @@ public class BinaryType extends Datatype implements LengthFacet, PatternFacet, D
   public void setPattern(String value)
   {
     throw new IllegalArgumentException("Pattern is read only for this datatype.");
+  }
+  
+  public static String toString(byte[] values)
+  {
+    StringBuilder buffer = new StringBuilder(64);
+    for (int i=0; i < values.length; i++)
+    {
+        buffer.append(Character.forDigit((values[i] >> 4) & 0xF, 16));
+        buffer.append(Character.forDigit((values[i] & 0xF), 16));
+    }
+    return buffer.toString();
   }
 
 }

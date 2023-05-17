@@ -7,7 +7,7 @@ package com.optimasc.datatypes;
 
 import java.text.ParseException;
 
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** This represents an unknown datatype that has not been resolved yet.
  *
@@ -19,10 +19,10 @@ public class UnknownType extends Datatype
    
    public UnknownType()
    {
-        super(Datatype.NULL);
+        super(Datatype.NULL,false);
    }
 
-    public Object accept(DatatypeVisitor v, Object arg)
+    public Object accept(TypeVisitor v, Object arg)
     {
         return v.visit(this,arg);
     }

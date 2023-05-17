@@ -10,7 +10,8 @@ import java.text.ParseException;
 import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.Type;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** This datatype represents a pointer to another object.
  *
@@ -18,11 +19,11 @@ import com.optimasc.datatypes.visitor.DatatypeVisitor;
  */
 public class PointerType extends Datatype implements ConstructedSimple {
 
-   protected Datatype pointerTo;
+   protected Type pointerTo;
 
    public PointerType()
    {
-        super(Datatype.REF);
+        super(Datatype.REF,false);
    }
 
     public Class getClassType()
@@ -40,17 +41,17 @@ public class PointerType extends Datatype implements ConstructedSimple {
         
     }
 
-    public Object accept(DatatypeVisitor v, Object arg)
+    public Object accept(TypeVisitor v, Object arg)
     {
         return v.visit(this,arg);
     }
 
-    public Datatype getElementType()
+    public Type getBaseType()
     {
       return pointerTo;
     }
 
-    public void setElementType(Datatype value)
+    public void setBaseType(Type value)
     {
       pointerTo = value;
     }

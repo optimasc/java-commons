@@ -2,7 +2,7 @@ package com.optimasc.datatypes;
 
 import java.text.ParseException;
 
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Represents a generic datatype. This is the base class for all possible
  *  datatypes. It has several important properties:
@@ -17,7 +17,7 @@ import com.optimasc.datatypes.visitor.DatatypeVisitor;
  * 
  * @author Carl Eric Codere
  */
-public abstract class Datatype
+public abstract class Datatype extends Type
 {
   
   
@@ -57,27 +57,23 @@ public abstract class Datatype
   // Extensions 
   public static final int ENUM = 10000;
 
-  protected String comment;
 
   protected String name;
 
   protected int type;
 
-  protected int modifiers;
 
-  /** User-specific data associated with this datatype */
-  protected Object userData;
 
-  public Datatype(int type)
+  public Datatype(int type, boolean ordered)
   {
-    super();
+    super(ordered);
     this.type = type;
     this.modifiers = 0;
   }
 
-  public Datatype(String name, String comment, int type, int flags)
+  public Datatype(String name, String comment, int type, boolean ordered, int flags)
   {
-    super();
+    super(ordered);
     this.name = name;
     this.comment = comment;
     this.type = type;
@@ -92,11 +88,6 @@ public abstract class Datatype
    */
   public abstract int getSize();
 
-  /**
-   * Returns the main instance class associated with this datatype.
-   * 
-   */
-  public abstract Class getClassType();
   
   /**
    * Returns the main instance of this object associated with this datatype.
@@ -123,11 +114,6 @@ public abstract class Datatype
    */
   public abstract Object parse(String value) throws ParseException;
 
-  /** Returns the name associated with this datatype */
-  public String getComment()
-  {
-    return comment;
-  }
 
   /** Returns the name of this datatype. */
   public String getName()
@@ -140,58 +126,17 @@ public abstract class Datatype
     return type;
   }
 
-  public Object getUserData()
-  {
-    return userData;
-  }
-
-  public void setUserData(Object userData)
-  {
-    this.userData = userData;
-  }
-
-  public int getModifiers()
-  {
-    return modifiers;
-  }
-
-  public void setModifiers(int modifiers)
-  {
-    this.modifiers = modifiers;
-  }
 
   public String toString()
   {
     return name;
   }
 
-  /**
-   * Accept method for visitor support.
-   * 
-   * @param v
-   *          the visitor implementation
-   * @param arg
-   *          any value relevant for the visitor
-   * @return the result of the visit
-   */
-  public abstract Object accept(DatatypeVisitor v, Object arg);
-
-  public void setComment(String comment)
-  {
-    this.comment = comment;
-  }
 
   public void setName(String name)
   {
     this.name = name;
   }
   
-  protected void checkClass(Object obj) throws IllegalArgumentException
-  {
-    if (getClassType().isInstance(obj)==false)
-    {
-      throw new IllegalArgumentException("Invalid class : got '"+obj.getClass().getName()+"' expected '"+getClassType().getName()+"'");
-    }
-  }
 
 }

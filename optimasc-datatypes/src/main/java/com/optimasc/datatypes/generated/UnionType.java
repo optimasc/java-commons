@@ -6,7 +6,7 @@ import java.util.Vector;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.PatternFacet;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Represents a value that can be one or more different
  *  datatypes.
@@ -23,14 +23,13 @@ public class UnionType extends Datatype implements PatternFacet
 
   public UnionType()
   {
-    super(Datatype.OTHER);
+    super(Datatype.OTHER,false);
     allowedTypes = new Vector();
   }
 
   public UnionType(String name, String comment, int type, int flags)
   {
-    super(name, comment, type, flags);
-    // TODO Auto-generated constructor stub
+    super(name, comment, type, false, flags);
   }
 
   public int getSize()
@@ -70,7 +69,7 @@ public class UnionType extends Datatype implements PatternFacet
     }
     if (success == false)
     {
-      DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE, "Illegal value");
+      DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE, "Illegal value");
     }
   }
 
@@ -99,7 +98,7 @@ public class UnionType extends Datatype implements PatternFacet
     return null;
   }
 
-  public Object accept(DatatypeVisitor v, Object arg)
+  public Object accept(TypeVisitor v, Object arg)
   {
     // TODO Auto-generated method stub
     return null;

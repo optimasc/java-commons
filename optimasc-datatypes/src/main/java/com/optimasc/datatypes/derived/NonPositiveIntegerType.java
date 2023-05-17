@@ -1,8 +1,8 @@
 package com.optimasc.datatypes.derived;
 
-import com.optimasc.datatypes.primitives.IntegerType;
+import com.optimasc.datatypes.primitives.IntegralType;
 
-public class NonPositiveIntegerType extends IntegerType
+public class NonPositiveIntegerType extends IntegralType
 {
   protected static final String REGEX_NONPOSITIVE_PATTERN = "-[0-9]+";
 

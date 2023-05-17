@@ -3,7 +3,7 @@ package com.optimasc.datatypes.primitives;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.PatternFacet;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.date.BaseISO8601Date;
 import com.optimasc.utils.StringTokenizer;
 
@@ -14,7 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /** Time represents an instant of time that recurs every day. 
- *  The ·value space· of time is the space of time of day value. 
+ *  The value space of time is the space of time of day value. 
  * 
  * @author Carl Eric Codere
  *
@@ -35,7 +35,7 @@ public class TimeType extends Datatype implements PatternFacet
 
   public TimeType()
   {
-    super(Datatype.TIME);
+    super(Datatype.TIME,true);
   }
 
   public int getSize()
@@ -54,7 +54,7 @@ public class TimeType extends Datatype implements PatternFacet
     checkClass(value);
   }
 
-    public Object accept(DatatypeVisitor v, Object arg)
+    public Object accept(TypeVisitor v, Object arg)
     {
         return v.visit(this,arg);
     }

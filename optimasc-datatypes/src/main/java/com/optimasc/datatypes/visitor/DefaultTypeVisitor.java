@@ -29,25 +29,26 @@ import com.optimasc.datatypes.generated.ProcedureType;
 import com.optimasc.datatypes.generated.UnionType;
 import com.optimasc.datatypes.primitives.BinaryType;
 import com.optimasc.datatypes.primitives.BooleanType;
-import com.optimasc.datatypes.primitives.CharType;
+import com.optimasc.datatypes.primitives.CharacterType;
 import com.optimasc.datatypes.primitives.DateTimeType;
 import com.optimasc.datatypes.primitives.DurationType;
-import com.optimasc.datatypes.primitives.EnumeratedType;
-import com.optimasc.datatypes.primitives.IntegerType;
+import com.optimasc.datatypes.primitives.EnumType;
+import com.optimasc.datatypes.primitives.IntegralType;
 import com.optimasc.datatypes.primitives.PrimitiveType;
 import com.optimasc.datatypes.primitives.RealType;
 import com.optimasc.datatypes.primitives.StringType;
 import com.optimasc.datatypes.primitives.TimeType;
+import com.optimasc.datatypes.primitives.VoidType;
 
 /**
  *
  * @author Carl
  */
-public class DefaultDatatypeVisitor implements DatatypeVisitor {
+public class DefaultTypeVisitor implements TypeVisitor {
 
     public Object visit(ArrayType n, Object arg)
     {
-        n.getElementType().accept(this, arg);
+        n.getBaseType().accept(this, arg);
         return null;
     }
 
@@ -80,22 +81,17 @@ public class DefaultDatatypeVisitor implements DatatypeVisitor {
         return null;
     }
 
-    public Object visit(EnumeratedType n, Object arg)
+    public Object visit(EnumType n, Object arg)
     {
         return null;
     }
 
-    public Object visit(IntegerType n, Object arg)
+    public Object visit(IntegralType n, Object arg)
     {
         return null;
     }
 
     public Object visit(LatinCharType n, Object arg)
-    {
-        return null;
-    }
-
-    public Object visit(PrimitiveType n, Object arg)
     {
         return null;
     }
@@ -117,7 +113,7 @@ public class DefaultDatatypeVisitor implements DatatypeVisitor {
 
     public Object visit(PointerType n, Object arg)
     {
-        n.getElementType().accept(this, arg);
+        n.getBaseType().accept(this, arg);
         return null;
     }
 
@@ -217,7 +213,7 @@ public class DefaultDatatypeVisitor implements DatatypeVisitor {
       return null;
     }
 
-    public Object visit(CharType n, Object arg)
+    public Object visit(CharacterType n, Object arg)
     {
       // TODO Auto-generated method stub
       return null;
@@ -237,6 +233,12 @@ public class DefaultDatatypeVisitor implements DatatypeVisitor {
 
 
     public Object visit(UnionType n, Object arg)
+    {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    public Object visit(VoidType n, Object arg)
     {
       // TODO Auto-generated method stub
       return null;

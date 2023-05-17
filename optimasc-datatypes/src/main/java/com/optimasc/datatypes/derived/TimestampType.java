@@ -6,7 +6,7 @@ import java.util.Calendar;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.primitives.DateTimeType;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.date.BaseISO8601Date;
 
 /** Represents a full date and time specification with
@@ -33,7 +33,7 @@ public class TimestampType extends DateTimeType
     return 4;
   }
 
-    public Object accept(DatatypeVisitor v, Object arg)
+    public Object accept(TypeVisitor v, Object arg)
     {
         return v.visit(this,arg);
     }

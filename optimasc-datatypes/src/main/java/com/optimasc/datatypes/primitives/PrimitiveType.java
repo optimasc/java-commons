@@ -7,7 +7,7 @@ package com.optimasc.datatypes.primitives;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeConverter;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Base class representing a Primitive datatype as defined
  *  in ISO/IEC 11404:2007.
@@ -16,16 +16,9 @@ import com.optimasc.datatypes.visitor.DatatypeVisitor;
  */
 public abstract class PrimitiveType extends Datatype {
 
-   public PrimitiveType(int type)
+   public PrimitiveType(int type, boolean ordered)
    {
-        super(type);
+        super(type,ordered);
    }
-
-    public Object accept(DatatypeVisitor v, Object arg)
-    {
-        return v.visit(this,arg);
-    }
-    
-    
 
 }

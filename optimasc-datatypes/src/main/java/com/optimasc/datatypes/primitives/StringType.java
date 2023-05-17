@@ -11,8 +11,9 @@ import com.optimasc.datatypes.EnumerationHelper;
 import com.optimasc.datatypes.LengthFacet;
 import com.optimasc.datatypes.LengthHelper;
 import com.optimasc.datatypes.PatternFacet;
+import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.derived.UCS2CharType;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.utils.StringUtilities;
 
 
@@ -63,18 +64,42 @@ public class StringType extends Datatype implements EnumerationFacet, LengthFace
   protected EnumerationHelper enumHelper;
   protected LengthHelper lengthHelper;
   
-  protected CharType characterType;
+  protected CharacterType characterType;
   
   
   public StringType()
   {
-      super(Datatype.VARCHAR);
+      super(Datatype.VARCHAR,false);
       whitespace = WHITESPACE_PRESERVE;
       enumHelper = new EnumerationHelper(this);
       lengthHelper = new LengthHelper();
       setMinLength(0);
       setMaxLength(Integer.MAX_VALUE);
-      setElementType(new UCS2CharType());
+      setBaseType(new UCS2CharType());
+  }
+
+  /** Creates a string type definition. This routine verifies the
+   *  minLength and maxLength characters, if they are equal created
+   *  a {@link Datatype#CHAR} type, otherwise it creates a 
+   *  {@link Datatype#VARCHAR} type.   
+   * 
+   * @param minLength The minimum length of allowed characters
+   * @param maxLength The maximum length of allowed characters
+   * @param charType The type of characters
+   */
+  public StringType(int minLength, int maxLength, Datatype charType)
+  {
+    super(Datatype.VARCHAR,false);
+    whitespace = WHITESPACE_PRESERVE;
+    enumHelper = new EnumerationHelper(this);
+    lengthHelper = new LengthHelper();
+    if (minLength == maxLength)
+    {
+      this.type = Datatype.CHAR;
+    }
+    setMinLength(0);
+    setMaxLength(minLength);
+    setBaseType(charType);
   }
   
 
@@ -109,18 +134,22 @@ public class StringType extends Datatype implements EnumerationFacet, LengthFace
       {
         if (characterType.isValidCharacter(chArr[i])==false)
         {
-          throw new IllegalArgumentException("Invalid characters found.");
+          DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_CHARACTER,"The string does not contain valid characters for this repertoire");
         }
       }
-      if ((chArr.length < getMinLength()) || (chArr.length > getMaxLength()))
+      if ((chArr.length < getMinLength()))
       {
-        DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE,"The string does not match the datatype specification");
+        DatatypeException.throwIt(DatatypeException.ERROR_STRING_ILLEGAL_LENGTH,"The string length does not match the datatype specification, expected "+getMinLength()+" characters, got "+chArr.length);
+      }
+      if  (chArr.length > getMaxLength())
+      {
+        DatatypeException.throwIt(DatatypeException.ERROR_STRING_TRUNCATION,"The string length does not match the datatype specification, expected "+getMaxLength()+" characters, got "+chArr.length);
       }
       s = new String(chArr);
       validatePattern(s);
       if (validateChoice(s)==false)
       {
-        DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE,"The string does not match the datatype specification");
+        DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,"The string does not match the datatype specification");
       }
     }
     else
@@ -133,18 +162,22 @@ public class StringType extends Datatype implements EnumerationFacet, LengthFace
         int ch = string.codePointAt(charCount);
         if (characterType.isValidCharacter(ch)==false)
         {
-          DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE,"The string does not contain valid characters for this repertoire");
+          DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_CHARACTER,"The string does not contain valid characters for this repertoire");
         }
         charCount+= Character.charCount(ch);
       }
-      if ((charCount < getMinLength()) || (charCount > getMaxLength()))
+      if ((charCount < getMinLength()))
       {
-        DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE,"The string does not match the datatype specification");
+        DatatypeException.throwIt(DatatypeException.ERROR_STRING_ILLEGAL_LENGTH,"The string length does not match the datatype specification, expected "+getMinLength()+" characters, got "+charCount);
+      }
+      if  (charCount > getMaxLength())
+      {
+        DatatypeException.throwIt(DatatypeException.ERROR_STRING_TRUNCATION,"The string length does not match the datatype specification, expected "+getMaxLength()+" characters, got "+charCount);
       }
       validatePattern(string);
       if (validateChoice(string)==false)
       {
-        DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE,"The string does not match the datatype specification");
+        DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,"The string does not match the datatype specification");
       }
     } else
     {
@@ -152,7 +185,7 @@ public class StringType extends Datatype implements EnumerationFacet, LengthFace
     }
   }
 
-  public Object accept(DatatypeVisitor v, Object arg)
+  public Object accept(TypeVisitor v, Object arg)
   {
       return v.visit(this,arg);
   }
@@ -234,7 +267,7 @@ public class StringType extends Datatype implements EnumerationFacet, LengthFace
   }
 
 
-  public Datatype getElementType()
+  public Type getBaseType()
   {
     return characterType;
   }
@@ -246,13 +279,13 @@ public class StringType extends Datatype implements EnumerationFacet, LengthFace
   }
 
 
-  public void setElementType(Datatype value)
+  public void setBaseType(Type value)
   {
-    if ((value instanceof CharType)==false)
+    if ((value instanceof CharacterType)==false)
     {
       throw new IllegalArgumentException("Element type must be of Character type.");
     }
-    characterType = (CharType) value;
+    characterType = (CharacterType) value;
   }
 
 
@@ -349,7 +382,7 @@ public class StringType extends Datatype implements EnumerationFacet, LengthFace
     {
       return false;
     }
-    if (this.getElementType().equals(stringType.getElementType())==false)
+    if (this.getBaseType().equals(stringType.getBaseType())==false)
     {
       return false;
     }

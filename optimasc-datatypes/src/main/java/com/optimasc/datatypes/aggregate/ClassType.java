@@ -7,7 +7,7 @@ package com.optimasc.datatypes.aggregate;
 
 import com.optimasc.datatypes.VariableInstance;
 import com.optimasc.datatypes.generated.ProcedureType;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 import java.util.Vector;
 
 /** This represents either a class or a module that contains
@@ -91,7 +91,7 @@ public class ClassType extends RecordType
      * @return null if field with specified name is not found, otherwise
      *   the actual field definition.
      */
-    public ProcedureType lookupMethod(String name, int flags)
+ /*  public ProcedureType lookupMethod(String name, int flags)
     {
         int i;
         ProcedureType var = null;
@@ -120,7 +120,7 @@ public class ClassType extends RecordType
             }
         }
         return null;
-    }
+    }*/
 
     public VariableInstance lookupField(String name, int flags)
     {
@@ -141,7 +141,7 @@ public class ClassType extends RecordType
         return null;
     }
 
-    public Object accept(DatatypeVisitor v, Object arg)
+    public Object accept(TypeVisitor v, Object arg)
     {
         return v.visit(this,arg);
     }

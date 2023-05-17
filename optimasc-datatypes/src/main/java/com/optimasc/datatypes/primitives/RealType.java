@@ -1,12 +1,14 @@
 package com.optimasc.datatypes.primitives;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeConverter;
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.PrecisionFacet;
 import com.optimasc.datatypes.RealRangeFacet;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Represents a numerical representation of a floating point
  *  value.
@@ -19,17 +21,21 @@ import com.optimasc.datatypes.visitor.DatatypeVisitor;
  *
  * @author Carl Eric Codere
  */
-public class RealType extends PrimitiveType implements RealRangeFacet, DatatypeConverter
+public class RealType extends PrimitiveType implements RealRangeFacet, DatatypeConverter, PrecisionFacet
 {
     protected static final Float FLOAT_INSTANCE = new Float(0);  
     protected static final Double DOUBLE_INSTANCE = new Double(0);  
     
-    private double minInclusive;
-    private double maxInclusive;
+    protected double minInclusive;
+    protected double maxInclusive;
+    protected int precision;
+    protected int scale;
 
-    public RealType()
+    public RealType(int precision, int scale)
     {
-        super(Datatype.REAL);
+        super(Datatype.REAL,true);
+        this.precision = precision;
+        this.scale = scale;
     }
     
 
@@ -63,17 +69,10 @@ public class RealType extends PrimitiveType implements RealRangeFacet, DatatypeC
 
     public Class getClassType()
     {
-      switch (getSize())
-      {
-        case 4:
-            return Float.class;
-        case 8:
-            return Double.class;
-      }
-      return null;
+      return BigDecimal.class;
     }
 
-    public Object accept(DatatypeVisitor v, Object arg)
+    public Object accept(TypeVisitor v, Object arg)
     {
         return v.visit(this,arg);
     }
@@ -139,14 +138,7 @@ public class RealType extends PrimitiveType implements RealRangeFacet, DatatypeC
 
     public Object getObjectType()
     {
-      switch (getSize())
-      {
-        case 4:
-            return FLOAT_INSTANCE;
-        case 8:
-            return DOUBLE_INSTANCE;
-      }
-      return null;
+      return BigDecimal.ZERO;
     }
 
 
@@ -189,6 +181,19 @@ public class RealType extends PrimitiveType implements RealRangeFacet, DatatypeC
         throw new ParseException("Cannot parse floating point value.",0);
       }
     }
+
+
+    public int getPrecision()
+    {
+      return 0;
+    }
+
+
+    public int getScale()
+    {
+      return 0;
+    }
+    
     
 
 }

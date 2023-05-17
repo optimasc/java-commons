@@ -1,7 +1,11 @@
 package com.optimasc.datatypes.derived;
 
-import com.optimasc.datatypes.primitives.IntegerType;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import java.text.ParseException;
+
+import com.optimasc.datatypes.Datatype;
+import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.primitives.IntegralType;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Represents a specific datatype that is a signed 16-bit integer value.
  *  
@@ -9,19 +13,49 @@ import com.optimasc.datatypes.visitor.DatatypeVisitor;
  *
  */
 
-public class ShortType extends IntegerType
+public class ShortType extends IntegralType
 {
+  protected static final Short SHORT_INSTANCE = new Short((short) 0);
+  
   public ShortType()
   {
     super();
     setMinInclusive(Short.MIN_VALUE);
     setMaxInclusive(Short.MAX_VALUE);
+    type = Datatype.SMALLINT;
   }
 
-    public Object accept(DatatypeVisitor v, Object arg)
+    public Object accept(TypeVisitor v, Object arg)
     {
         return v.visit(this,arg);
     }
+
+    public Class getClassType()
+    {
+      return Short.class;
+    }
+
+    public Object getObjectType()
+    {
+      return SHORT_INSTANCE;
+    }
+    
+    public Object parse(String value) throws ParseException
+    {
+      try
+      {
+        Long longValue = Long.valueOf(value);
+        validate(longValue);
+        return new Short(value);
+      } catch (NumberFormatException e)
+      {
+        throw new ParseException("Cannot parse string to integer type.", 0);
+      } catch (DatatypeException e)
+      {
+        throw new ParseException("Cannot parse string to integer type.", 0);
+      }
+    }
+    
 
 
 }

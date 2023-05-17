@@ -5,14 +5,16 @@
 
 package com.optimasc.datatypes.primitives;
 
+import java.math.BigInteger;
 import java.text.ParseException;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeConverter;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.IntegerRangeFacet;
+import com.optimasc.datatypes.BoundedRangeFacet;
 import com.optimasc.datatypes.PatternFacet;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.PrecisionFacet;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /**
  * This datatype represents an integral numeric value.
@@ -30,25 +32,30 @@ import com.optimasc.datatypes.visitor.DatatypeVisitor;
  * 
  * @author Carl Eric Codère
  */
-public class IntegerType extends PrimitiveType implements IntegerRangeFacet, DatatypeConverter, PatternFacet
+public class IntegralType extends PrimitiveType implements BoundedRangeFacet,
+    DatatypeConverter, PatternFacet, PrecisionFacet
 {
-  protected static final Byte BYTE_INSTANCE = new Byte((byte) 0);
-  protected static final Short SHORT_INSTANCE = new Short((short) 0);
-  protected static final Integer INTEGER_INSTANCE = new Integer(0);
-  protected static final Long LONG_INSTANCE = new Long(0);
-  
+
   protected static final String REGEX_INTEGER_PATTERN = "-?[0-9]+";
 
   protected long minInclusive;
 
   protected long maxInclusive;
 
-  public IntegerType()
+  public IntegralType()
   {
-    super(Datatype.INTEGER);
+    super(Datatype.INTEGER,true);
     minInclusive = Integer.MIN_VALUE;
     maxInclusive = Integer.MAX_VALUE;
   }
+  
+  protected IntegralType(int type, int minInclusive, int maxInclusive)
+  {
+    super(type,true);
+    this.minInclusive = minInclusive;
+    this.maxInclusive = maxInclusive;
+  }
+  
 
   /**
    * Validates if the Integer, Byte or Short object is compatible with the
@@ -62,39 +69,48 @@ public class IntegerType extends PrimitiveType implements IntegerRangeFacet, Dat
    *           Throws this exception if the value is not within the specified
    *           range
    */
-  public void validate(java.lang.Object value) throws IllegalArgumentException, DatatypeException
+  public void validate(java.lang.Object value) throws IllegalArgumentException,
+      DatatypeException
   {
     long longValue;
-    if (value instanceof Byte)
+    if (value instanceof BigInteger)
+    {
+      BigInteger b;
+      b = (BigInteger) value;
+      longValue = b.longValue();
+    }
+    else if (value instanceof Byte)
     {
       Byte b;
       b = (Byte) value;
       longValue = b.byteValue();
-    } else if (value instanceof Short)
+    }
+    else if (value instanceof Short)
     {
       Short s;
       s = (Short) value;
       longValue = s.shortValue();
 
-    } else if (value instanceof Integer)
+    }
+    else if (value instanceof Integer)
     {
       Integer i;
       i = (Integer) value;
       longValue = i.intValue();
     }
-    else
-    if (value instanceof Long)
+    else if (value instanceof Long)
     {
       Long i;
       i = (Long) value;
       longValue = i.longValue();
-    } else
+    }
+    else
       throw new IllegalArgumentException(
           "Invalid object type - should be Long, Integer, Short or Byte instance");
 
     if ((longValue > maxInclusive) || (longValue < minInclusive))
     {
-      DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE,
+      DatatypeException.throwIt(DatatypeException.ERROR_NUMERIC_OUT_OF_RANGE,
           "Integer is not within valid range.");
     }
   }
@@ -112,7 +128,7 @@ public class IntegerType extends PrimitiveType implements IntegerRangeFacet, Dat
   {
     if ((integerValue > maxInclusive) || (integerValue < minInclusive))
     {
-      DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE,
+      DatatypeException.throwIt(DatatypeException.ERROR_NUMERIC_OUT_OF_RANGE,
           "Integer is not within valid range.");
     }
   }
@@ -149,37 +165,15 @@ public class IntegerType extends PrimitiveType implements IntegerRangeFacet, Dat
 
   public Class getClassType()
   {
-    switch (getSize())
-    {
-      case 1:
-        return Byte.class;
-      case 2:
-        return Short.class;
-      case 4:
-        return Integer.class;
-      case 8:
-        return Long.class;
-    }
-    return Integer.class;
+    return BigInteger.class;
   }
 
   public Object getObjectType()
   {
-    switch (getSize())
-    {
-      case 1:
-        return BYTE_INSTANCE;
-      case 2:
-        return SHORT_INSTANCE;
-      case 4:
-        return INTEGER_INSTANCE;
-      case 8:
-        return LONG_INSTANCE;
-    }
-    return INTEGER_INSTANCE;
+    return BigInteger.ZERO;
   }
 
-  public Object accept(DatatypeVisitor v, Object arg)
+  public Object accept(TypeVisitor v, Object arg)
   {
     return v.visit(this, arg);
   }
@@ -200,12 +194,12 @@ public class IntegerType extends PrimitiveType implements IntegerRangeFacet, Dat
     {
       return true;
     }
-    IntegerType intType;
-    if (!(obj instanceof IntegerType))
+    IntegralType intType;
+    if (!(obj instanceof IntegralType))
     {
       return false;
     }
-    intType = (IntegerType) obj;
+    intType = (IntegralType) obj;
     if (this.minInclusive != intType.minInclusive)
     {
       return false;
@@ -223,18 +217,19 @@ public class IntegerType extends PrimitiveType implements IntegerRangeFacet, Dat
    */
   public boolean isSubset(Object obj)
   {
-    IntegerType intType;
-    if (!(obj instanceof IntegerType))
+    IntegralType intType;
+    if (!(obj instanceof IntegralType))
       return false;
-    intType = (IntegerType) obj;
-    if ((this.minInclusive <= intType.minInclusive) && (this.maxInclusive >= intType.maxInclusive))
+    intType = (IntegralType) obj;
+    if ((this.minInclusive <= intType.minInclusive)
+        && (this.maxInclusive >= intType.maxInclusive))
       return true;
     return false;
   }
 
   public boolean isSuperset(Object obj)
   {
-    if (!(obj instanceof IntegerType))
+    if (!(obj instanceof IntegralType))
       return false;
     if (isSubset(obj))
     {
@@ -265,31 +260,19 @@ public class IntegerType extends PrimitiveType implements IntegerRangeFacet, Dat
 
   public Object parse(String value) throws ParseException
   {
-    try 
+    try
     {
       Long longValue = Long.valueOf(value);
       validate(longValue);
-      switch (getSize())
-      {
-        case 1:
-            return new Byte((byte)longValue.longValue());
-        case 2:
-          return new Short((short)longValue.longValue());
-        case 4:
-          return new Integer((int)longValue.longValue());
-        case 8:
-          return longValue;
-        default:
-          return null;
-      }
+      return new BigInteger(value);
     } catch (NumberFormatException e)
     {
-      throw new ParseException("Cannot parse string to integer type.",0);
-  } catch (DatatypeException e)
-  {
-    throw new ParseException("Cannot parse string to integer type.",0);
-  }
+      throw new ParseException("Cannot parse string to integer type.", 0);
+    } catch (DatatypeException e)
+    {
+      throw new ParseException("Cannot parse string to integer type.", 0);
     }
+  }
 
   public String getPattern()
   {
@@ -300,6 +283,24 @@ public class IntegerType extends PrimitiveType implements IntegerRangeFacet, Dat
   {
     throw new IllegalArgumentException("Pattern is read only for this datatype.");
   }
-  
+
+  public int getPrecision()
+  {
+    // Calculate the precision of the number
+    long value = maxInclusive;
+    int precision = 0;
+    while (value > 9)
+    {
+      value = value / 10;
+      precision++;
+    }
+    return precision;
+  }
+
+  public int getScale()
+  {
+    // Always return 0.
+    return 0;
+  }
 
 }

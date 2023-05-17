@@ -7,7 +7,7 @@ package com.optimasc.datatypes.aggregate;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.VariableInstance;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
 import java.text.ParseException;
 import java.util.Vector;
@@ -33,13 +33,13 @@ public class RecordType extends Datatype
 
     public RecordType()
     {
-        super(Datatype.STRUCT);
+        super(Datatype.STRUCT,false);
         fields = new Vector();
     }
 
     public RecordType(String name, String comment, int flags)
     {
-        super(name, comment, Datatype.STRUCT, flags);
+        super(name, comment, Datatype.STRUCT, false, flags);
         fields = new Vector();
     }
 
@@ -109,7 +109,7 @@ public class RecordType extends Datatype
         return null;
     }
 
-    public Object accept(DatatypeVisitor v, Object arg)
+    public Object accept(TypeVisitor v, Object arg)
     {
         return v.visit(this,arg);
     }

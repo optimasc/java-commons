@@ -1,20 +1,33 @@
 package com.optimasc.datatypes.derived;
 
 import com.optimasc.datatypes.Datatype;
+import com.optimasc.datatypes.PrecisionFacet;
+import com.optimasc.lang.Currency;
 import com.optimasc.datatypes.primitives.RealType;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
 public class CurrencyType extends RealType
 {
-
-  public CurrencyType()
+  public CurrencyType(int precision)
   {
-    super();
+    super(8,2);
   }
 
-  public Object accept(DatatypeVisitor v, Object arg)
+  public Object accept(TypeVisitor v, Object arg)
   {
       return v.visit(this,arg);
   }
+
+  public Class getClassType()
+  {
+    return Currency.class;
+  }
+
+  public Object getObjectType()
+  {
+    return Currency.ZERO;
+  }
+
+
   
 }

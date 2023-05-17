@@ -8,7 +8,7 @@ package com.optimasc.datatypes;
 import java.text.ParseException;
 
 import com.optimasc.datatypes.aggregate.RecordType;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** This represents either a field in a class, a variable
  *  instance associated with a datatype or a method parameter.
@@ -28,7 +28,7 @@ public class VariableInstance extends Datatype {
 
     public VariableInstance(String name, Datatype type, RecordType parent, int modifiers)
     {
-        super(name,null,0,modifiers);
+        super(name,null,0,false,modifiers);
         this.dataType = type;
         this.parent = parent;
     }
@@ -106,7 +106,7 @@ public class VariableInstance extends Datatype {
         this.assigned = assigned;
     }
 
-    public Object accept(DatatypeVisitor v, Object arg)
+    public Object accept(TypeVisitor v, Object arg)
     {
         return v.visit(this,arg);
     }

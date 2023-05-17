@@ -7,23 +7,28 @@ import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 import java.text.ParseException;
 
+import com.optimasc.datatypes.CharacterSetEncodingFacet;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.BoundedRangeFacet;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
-public abstract class CharType extends PrimitiveType
+/**
+*  <p>Contrary to ISO/IEC 11404, this type is considered ordered.</p>
+*/
+public abstract class CharacterType extends PrimitiveType implements CharacterSetEncodingFacet,BoundedRangeFacet
 {
   protected static final Character INSTANCE_TYPE = new Character('a');
   protected Charset charSet = null; 
   protected CharsetEncoder charsetEncoder = null;
   
   /** Repertoire list - CHARSET IANA value. */
-  protected String repertoireList;
+  protected String charSetName;
   
   
-  public CharType()
+  public CharacterType()
   {
-    super(Datatype.CHAR);
+    super(Datatype.CHAR,true);
   }
   
   public Class getClassType()
@@ -63,7 +68,7 @@ public abstract class CharType extends PrimitiveType
     {
       if (isValidCharacter(((Character)value).charValue())==false)
       {
-        DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE, "Character cannot be encoded in this repertoire");        
+        DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_CHARACTER, "Character cannot be encoded in this repertoire");        
       }
     } else
     throw new IllegalArgumentException(
@@ -86,12 +91,12 @@ public abstract class CharType extends PrimitiveType
     {
       return true;
     }
-    if (!(obj instanceof CharType))
+    if (!(obj instanceof CharacterType))
     {
         return false;
     }
     
-    if (repertoireList.equals(((CharType)obj).repertoireList)==false)
+    if (charSetName.equals(((CharacterType)obj).charSetName)==false)
     {
         return false;
     }
@@ -100,7 +105,7 @@ public abstract class CharType extends PrimitiveType
     
   }
   
-  public Object accept(DatatypeVisitor v, Object arg)
+  public Object accept(TypeVisitor v, Object arg)
   {
       return v.visit(this,arg);
   }
@@ -108,17 +113,10 @@ public abstract class CharType extends PrimitiveType
 
   public String getRepertoireList()
   {
-    return repertoireList;
+    return charSetName;
   }
-
-  public void setRepertoireList(String repertoireList)
-  {
-    this.repertoireList = repertoireList;
-    Charset cs = Charset.forName(repertoireList);
-    charsetEncoder = cs.newEncoder();
-    charsetEncoder.onMalformedInput(CodingErrorAction.REPORT);
-    charsetEncoder.onUnmappableCharacter(CodingErrorAction.REPORT);
-  }
+  
+  
 
   public Object getObjectType()
   {
@@ -145,6 +143,47 @@ public abstract class CharType extends PrimitiveType
     }
     return chObject;
   }
+
+  public String getCharSetName()
+  {
+    return charSetName;
+  }
+
+  public void setCharSetName(String charSetName)
+  {
+    this.charSetName = charSetName;
+    Charset cs = Charset.forName(charSetName);
+    charsetEncoder = cs.newEncoder();
+    charsetEncoder.onMalformedInput(CodingErrorAction.REPORT);
+    charsetEncoder.onUnmappableCharacter(CodingErrorAction.REPORT);
+  }
+
+  /** This will throw an exception as this method
+   *  should not be called on <code>CharacterType</code>
+   *  and is set internally in derived classes.
+   *  
+   */
+  public void setMinInclusive(long value)
+  {
+    throw new IllegalArgumentException("Setting inclusive value for range is not supported for character types");
+  }
+
+  /** This will throw an exception as this method
+   *  should not be called on <code>CharacterType</code>
+   *  and is set internally in derived classes.
+   *  
+   */
+  public void setMaxInclusive(long value)
+  {
+    throw new IllegalArgumentException("Setting inclusive value for range is not supported for character types");
+  }
+
+  public int getSize()
+  {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
   
 
 

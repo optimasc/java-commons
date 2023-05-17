@@ -4,7 +4,7 @@ import java.text.ParseException;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Represents an elapsed time.
  *
@@ -24,10 +24,10 @@ public class DurationType extends PrimitiveType
 
   public DurationType()
   {
-    super(Datatype.OTHER);
+    super(Datatype.OTHER,true);
   }
   
-  public Object accept(DatatypeVisitor v, Object arg)
+  public Object accept(TypeVisitor v, Object arg)
   {
       return v.visit(this,arg);
   }

@@ -29,42 +29,46 @@ import com.optimasc.datatypes.generated.ProcedureType;
 import com.optimasc.datatypes.generated.UnionType;
 import com.optimasc.datatypes.primitives.BinaryType;
 import com.optimasc.datatypes.primitives.BooleanType;
-import com.optimasc.datatypes.primitives.CharType;
+import com.optimasc.datatypes.primitives.CharacterType;
 import com.optimasc.datatypes.primitives.DateTimeType;
 import com.optimasc.datatypes.primitives.DurationType;
-import com.optimasc.datatypes.primitives.EnumeratedType;
-import com.optimasc.datatypes.primitives.IntegerType;
+import com.optimasc.datatypes.primitives.EnumType;
+import com.optimasc.datatypes.primitives.IntegralType;
 import com.optimasc.datatypes.primitives.PrimitiveType;
 import com.optimasc.datatypes.primitives.RealType;
 import com.optimasc.datatypes.primitives.StringType;
 import com.optimasc.datatypes.primitives.TimeType;
+import com.optimasc.datatypes.primitives.VoidType;
 
 /**
  *
  * @author Carl
  */
-public interface DatatypeVisitor {
+public interface TypeVisitor {
   
   /********************** Primitive types *************************/
   public Object visit(BinaryType n, Object arg);
 
   public Object visit(BooleanType n, Object arg);
   
-  public Object visit(CharType n, Object arg);
+  public Object visit(CharacterType n, Object arg);
   
   public Object visit(DateTimeType n, Object arg);
   
   public Object visit(DurationType n, Object arg);
   
-  public Object visit(EnumeratedType n, Object arg);
+  public Object visit(EnumType n, Object arg);
 
-  public Object visit(IntegerType n, Object arg);
+  public Object visit(IntegralType n, Object arg);
   
   public Object visit(RealType n, Object arg);
   
   public Object visit(StringType n, Object arg);
   
   public Object visit(TimeType n, Object arg);
+  
+  public Object visit(VoidType n, Object arg);
+  
   
   /********************** Aggregate types *************************/
   
@@ -87,8 +91,6 @@ public interface DatatypeVisitor {
   public Object visit(DateType n, Object arg);
   
   public Object visit(LatinCharType n, Object arg);
-
-  public Object visit(PrimitiveType n, Object arg);
 
   public Object visit(TimestampType n, Object arg);
 

@@ -7,7 +7,7 @@ package com.optimasc.datatypes.derived;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.primitives.DateTimeType;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 import java.util.Calendar;
 import java.util.TimeZone;
 
@@ -89,7 +89,7 @@ public class DateType extends DateTimeType
         return cal;
     }
 
-    public Object accept(DatatypeVisitor v, Object arg)
+    public Object accept(TypeVisitor v, Object arg)
     {
         return v.visit(this,arg);
     }

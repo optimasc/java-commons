@@ -1,20 +1,32 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.optimasc.datatypes.primitives;
 
 import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.EnumerationFacet;
-import com.optimasc.datatypes.NotFoundException;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
-import java.util.Vector;
+import com.optimasc.datatypes.Type;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
-public abstract class EnumeratedType extends PrimitiveType implements EnumerationFacet
+/** Represents an enumeration. An enumeration is always 
+ *  represented by an ordered integral value or 
+ *  by a string representation value.
+ * 
+ *  This is equivalent to the following datatypes:
+ *  <ul>
+ *   <li>enumerated ISO/IEC 11404 General purpose datatype</li>
+ *  </ul>
+ *  
+ *  To follow standard programming languages, you should
+ *  use the EnumerationElement with the name of the symbol
+ *  and the integral value.
+ *  
+ *  
+ * @author Carl Eric Codère
+ */
+public abstract class EnumType extends PrimitiveType implements ConstructedSimple, EnumerationFacet
 {
-  protected Datatype elementType;
+  /** Basic element type */
+  protected Type elementType;
   protected Object[] choices;
   
   
@@ -53,14 +65,14 @@ public abstract class EnumeratedType extends PrimitiveType implements Enumeratio
     
   }
 
-  public EnumeratedType()
+  public EnumType()
   {
-    super(Datatype.OTHER);
+    super(Datatype.OTHER,true);
   }
 
   public int getSize()
   {
-    return elementType.getSize();
+    return 0;
   }
 
   public Class getClassType()
@@ -78,11 +90,11 @@ public abstract class EnumeratedType extends PrimitiveType implements Enumeratio
   {
    if (validateChoice(value) == false)
    {
-     DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE, "Value is not in choice list.");
+     DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE, "Value is not in choice list.");
    }
   }
 
-  public Object accept(DatatypeVisitor v, Object arg)
+  public Object accept(TypeVisitor v, Object arg)
   {
     return null;
   }
@@ -104,12 +116,12 @@ public abstract class EnumeratedType extends PrimitiveType implements Enumeratio
    return false;
   }
 
-  public Datatype getElementType()
+  public Type getBaseType()
   {
     return elementType;
   }
 
-  public void setElementType(Datatype value)
+  public void setBaseType(Type value)
   {
     elementType = value;
   }

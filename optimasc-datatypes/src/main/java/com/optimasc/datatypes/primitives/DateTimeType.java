@@ -2,13 +2,15 @@ package com.optimasc.datatypes.primitives;
 
 import java.text.ParseException;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.PatternFacet;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.date.BaseISO8601Date;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -31,8 +33,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  */
 public class DateTimeType extends PrimitiveType implements PatternFacet
 {
-  protected static XMLGregorianCalendar INSTANCE_TYPE;
-
+  protected static final Calendar INSTANCE = new GregorianCalendar();
   protected static final String REGEX_PATTERN = "([0-9][0-9][0-9][0-9])(?:(?:-(0[1-9]|1[0-2])(?:-([12]\\d|0[1-9]|3[01]))?)?(?:T(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(?:[\\.,](\\d+))?([zZ]|([\\+-])([01]\\d|2[0-3]):?([0-5]\\d)?)?)?)";
   protected static final String PATTERN_YEAR = "([0-9][0-9][0-9][0-9])";
   protected static final String PATTERN_MONTH = "(0[1-9]|1[0-2])";
@@ -71,32 +72,16 @@ public class DateTimeType extends PrimitiveType implements PatternFacet
 
   public DateTimeType(int type)
   {
-    super(type);
-    try
-    {
-      INSTANCE_TYPE = DatatypeFactory.newInstance().newXMLGregorianCalendar("1968");
-    } catch (DatatypeConfigurationException e)
-    {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+    super(type,true);
   }
 
   public DateTimeType()
   {
-    super(Datatype.TIMESTAMP);
+    super(Datatype.TIMESTAMP,true);
     setResolution(RESOLUTION_UNDEFINED);
-    try
-    {
-      INSTANCE_TYPE = DatatypeFactory.newInstance().newXMLGregorianCalendar("1968");
-    } catch (DatatypeConfigurationException e)
-    {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
   }
   
-  public Object accept(DatatypeVisitor v, Object arg)
+  public Object accept(TypeVisitor v, Object arg)
   {
       return v.visit(this,arg);
   }
@@ -119,75 +104,75 @@ public class DateTimeType extends PrimitiveType implements PatternFacet
 
   public Class getClassType()
   {
-    return XMLGregorianCalendar.class;
+    return Calendar.class;
   }
 
   public void validate(Object value) throws IllegalArgumentException, DatatypeException
   {
+    Calendar cal;
     int resolution = getResolution();
     checkClass(value);
     /* Check the precision of the data. */
-    XMLGregorianCalendar cal = (XMLGregorianCalendar) value;
+    cal = (Calendar) value;
 
     if (resolution >= RESOLUTION_SECOND)
     {
-      if (cal.getSecond() == DatatypeConstants.FIELD_UNDEFINED)
+      if (cal.isSet(Calendar.SECOND)==false)
       {
-        DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE,
+        DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,
             "Second field is invalid.");
       }
     }
 
     if (resolution >= RESOLUTION_MINUTE)
     {
-      if (cal.getMinute() == DatatypeConstants.FIELD_UNDEFINED)
+      if (cal.isSet(Calendar.MINUTE)==false)
       {
-        DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE,
+        DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,
             "Minute field is invalid.");
       }
     }
 
     if (resolution >= RESOLUTION_HOUR)
     {
-      if (cal.getHour() == DatatypeConstants.FIELD_UNDEFINED)
+      if (cal.isSet(Calendar.HOUR_OF_DAY) == false)
       {
-        DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE,
+        DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,
             "Hour field is invalid.");
       }
     }
 
     if (resolution >= RESOLUTION_DAY)
     {
-      if (cal.getDay() == DatatypeConstants.FIELD_UNDEFINED)
+      if (cal.isSet(Calendar.DAY_OF_MONTH) == false)
       {
-        DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE,
+        DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,
             "Day field is invalid.");
       }
     }
 
     if (resolution >= RESOLUTION_MONTH)
     {
-      if (cal.getMonth() == DatatypeConstants.FIELD_UNDEFINED)
+      if (cal.isSet(Calendar.MONTH) == false)
       {
-        DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE,
+        DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,
             "Month field is invalid.");
       }
     }
 
     if (resolution >= RESOLUTION_YEAR)
     {
-      if (cal.getYear() == DatatypeConstants.FIELD_UNDEFINED)
+      if (cal.isSet(Calendar.YEAR) == false)
       {
-        DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE,
+        DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,
             "Year field is invalid.");
       }
     }
-
   }
 
   public Object getObjectType()
   {
-    return INSTANCE_TYPE;
+    return INSTANCE;
   }
 
   public Object parse(String value) throws ParseException
@@ -197,7 +182,7 @@ public class DateTimeType extends PrimitiveType implements PatternFacet
       DatatypeFactory dataFactory = DatatypeFactory.newInstance();
       XMLGregorianCalendar cal = dataFactory.newXMLGregorianCalendar(value);
       validate(cal);
-      return cal;
+      return cal.toGregorianCalendar();
     } catch (DatatypeConfigurationException e1)
     {
       throw new IllegalArgumentException("Internall error", e1);

@@ -11,7 +11,7 @@ import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeConverter;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.PatternFacet;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** This datatype represents a boolean value which represents a logical
  *  true of false state.
@@ -22,6 +22,7 @@ import com.optimasc.datatypes.visitor.DatatypeVisitor;
  *   <li>boolean ISO/IEC 11404 General purpose datatype</li>
  *   <li>boolean XMLSchema built-in datatype</li>
  *  </ul>
+ *  
  *
  * @author Carl Eric Codère
  */
@@ -36,7 +37,7 @@ public class BooleanType extends PrimitiveType implements DatatypeConverter, Pat
      */
     public BooleanType()
     {
-        super(Datatype.BOOLEAN);
+        super(Datatype.BOOLEAN,false);
     }
     
     public int getSize()
@@ -59,7 +60,7 @@ public class BooleanType extends PrimitiveType implements DatatypeConverter, Pat
       return Boolean.class;
     }
 
-    public Object accept(DatatypeVisitor v, Object arg)
+    public Object accept(TypeVisitor v, Object arg)
     {
         return v.visit(this,arg);
     }
