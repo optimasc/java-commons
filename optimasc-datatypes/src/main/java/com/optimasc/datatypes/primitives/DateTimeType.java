@@ -1,39 +1,39 @@
 package com.optimasc.datatypes.primitives;
 
 import java.text.ParseException;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.StringTokenizer;
-import java.util.TimeZone;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.Parseable;
 import com.optimasc.datatypes.PatternFacet;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.date.BaseISO8601Date;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeConstants;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
+import com.optimasc.lang.DateTimeConstants;
+import com.optimasc.lang.GregorianDateTime;
 
 /**
- * Represents a date and time with a specified resolution.
+ * Abstract Datatype that represents a date and time with a specified resolution. This
+ * can be used to represent dates or timestamps.
  * 
- * This is equivalent to the following datatypes:
- * <ul>
- * <li>time ISO/IEC 11404 General purpose datatype</li>
- * </ul>
+ *  This may be equivalent to the following datatypes, depending on resolution:
+ *  <ul>
+ *   <li><code>GeneralizedTime</code>, <code>DATE</code> or <code>DATE-TIME</code> ASN.1 datatype</li>
+ *   <li><code>time</code> ISO/IEC 11404 General purpose datatype</li>
+ *   <li><code>dateTime</code> or <code>date</code> XMLSchema built-in datatype</li>
+ *   <li><code>DATE</code> or <code>TIMESTAMP</code> in SQL2003</li>
+ *  </ul>
  * 
- * The default non parameter constructor creates equivalent to an undefined
- * resolution.
+ * <p>The default non parameter constructor creates equivalent to an undefined
+ * resolution.</p>
+ * 
+ * <p>Internally, values of this type are represented as {@link GregorianDateTime} objects.</p>
  * 
  * @author Carl Eric Codère
  */
-public class DateTimeType extends PrimitiveType implements PatternFacet
+public class DateTimeType extends PrimitiveType implements PatternFacet, Parseable
 {
-  protected static final Calendar INSTANCE = new GregorianCalendar();
+  protected static final GregorianDateTime INSTANCE = new GregorianDateTime();
   protected static final String REGEX_PATTERN = "([0-9][0-9][0-9][0-9])(?:(?:-(0[1-9]|1[0-2])(?:-([12]\\d|0[1-9]|3[01]))?)?(?:T(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(?:[\\.,](\\d+))?([zZ]|([\\+-])([01]\\d|2[0-3]):?([0-5]\\d)?)?)?)";
   protected static final String PATTERN_YEAR = "([0-9][0-9][0-9][0-9])";
   protected static final String PATTERN_MONTH = "(0[1-9]|1[0-2])";
@@ -97,27 +97,22 @@ public class DateTimeType extends PrimitiveType implements PatternFacet
     this.resolution = resolution;
   }
 
-  public int getSize()
-  {
-    return 4;
-  }
-
   public Class getClassType()
   {
-    return Calendar.class;
+    return GregorianDateTime.class;
   }
 
   public void validate(Object value) throws IllegalArgumentException, DatatypeException
   {
-    Calendar cal;
+    GregorianDateTime cal;
     int resolution = getResolution();
     checkClass(value);
     /* Check the precision of the data. */
-    cal = (Calendar) value;
+    cal = (GregorianDateTime) value;
 
     if (resolution >= RESOLUTION_SECOND)
     {
-      if (cal.isSet(Calendar.SECOND)==false)
+      if (cal.getSecond()==DateTimeConstants.FIELD_UNDEFINED)
       {
         DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,
             "Second field is invalid.");
@@ -126,7 +121,7 @@ public class DateTimeType extends PrimitiveType implements PatternFacet
 
     if (resolution >= RESOLUTION_MINUTE)
     {
-      if (cal.isSet(Calendar.MINUTE)==false)
+      if (cal.getMinute()==DateTimeConstants.FIELD_UNDEFINED)
       {
         DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,
             "Minute field is invalid.");
@@ -135,7 +130,7 @@ public class DateTimeType extends PrimitiveType implements PatternFacet
 
     if (resolution >= RESOLUTION_HOUR)
     {
-      if (cal.isSet(Calendar.HOUR_OF_DAY) == false)
+      if (cal.getHour()==DateTimeConstants.FIELD_UNDEFINED)
       {
         DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,
             "Hour field is invalid.");
@@ -144,7 +139,7 @@ public class DateTimeType extends PrimitiveType implements PatternFacet
 
     if (resolution >= RESOLUTION_DAY)
     {
-      if (cal.isSet(Calendar.DAY_OF_MONTH) == false)
+      if (cal.getDay()==DateTimeConstants.FIELD_UNDEFINED)
       {
         DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,
             "Day field is invalid.");
@@ -153,7 +148,7 @@ public class DateTimeType extends PrimitiveType implements PatternFacet
 
     if (resolution >= RESOLUTION_MONTH)
     {
-      if (cal.isSet(Calendar.MONTH) == false)
+      if (cal.getMonth()==DateTimeConstants.FIELD_UNDEFINED)
       {
         DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,
             "Month field is invalid.");
@@ -162,7 +157,7 @@ public class DateTimeType extends PrimitiveType implements PatternFacet
 
     if (resolution >= RESOLUTION_YEAR)
     {
-      if (cal.isSet(Calendar.YEAR) == false)
+      if (cal.getYear()==DateTimeConstants.FIELD_UNDEFINED)
       {
         DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,
             "Year field is invalid.");
@@ -175,26 +170,6 @@ public class DateTimeType extends PrimitiveType implements PatternFacet
     return INSTANCE;
   }
 
-  public Object parse(String value) throws ParseException
-  {
-    try
-    {
-      DatatypeFactory dataFactory = DatatypeFactory.newInstance();
-      XMLGregorianCalendar cal = dataFactory.newXMLGregorianCalendar(value);
-      validate(cal);
-      return cal.toGregorianCalendar();
-    } catch (DatatypeConfigurationException e1)
-    {
-      throw new IllegalArgumentException("Internall error", e1);
-    } catch (DatatypeException e)
-    {
-      throw new ParseException("Error parsing datetime value.", 0);
-    } catch (IllegalArgumentException e)
-    {
-      throw new ParseException("Error parsing datetime value.", 0);
-    }
-
-  }
 
   public String getPattern()
   {
@@ -244,5 +219,78 @@ public class DateTimeType extends PrimitiveType implements PatternFacet
     }
     return true;
   }
+
+  public Object parse(String value) throws ParseException
+  {
+    GregorianDateTime cal = new GregorianDateTime();
+
+    if (resolution == RESOLUTION_YEAR)
+    {
+      int v = Integer.parseInt(value);
+      cal.setYear(v);
+    try {  
+      validate(cal);
+    } catch (IllegalArgumentException e)
+    {
+      throw new ParseException("Error parsing date value.",0);
+    } catch (DatatypeException e)
+    {
+      throw new ParseException("Error parsing date value.",0);
+    }
+      return cal;
+    } 
+    else
+    if (resolution == RESOLUTION_MONTH)
+    {
+      try 
+      {
+        cal = GregorianDateTime.parse(value);
+        validate(cal);
+        return cal;
+      } catch (IllegalArgumentException e)
+      {
+        throw new ParseException("Error parsing date value.",0);
+      } catch (DatatypeException e)
+      {
+        throw new ParseException("Error parsing date value.",0);
+      }
+    } else
+    if (resolution == RESOLUTION_DAY)
+    {
+        try 
+        {
+          cal = GregorianDateTime.parse(value);
+          validate(cal);
+          return cal;
+        } catch (IllegalArgumentException e)
+        {
+          throw new ParseException("Error parsing date value.",0);
+        } catch (DatatypeException e)
+        {
+          throw new ParseException("Error parsing date value.",0);
+        }
+    } else
+    if (resolution == RESOLUTION_SECOND)
+    {
+      cal.clear();
+        try 
+        {
+          cal = GregorianDateTime.parse(value);
+          validate(cal);
+          return cal;
+        } catch (IllegalArgumentException e)
+        {
+          throw new ParseException("Error parsing date value.",0);
+        } catch (DatatypeException e)
+        {
+          throw new ParseException("Error parsing date value.",0);
+        }
+    } else
+    {
+      throw new IllegalArgumentException("Unsupported parsing for this resolution in "+this.getClass().getName());
+    }
+  }
+  
+  
 
 }

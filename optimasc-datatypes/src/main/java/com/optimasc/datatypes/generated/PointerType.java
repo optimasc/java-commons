@@ -31,11 +31,6 @@ public class PointerType extends Datatype implements ConstructedSimple {
         return null;
     }
 
-    public int getSize()
-    {
-        return 0;
-    }
-
     public void validate(Object integerValue) throws IllegalArgumentException, DatatypeException
     {
         
@@ -62,10 +57,5 @@ public class PointerType extends Datatype implements ConstructedSimple {
       return null;
     }
 
-    public Object parse(String value) throws ParseException
-    {
-      throw new UnsupportedOperationException("Parse method is not implemented.");
-    }
-    
     
 }

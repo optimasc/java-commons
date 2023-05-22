@@ -32,11 +32,6 @@ public class UnionType extends Datatype implements PatternFacet
     super(name, comment, type, false, flags);
   }
 
-  public int getSize()
-  {
-    return -1;
-  }
-
   public Class getClassType()
   {
     return Object.class;
@@ -73,30 +68,6 @@ public class UnionType extends Datatype implements PatternFacet
     }
   }
 
-  public Object parse(String value) throws ParseException
-  {
-    int i;
-    boolean success = false;
-    ParseException thrownException = null;
-    /* We go through each alllowed types, and if one is ok, then we stop. */
-    for (i = 0; i < allowedTypes.size(); i++)
-    {
-      try 
-      {
-        Datatype datatype = (Datatype)allowedTypes.elementAt(i);
-        return datatype.parse(value);
-      } catch (ParseException e)
-      {
-        thrownException = e;
-        continue;
-      }
-    }
-    if (success == false)
-    {
-      throw thrownException;
-    }
-    return null;
-  }
 
   public Object accept(TypeVisitor v, Object arg)
   {

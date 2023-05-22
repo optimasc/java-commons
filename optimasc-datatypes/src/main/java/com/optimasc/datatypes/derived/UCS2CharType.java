@@ -17,16 +17,10 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class UCS2CharType extends CharacterType {
   
-
     public UCS2CharType()
     {
       super();
-      setCharSetName("UTF-16BE");
-    }
-
-    public int getSize()
-    {
-        return 2;
+      setCharSetName("ISO-10646-UCS-2");
     }
 
     public Object accept(TypeVisitor v, Object arg)
@@ -39,12 +33,12 @@ public class UCS2CharType extends CharacterType {
       if ((c >= 0) && (c <= Character.MAX_VALUE))
       {
         // Surrogate values are not allowed.
-        if (Character.getType(c)==Character.SURROGATE)
+        if (Character.getType((char)c)==Character.SURROGATE)
         {
           return false;
         }
         // Private values are not allowed.
-        if (Character.getType(c)==Character.PRIVATE_USE)
+        if (Character.getType((char)c)==Character.PRIVATE_USE)
         {
           return false;
         }

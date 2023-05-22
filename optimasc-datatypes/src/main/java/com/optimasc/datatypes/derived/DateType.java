@@ -8,8 +8,7 @@ package com.optimasc.datatypes.derived;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.primitives.DateTimeType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
-import java.util.Calendar;
-import java.util.TimeZone;
+import com.optimasc.lang.GregorianDateTime;
 
 /** The date type represents a date in the proleptic Gregorian Calender.
  *  Internally the date type can be represented as the following binary
@@ -47,31 +46,16 @@ public class DateType extends DateTimeType
         setResolution(RESOLUTION_DAY);
     }
 
-    public int getSize()
-    {
-        return 4;
-    }
-
-    /** Returns the integer internal representation of this date.
-     *
-     */
-    public static int calendarToDateValue(Calendar cal)
-    {
-       return 0;
-    }
-
-
-    /** Converts an internal date representation to a Calendar instance using
+    /** Converts an internal date representation to a GregorianDateTime instance using
      *  the GMT timezone.
      *
      * @param value
      * @return
      * @throws IllegalArgumentException
      */
-    public static Calendar DateValueToCalendar(int value) throws IllegalArgumentException
+    public static GregorianDateTime DateValueToCalendar(int value) throws IllegalArgumentException
     {
-        TimeZone tz = TimeZone.getTimeZone("GMT");
-        Calendar cal = Calendar.getInstance(tz);
+        GregorianDateTime  cal = new GregorianDateTime();
 
         short year = (short)(((value & MASK_YEAR) >> SHIFT_YEAR) & 0xFFFF);
         byte month = (byte)(((value & MASK_MONTH) >> SHIFT_MONTH) & 0x7F);
@@ -83,9 +67,10 @@ public class DateType extends DateTimeType
         if ((day < 1) || (day > 31))
             throw new IllegalArgumentException("Illegal day value.");
 
-        cal.set(Calendar.DAY_OF_MONTH, day);
-        cal.set(Calendar.MONTH, day);
-        cal.set(Calendar.YEAR, year);
+        cal.setYear(year);
+        cal.setMonth(month);
+        cal.setDay(day);
+        cal.setTimezone(0);
         return cal;
     }
 
@@ -93,6 +78,7 @@ public class DateType extends DateTimeType
     {
         return v.visit(this,arg);
     }
+
 
 
 }

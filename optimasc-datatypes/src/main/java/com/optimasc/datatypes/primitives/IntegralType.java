@@ -12,28 +12,31 @@ import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeConverter;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.BoundedRangeFacet;
+import com.optimasc.datatypes.Parseable;
 import com.optimasc.datatypes.PatternFacet;
 import com.optimasc.datatypes.PrecisionFacet;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /**
- * This datatype represents an integral numeric value.
+ * Datatype that represents an integral numeric value. For
+ * performance reasons, derived integral types should be
+ * used instead of this one.
  * 
  * This is equivalent to the following datatypes:
  * <ul>
- * <li>INTEGER ASN.1 datatype</li>
- * <li>integer ISO/IEC 11404 General purpose datatype</li>
- * <li>integer XMLSchema built-in datatype</li>
+ * <li><code>INTEGER</code> ASN.1 datatype</li>
+ * <li><code>integer</code> ISO/IEC 11404 General purpose datatype</li>
+ * <li><code>integer</code> XMLSchema built-in datatype</li>
+ * 
  * </ul>
  * 
- * By default, the allowed range for this type is {@code Integer.MIN_VALUE}..
- * {@code Integer.MAX_VALUE}.
+ * <p>Internally, values of this type are represented as {@link BigInteger}.</p>
  * 
  * 
  * @author Carl Eric Codère
  */
 public class IntegralType extends PrimitiveType implements BoundedRangeFacet,
-    DatatypeConverter, PatternFacet, PrecisionFacet
+    DatatypeConverter, PatternFacet, PrecisionFacet, Parseable
 {
 
   protected static final String REGEX_INTEGER_PATTERN = "-?[0-9]+";
@@ -45,8 +48,8 @@ public class IntegralType extends PrimitiveType implements BoundedRangeFacet,
   public IntegralType()
   {
     super(Datatype.INTEGER,true);
-    minInclusive = Integer.MIN_VALUE;
-    maxInclusive = Integer.MAX_VALUE;
+    minInclusive = Long.MIN_VALUE;
+    maxInclusive = Long.MAX_VALUE;
   }
   
   protected IntegralType(int type, int minInclusive, int maxInclusive)
@@ -73,36 +76,11 @@ public class IntegralType extends PrimitiveType implements BoundedRangeFacet,
       DatatypeException
   {
     long longValue;
-    if (value instanceof BigInteger)
+    if (value instanceof Number)
     {
-      BigInteger b;
-      b = (BigInteger) value;
+      Number b;
+      b = (Number) value;
       longValue = b.longValue();
-    }
-    else if (value instanceof Byte)
-    {
-      Byte b;
-      b = (Byte) value;
-      longValue = b.byteValue();
-    }
-    else if (value instanceof Short)
-    {
-      Short s;
-      s = (Short) value;
-      longValue = s.shortValue();
-
-    }
-    else if (value instanceof Integer)
-    {
-      Integer i;
-      i = (Integer) value;
-      longValue = i.intValue();
-    }
-    else if (value instanceof Long)
-    {
-      Long i;
-      i = (Long) value;
-      longValue = i.longValue();
     }
     else
       throw new IllegalArgumentException(
@@ -156,11 +134,6 @@ public class IntegralType extends PrimitiveType implements BoundedRangeFacet,
       return 8;
     }
     return 0;
-  }
-
-  public int getSize()
-  {
-    return getStorageSize(minInclusive, maxInclusive);
   }
 
   public Class getClassType()
@@ -262,7 +235,7 @@ public class IntegralType extends PrimitiveType implements BoundedRangeFacet,
   {
     try
     {
-      Long longValue = Long.valueOf(value);
+      BigInteger longValue = new BigInteger(value);
       validate(longValue);
       return new BigInteger(value);
     } catch (NumberFormatException e)

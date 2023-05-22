@@ -98,11 +98,6 @@ public class ProcedureType extends Type {
         return null;
     }
 
-    public int getSize()
-    {
-        return 0;
-    }
-
     public Object accept(TypeVisitor v, Object arg)
     {
         return v.visit(this,arg);
@@ -114,9 +109,4 @@ public class ProcedureType extends Type {
       return null;
     }
     
-    public Object parse(String value) throws ParseException
-    {
-      throw new UnsupportedOperationException("Parse method is not implemented.");
-    }
-
 }

@@ -28,11 +28,6 @@ public class UnsignedShortType extends NonNegativeIntegerType
         return v.visit(this,arg);
     }
 
-    public int getSize()
-    {
-      return 2;
-    }
-
     public Class getClassType()
     {
       return Short.class;
@@ -43,10 +38,4 @@ public class UnsignedShortType extends NonNegativeIntegerType
       return SHORT_INSTANCE;
     }
     
-    public Object parse(String value) throws ParseException
-    {
-      throw new ParseException("Cannot parse string to integer type.", 0);
-    }
-    
-
 }

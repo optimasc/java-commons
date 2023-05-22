@@ -40,11 +40,6 @@ public class IntType extends IntegralType
       return super.getObjectType();
     }
 
-    public int getSize()
-    {
-      return 4;
-    }
-    
     public Object parse(String value) throws ParseException
     {
       try

@@ -10,23 +10,27 @@ import java.text.ParseException;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeConverter;
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.Parseable;
 import com.optimasc.datatypes.PatternFacet;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
-/** This datatype represents a boolean value which represents a logical
+/** Datatype that represents a boolean value which represents a logical
  *  true of false state.
  *  
  *  This is equivalent to the following datatypes:
  *  <ul>
- *   <li>BOOLEAN ASN.1 datatype</li>
- *   <li>boolean ISO/IEC 11404 General purpose datatype</li>
- *   <li>boolean XMLSchema built-in datatype</li>
+ *   <li><code>BOOLEAN</code> ASN.1 datatype</li>
+ *   <li></code>boolean</code> ISO/IEC 11404 General purpose datatype</li>
+ *   <li><code>boolean</code> XMLSchema built-in datatype</li>
+ *   <li><code>BOOLEAN</code> in SQL2003</li>
  *  </ul>
+ *
+ * <p>Internally, values of this type are represented as {@link Boolean} objects.</p>
  *  
  *
  * @author Carl Eric Codère
  */
-public class BooleanType extends PrimitiveType implements DatatypeConverter, PatternFacet
+public class BooleanType extends PrimitiveType implements DatatypeConverter, PatternFacet, Parseable
 {
   protected static final String REGEX_PATTERN = "true|false|0|1|TRUE|FALSE";
   
@@ -40,11 +44,6 @@ public class BooleanType extends PrimitiveType implements DatatypeConverter, Pat
         super(Datatype.BOOLEAN,false);
     }
     
-    public int getSize()
-    {
-        return 1;
-    }
-
     /** Validates if the Boolean object is compatible with the defined datatype.
      *
      * @param value The object to check must be a Boolean object.

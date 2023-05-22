@@ -14,11 +14,6 @@ public class VoidType extends PrimitiveType
     super(Datatype.OTHER, false);
   }
 
-  public int getSize()
-  {
-    return 0;
-  }
-
   public Object getObjectType()
   {
     return null;
@@ -26,11 +21,6 @@ public class VoidType extends PrimitiveType
 
   public void validate(Object value) throws IllegalArgumentException, DatatypeException
   {
-  }
-
-  public Object parse(String value) throws ParseException
-  {
-    return null;
   }
 
   public Class getClassType()

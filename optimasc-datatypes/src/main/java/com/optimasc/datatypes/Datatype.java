@@ -33,7 +33,7 @@ public abstract class Datatype extends Type
   public static final int CHAR = 1; // Character
   public static final int CLOB = 2005; // String
   public static final int DATALINK = 70;
-  public static final int DATE = 91; // Calendar
+  public static final int DATE = 91; // GregorianDateTime
   public static final int DECIMAL = 3;
   public static final int DISTINCT = 2001;
   public static final int DOUBLE = 8; // Double
@@ -49,8 +49,8 @@ public abstract class Datatype extends Type
   public static final int REF = 2006;
   public static final int SMALLINT = 5; // Short
   public static final int STRUCT = 2002;
-  public static final int TIME = 92; // Calendar
-  public static final int TIMESTAMP = 93; // Calendar  
+  public static final int TIME = 92; // GregorianDateTime
+  public static final int TIMESTAMP = 93; // GregorianDateTime  
   public static final int TINYINT = -6; // Byte
   public static final int VARBINARY = -3; // byte[]
   public static final int VARCHAR = 12; // String
@@ -81,15 +81,6 @@ public abstract class Datatype extends Type
   }
 
   /**
-   * Returns the number of bytes used to represent this value in a
-   * standard binary java compatible format.
-   * 
-   * @return
-   */
-  public abstract int getSize();
-
-  
-  /**
    * Returns the main instance of this object associated with this datatype.
    * 
    */
@@ -105,14 +96,6 @@ public abstract class Datatype extends Type
    * @throws DatatypeException When the validation on facets and constraints fails.
    */
   public abstract void validate(java.lang.Object value) throws IllegalArgumentException, DatatypeException;
-
-  /** Tries to parse this string representation to the specified instance datatype. The
-   *  parsing is as lenient as possible.
-   * 
-   * @param value The string to parse.
-   * @return The object instance containing the value.
-   */
-  public abstract Object parse(String value) throws ParseException;
 
 
   /** Returns the name of this datatype. */

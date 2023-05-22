@@ -61,12 +61,6 @@ public class ArrayType extends Datatype implements ConstructedSimple
     return count;
   }
   
-  public int getSize()
-  {
-    return -1;
-//    return (getElements()*dataType.getSize());
-  }
-
   public Class getClassType()
   {
     Class clz = dataType.getClass();
@@ -216,12 +210,6 @@ public Object getObjectType()
 {
   // TODO Auto-generated method stub
   return null;
-}
-
-
-public Object parse(String value) throws ParseException
-{
-  throw new UnsupportedOperationException("Parse method is not implemented.");
 }
 
 

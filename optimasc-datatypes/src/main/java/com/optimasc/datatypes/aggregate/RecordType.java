@@ -62,18 +62,6 @@ public class RecordType extends Datatype
         return fields.size();
     }
 
-    public int getSize()
-    {
-        VariableInstance var;
-        int size = 0;
-        for (int i = 0; i < fields.size(); i++)
-        {
-            var = (VariableInstance) fields.elementAt(i);
-            size = size + var.getDataType().getSize();
-        }
-        return size;
-    }
-
     public Class getClassType()
     {
         return null;
@@ -119,9 +107,4 @@ public class RecordType extends Datatype
       return UNKNOWN_OBJECT;
     }
     
-    public Object parse(String value) throws ParseException
-    {
-      throw new UnsupportedOperationException("Parse method is not implemented.");
-    }
-
 }

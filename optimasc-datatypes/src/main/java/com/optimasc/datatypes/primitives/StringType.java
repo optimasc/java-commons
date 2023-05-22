@@ -10,6 +10,7 @@ import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.EnumerationHelper;
 import com.optimasc.datatypes.LengthFacet;
 import com.optimasc.datatypes.LengthHelper;
+import com.optimasc.datatypes.Parseable;
 import com.optimasc.datatypes.PatternFacet;
 import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.derived.UCS2CharType;
@@ -17,27 +18,29 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.utils.StringUtilities;
 
 
-/** Represents a character string datatype. The
- *  actual encoding of the string depends on the
- *  {@code characterType} property. By default, it
- *  supports UCS-2 character encoding.
+/** Datatype that represents a character string datatype. The actual encoding 
+ *  of the string depends on the {@code characterType} property. By default, 
+ *  it supports UCS-2 character encoding, even though UTF-16 support 
+ *  is checked in the validation routine.
  * 
  *  This is equivalent to the following datatypes:
  *  <ul>
- *   <li>Depends on character type (UTF8String, PrintableString, VisibleString) ASN.1 datatype</li>
- *   <li>charactstring ISO/IEC 11404 General purpose datatype</li>
- *   <li>string XMLSchema built-in datatype</li>
+ *   <li><code>BMPString</code> or <code>VisibleString</code> (depending on CharacterType) ASN.1 datatype</li>
+ *   <li><code>characterstring</code> ISO/IEC 11404 General purpose datatype</li>
+ *   <li><code>string</code> XMLSchema built-in datatype</li>
+ *   <li><code>CHARACTER</code>,<code>CHARACTER VARYING</code>,<code>CHARACTER LARGE OBJECT</code>,
+ *     <code>NATIONAL CHARACTER</code>,<code>NATIONAL CHARACTER VARYING</code> or <code>NATIONAL CHARACTER LARGE OBJECT</code> 
+ *     in SQL2003</li>
  *  </ul>
  *  
- *  By default, the allowed minimum length of the string
- *  type is 0 characters, and the default maximum length
- *  is {@code Integer.MAX_VALUE}, {@code pattern} and {@code choices}
- *  are set to null.
+ *  <p>By default, the allowed minimum length of the string type is 0 characters, and the default maximum length
+ *  is {@code Integer#MAX_VALUE}, {@code pattern} and {@code choices} are set to null.</p>
  *  
+ *  <p>Internally, values of this type are represented as {@link String}.</p>
  *
  * @author Carl Eric Codère
  */
-public class StringType extends Datatype implements EnumerationFacet, LengthFacet, PatternFacet, ConstructedSimple, DatatypeConverter
+public class StringType extends Datatype implements EnumerationFacet, Parseable, LengthFacet, PatternFacet, ConstructedSimple, DatatypeConverter
 {
   protected static final String STRING_INSTANCE = new String();
   
@@ -55,7 +58,10 @@ public class StringType extends Datatype implements EnumerationFacet, LengthFace
   protected static final char CHAR_TAB = 0x09;
   protected static final char CHAR_LF = 0x0A; 
   protected static final char CHAR_CR = 0x0D; 
-  protected static final char CHAR_SPACE = 0x20; 
+  protected static final char CHAR_SPACE = 0x20;
+  
+  protected static final int HIGH_SURROGATE = 0xD800;
+  protected static final int LOW_SURROGATE = 0xDC00;
   
   protected String pattern;
   
@@ -103,25 +109,9 @@ public class StringType extends Datatype implements EnumerationFacet, LengthFace
   }
   
 
-
-  public int getSize()
-  {
-      return (getMaxLength()*characterType.getSize());
-  }  
-
   public Class getClassType()
   {
-    switch (characterType.getSize())
-    {
-      case 1:
-         return byte[].class;
-      case 2: 
-         return String.class;
-      case 3:
-      case 4:
-         return int[].class;
-    }
-    return null;
+     return String.class;
   }
 
   public void validate(Object value) throws IllegalArgumentException, DatatypeException
@@ -159,12 +149,22 @@ public class StringType extends Datatype implements EnumerationFacet, LengthFace
       int charCount = 0;
       while (charCount < string.length())
       {
-        int ch = string.codePointAt(charCount);
+        // Manually check for surrogate pairs
+        int ch = string.charAt(charCount);
+
+        // Reconstruct a full UCS-4 codepoint
+        if ((ch & HIGH_SURROGATE)==HIGH_SURROGATE)
+        {
+          ch = (ch - HIGH_SURROGATE)*0x400;
+          charCount++;
+          ch = 0x10000+ch+(string.charAt(charCount)-LOW_SURROGATE);
+        }
+        
         if (characterType.isValidCharacter(ch)==false)
         {
           DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_CHARACTER,"The string does not contain valid characters for this repertoire");
         }
-        charCount+= Character.charCount(ch);
+        charCount++;
       }
       if ((charCount < getMinLength()))
       {

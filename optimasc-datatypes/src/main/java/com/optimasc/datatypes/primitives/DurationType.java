@@ -5,15 +5,19 @@ import java.text.ParseException;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.visitor.TypeVisitor;
+import com.optimasc.lang.Duration;
 
-/** Represents an elapsed time.
+/** * Datatype that represents elapsed time.
  *
  *  This is equivalent to the following datatypes:
  *  <ul>
- *   <li>timeinterval ISO/IEC 11404 General purpose datatype</li>
- *   <li>Duration XMLSchema built-in datatype</li>
+ *   <li><code>DURATION</code> ASN.1 datatype</li>
+ *   <li><code>timeinterval</code> ISO/IEC 11404 General purpose datatype</li>
+ *   <li><code>Duration</code> XMLSchema built-in datatype</li>
+ *   <li><code>INTERVAL</code> in SQL2003</li>
  *  </ul>
- *
+ *  
+ * <p>Internally, values of this type are represented as {@link Duration} objects.</p>
  * 
  * 
  * @author Carl Eric Codere
@@ -21,6 +25,7 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class DurationType extends PrimitiveType
 {
+  protected static final Duration INSTANCE = new Duration(0); 
 
   public DurationType()
   {
@@ -33,37 +38,19 @@ public class DurationType extends PrimitiveType
   }
   
 
-  public int getSize()
-  {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
   public Class getClassType()
   {
-    // TODO Auto-generated method stub
-    return null;
-//    return javax.xml.datatype.Duration.class;
+    return Duration.class;
   }
 
   public void validate(Object value) throws IllegalArgumentException, DatatypeException
   {
-    // TODO Auto-generated method stub
-    
   }
 
   public Object getObjectType()
   {
-    // TODO Auto-generated method stub
-    return null;
+    return INSTANCE;
   }
 
-  public Object parse(String value) throws ParseException
-  {
-    // TODO Auto-generated method stub
-    return null;
-  }
-  
-  
 
 }

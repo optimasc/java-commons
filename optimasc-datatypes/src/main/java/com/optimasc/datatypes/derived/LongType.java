@@ -39,11 +39,6 @@ public class LongType extends IntegralType
       return LONG_INSTANCE;
     }
 
-    public int getSize()
-    {
-      return 4;
-    }
-    
     public Object parse(String value) throws ParseException
     {
       try

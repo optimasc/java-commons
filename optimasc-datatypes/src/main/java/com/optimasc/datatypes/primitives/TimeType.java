@@ -2,9 +2,11 @@ package com.optimasc.datatypes.primitives;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.Parseable;
 import com.optimasc.datatypes.PatternFacet;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.date.BaseISO8601Date;
+import com.optimasc.lang.GregorianDateTime;
 import com.optimasc.utils.StringTokenizer;
 
 import java.text.ParseException;
@@ -13,15 +15,25 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Time represents an instant of time that recurs every day. 
- *  The value space of time is the space of time of day value. 
+/** Datatype that represents an instant of time that recurs every day. 
+ *  The value space of time is the space of time of day value.
+ *  
+ *  This is equivalent to the following datatypes:
+ *  <ul>
+ *   <li><code>TIME-OF-DAY</code> ASN.1 datatype</li>
+ *   <li><code>time</code> XMLSchema built-in datatype</li>
+ *   <li><code>TIME</code> in SQL2003</li>
+ *  </ul>
+ *  
+ * <p>Internally, values of this type are represented as {@link GregorianDateTime} objects.</p>
+ *  
  * 
  * @author Carl Eric Codere
  *
  */
-public class TimeType extends Datatype implements PatternFacet
+public class TimeType extends Datatype implements PatternFacet, Parseable
 {
-  protected static final Calendar INSTANCE_TYPE = Calendar.getInstance();
+  protected static final GregorianDateTime INSTANCE_TYPE = new GregorianDateTime();
   
   /* TIME : (0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])([\.,]\d+)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)? */
   protected static final String REGEX_PATTERN = "(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(?:[\\.,](\\d+))?([zZ]|([\\+-])([01]\\d|2[0-3]):?([0-5]\\d)?)?";
@@ -38,14 +50,9 @@ public class TimeType extends Datatype implements PatternFacet
     super(Datatype.TIME,true);
   }
 
-  public int getSize()
-  {
-    return 4;
-  }
-
   public Class getClassType()
   {
-    return Calendar.class;
+    return GregorianDateTime.class;
   }
 
   public void validate(Object value) throws IllegalArgumentException,
@@ -89,90 +96,9 @@ public class TimeType extends Datatype implements PatternFacet
     
     public Object parse(String value) throws ParseException
     {
-      /*
-      matcher.reset(value);
-      if (matcher.matches()==false)
-      {
-        throw new java.text.ParseException("does not match regex", 0);
-      }
-      Calendar calendar = Calendar.getInstance();
-      calendar.clear();
-
-      // Hours
-      String hours = matcher.group(PATTERN_GROUP_HOURS);
-      if (hours == null)
-      {
-        throw new java.text.ParseException("Hours must be 00 and 24", 0);
-      }
-      int hoursInt = Integer.parseInt(hours);
-      if ((hoursInt < 0) || (hoursInt > 24))
-      {
-        throw new java.text.ParseException("Hours must be 00 and 24", 0);
-      }
-      calendar.set(Calendar.HOUR_OF_DAY, hoursInt);
-      
-      // Minutes
-      String minutes = matcher.group(PATTERN_GROUP_MINUTES);
-      if (minutes == null)
-      {
-        throw new java.text.ParseException("Minutes must be 00 and 59", 0);
-      }
-      int minutesInt = Integer.parseInt(minutes);
-      if ((minutesInt < 0) || (minutesInt > 59))
-      {
-        throw new java.text.ParseException("Hours must be 00 and 59", 0);
-      }
-      calendar.set(Calendar.MINUTE, minutesInt);
-      
-      // Seconds
-      String seconds = matcher.group(PATTERN_GROUP_SECONDS);
-      if (seconds == null)
-      {
-        throw new java.text.ParseException("Seconds must be 00 and 59", 0);
-      }
-      int secondsInt = Integer.parseInt(seconds);
-      if ((secondsInt < 0) || (secondsInt > 59))
-      {
-        throw new java.text.ParseException("Seconds must be 00 and 59", 0);
-      }
-      calendar.set(Calendar.SECOND, secondsInt);
-      
-      // Milliseconds - optional
-      String fractional = matcher.group(PATTERN_GROUP_FRACTIONAL);
-      if (fractional != null)
-      {
-        // Remove , or .
-        fractional = fractional.substring(1);
-        if (fractional.length() < 3)
-        {
-          fractional += "0";
-        }
-        fractional = fractional.substring(0, 3);
-        int fractionalInt = Integer.parseInt(fractional);
-        if ((fractionalInt < 0) || (fractionalInt > 999))
-        {
-          throw new java.text.ParseException("Milliseconds must be 0 and 999", 0);
-        }
-        calendar.set(Calendar.MILLISECOND, fractionalInt);
-      }
-      // Timezone - optional
-      String timezone = matcher.group(PATTERN_GROUP_TIMEZONE);
-      if (timezone != null)
-      {
-        if (timezone.equals("Z")==false) // UTC
-        {
-        } else
-        // Timezone is UTC
-        {
-          calendar.setTimeZone(TimeZone.getTimeZone("GMT"));
-        }
-      }
-      return calendar;*/
-      Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-      cal.clear();
       try 
       {
-        cal = BaseISO8601Date.parseTime(cal,value);
+        GregorianDateTime cal = GregorianDateTime.parse(value);
         validate(cal);
         return cal;
       } catch (IllegalArgumentException e)

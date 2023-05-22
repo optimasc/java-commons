@@ -28,11 +28,6 @@ public class UnsignedIntType extends NonNegativeIntegerType
         return v.visit(this,arg);
     }
     
-    public int getSize()
-    {
-      return 4;
-    }
-
     public Class getClassType()
     {
       return Integer.class;
@@ -44,9 +39,4 @@ public class UnsignedIntType extends NonNegativeIntegerType
       return INTEGER_INSTANCE;
     }
     
-    public Object parse(String value) throws ParseException
-    {
-      throw new ParseException("Cannot parse string to integer type.", 0);
-    }
-
 }

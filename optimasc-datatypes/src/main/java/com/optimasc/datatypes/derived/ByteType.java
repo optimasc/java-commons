@@ -40,11 +40,6 @@ public class ByteType extends IntegralType
       return BYTE_INSTANCE;
     }
 
-    public int getSize()
-    {
-      return 1;
-    }
-    
     public Object parse(String value) throws ParseException
     {
       try

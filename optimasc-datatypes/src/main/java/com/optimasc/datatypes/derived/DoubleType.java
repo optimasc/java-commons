@@ -1,6 +1,10 @@
 package com.optimasc.datatypes.derived;
 
+import java.math.BigDecimal;
+import java.text.ParseException;
+
 import com.optimasc.datatypes.Datatype;
+import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.primitives.RealType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
@@ -23,11 +27,6 @@ public class DoubleType extends RealType
         return v.visit(this,arg);
     }
 
-    public int getSize()
-    {
-      return 8;
-    }
-
     public Class getClassType()
     {
       return Double.class;
@@ -36,6 +35,34 @@ public class DoubleType extends RealType
     public Object getObjectType()
     {
       return DOUBLE_INSTANCE;
+    }
+
+    public Object parse(String value) throws ParseException
+    {
+      Number objectValue;
+      /* Represented as a fractional value! */
+      if (value.indexOf("/")!=-1)
+      {
+        String numerator = value.substring(0,value.indexOf("/"));
+        String denominator = value.substring(value.indexOf("/")+1);
+        int intNumerator = Integer.parseInt(numerator);
+        int intDenominator = Integer.parseInt(denominator);
+        objectValue = new Double(intNumerator*1.0 / intDenominator*1.0);
+      } else
+      {
+        objectValue = new Double(value);
+      }
+      try
+      {
+        validate(objectValue);
+        return objectValue;
+      } catch (IllegalArgumentException e)
+      {
+        throw new ParseException("Cannot parse double point value.",0);
+      } catch (DatatypeException e)
+      {
+        throw new ParseException("Cannot parse double point value.",0);
+      }
     }
 
 

@@ -30,11 +30,6 @@ public class UnsignedByteType extends NonNegativeIntegerType
     }
     
     
-    public int getSize()
-    {
-      return 1;
-    }
-
     public Class getClassType()
     {
       return Byte.class;
@@ -47,10 +42,4 @@ public class UnsignedByteType extends NonNegativeIntegerType
     }
     
     
-    public Object parse(String value) throws ParseException
-    {
-      throw new ParseException("Cannot parse string to integer type.", 0);
-    }
-    
-
 }

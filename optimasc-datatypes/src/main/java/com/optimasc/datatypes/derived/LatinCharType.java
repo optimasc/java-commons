@@ -17,16 +17,11 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class LatinCharType extends CharacterType
 {
-
+  
   public LatinCharType()
   {
     super();
     setCharSetName("ISO-8859-1");
-  }
-
-  public int getSize()
-  {
-    return 1;
   }
 
   public Object accept(TypeVisitor v, Object arg)
@@ -43,11 +38,6 @@ public class LatinCharType extends CharacterType
     return false;
   }
 
-  public Class getClassType()
-  {
-    return Byte.class;
-  }
-
   public long getMinInclusive()
   {
     return 0;
@@ -57,7 +47,5 @@ public class LatinCharType extends CharacterType
   {
     return 255;
   }
-  
-  
 
 }

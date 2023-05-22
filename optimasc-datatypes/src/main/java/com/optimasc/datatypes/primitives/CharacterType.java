@@ -1,26 +1,30 @@
 package com.optimasc.datatypes.primitives;
 
-import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetEncoder;
-import java.nio.charset.CodingErrorAction;
 import java.text.ParseException;
 
+import com.optimasc.datatypes.BoundedRangeFacet;
 import com.optimasc.datatypes.CharacterSetEncodingFacet;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.BoundedRangeFacet;
+import com.optimasc.datatypes.Parseable;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
-/**
-*  <p>Contrary to ISO/IEC 11404, this type is considered ordered.</p>
-*/
-public abstract class CharacterType extends PrimitiveType implements CharacterSetEncodingFacet,BoundedRangeFacet
+/** Abstract datatype that represents a character. 
+ * 
+ *  This is equivalent to the following datatypes:
+ *  <ul>
+ *   <li></code>character</code> ISO/IEC 11404 General purpose datatype</li>
+ *  </ul>
+ * 
+ *  <p>Contrary to ISO/IEC 11404, this type is considered ordered and a character
+ *  set specification can be associated with it. </p>
+ *  
+ * <p>Internally, values of this type are represented as {@link Character} objects.</p>
+ *  
+ */
+public abstract class CharacterType extends PrimitiveType implements CharacterSetEncodingFacet,Parseable,BoundedRangeFacet
 {
   protected static final Character INSTANCE_TYPE = new Character('a');
-  protected Charset charSet = null; 
-  protected CharsetEncoder charsetEncoder = null;
   
   /** Repertoire list - CHARSET IANA value. */
   protected String charSetName;
@@ -40,30 +44,21 @@ public abstract class CharacterType extends PrimitiveType implements CharacterSe
 
   /** Checks if this character is valid for this repertoire.
    * 
-   * @param c The character to validate represented as an UCS-4 character.
+   * @param codePoint The character to validate represented as an UCS-4 character.
    * @return true if this character is valid or not.
    */
-  public boolean isValidCharacter(int c)
-  {
-    try
-    {
-    CharBuffer cb = CharBuffer.allocate(1);
-    char[] chars = Character.toChars(c);
-    for (int i = 0; i < chars.length; i++)
-    {
-      cb.append(chars[i]);
-    }
-    charsetEncoder.encode(cb);
-    } catch (CharacterCodingException e)
-    {
-      return false;
-    }
-    return true;
-  }
+  public abstract boolean isValidCharacter(int codePoint);
 
   public void validate(Object value) throws IllegalArgumentException, DatatypeException
   {
-    checkClass(value);    
+    checkClass(value);
+    if (value instanceof Integer)
+    {
+      if (isValidCharacter(((Integer)value).intValue())==false)
+      {
+        DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_CHARACTER, "Character cannot be encoded in this repertoire");        
+      }
+    } else
     if (value instanceof Character)
     {
       if (isValidCharacter(((Character)value).charValue())==false)
@@ -75,7 +70,7 @@ public abstract class CharacterType extends PrimitiveType implements CharacterSe
         "Invalid object type - should be Character instance");
   }
 
-  /** Compares this CharType to the specified object. 
+  /** Compares this CharacterType to the specified object. 
    *  The result is true if and only if the argument is not null 
    *  and is a CharType object that has the same constraints 
    *  (repertoireList) as this object
@@ -152,10 +147,6 @@ public abstract class CharacterType extends PrimitiveType implements CharacterSe
   public void setCharSetName(String charSetName)
   {
     this.charSetName = charSetName;
-    Charset cs = Charset.forName(charSetName);
-    charsetEncoder = cs.newEncoder();
-    charsetEncoder.onMalformedInput(CodingErrorAction.REPORT);
-    charsetEncoder.onUnmappableCharacter(CodingErrorAction.REPORT);
   }
 
   /** This will throw an exception as this method
@@ -177,14 +168,5 @@ public abstract class CharacterType extends PrimitiveType implements CharacterSe
   {
     throw new IllegalArgumentException("Setting inclusive value for range is not supported for character types");
   }
-
-  public int getSize()
-  {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
-  
-
 
 }

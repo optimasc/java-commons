@@ -1,13 +1,9 @@
 package com.optimasc.datatypes.derived;
 
-import java.text.ParseException;
-import java.util.Calendar;
 
 import com.optimasc.datatypes.Datatype;
-import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.primitives.DateTimeType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
-import com.optimasc.date.BaseISO8601Date;
 
 /** Represents a full date and time specification with
  *  a second resolution. 
@@ -26,11 +22,6 @@ public class TimestampType extends DateTimeType
   {
     super(Datatype.TIMESTAMP);
     setResolution(RESOLUTION_SECOND);
-  }
-
-  public int getSize()
-  {
-    return 4;
   }
 
     public Object accept(TypeVisitor v, Object arg)
@@ -59,6 +50,8 @@ public class TimestampType extends DateTimeType
         }
         return true;
     }
+    
+
 
 
 }

@@ -1,30 +1,41 @@
 package com.optimasc.datatypes.primitives;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.ParseException;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeConverter;
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.Parseable;
 import com.optimasc.datatypes.PrecisionFacet;
 import com.optimasc.datatypes.RealRangeFacet;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
-/** Represents a numerical representation of a floating point
- *  value.
+/**  Datatype that represents a decimal or approximate floating point value. For
+ *   performance reasons, derived real types should be
+ *   used instead of this one.
+ *  
  *  
  *  This is equivalent to the following datatypes:
  *  <ul>
- *   <li>REAL ASN.1 datatype</li>
- *   <li>real ISO/IEC 11404 General purpose datatype</li>
+ *   <li><code>REAL</code> ASN.1 datatype</li>
+ *   <li><code>real</code> ISO/IEC 11404 General purpose datatype</li>
+ *   <li><code>decimal</code> XMLSchema built-in datatype</li>
+ *   <li><code>NUMERIC</code> or <code>DECIMAL</code> in SQL2003</li>
+ *   
  *  </ul>
+ *  
+ * <p>Internally, values of this type are represented as {@link BigDecimal}.</p>
+ *  
  *
  * @author Carl Eric Codere
  */
-public class RealType extends PrimitiveType implements RealRangeFacet, DatatypeConverter, PrecisionFacet
+public class RealType extends PrimitiveType implements RealRangeFacet, Parseable, DatatypeConverter, PrecisionFacet
 {
     protected static final Float FLOAT_INSTANCE = new Float(0);  
     protected static final Double DOUBLE_INSTANCE = new Double(0);  
+    protected static final BigDecimal ZERO = new BigDecimal(0);
     
     protected double minInclusive;
     protected double maxInclusive;
@@ -39,12 +50,8 @@ public class RealType extends PrimitiveType implements RealRangeFacet, DatatypeC
     }
     
 
-    public void validate(Object integerValue) throws IllegalArgumentException,
+    public void validate(Object value) throws IllegalArgumentException,
             DatatypeException
-    {
-    }
-
-    public void validate(double doubleValue) throws IllegalArgumentException, DatatypeException
     {
     }
 
@@ -60,11 +67,6 @@ public class RealType extends PrimitiveType implements RealRangeFacet, DatatypeC
           return 2;
       }
       return 0;
-    }
-
-    public int getSize()
-    {
-        return getStorageSize(maxInclusive, minInclusive);
     }
 
     public Class getClassType()
@@ -138,13 +140,13 @@ public class RealType extends PrimitiveType implements RealRangeFacet, DatatypeC
 
     public Object getObjectType()
     {
-      return BigDecimal.ZERO;
+      return ZERO;
     }
 
 
     public Object parse(String value) throws ParseException
     {
-      Object objectValue;
+      Number objectValue;
       /* Represented as a fractional value! */
       if (value.indexOf("/")!=-1)
       {
@@ -152,22 +154,10 @@ public class RealType extends PrimitiveType implements RealRangeFacet, DatatypeC
         String denominator = value.substring(value.indexOf("/")+1);
         int intNumerator = Integer.parseInt(numerator);
         int intDenominator = Integer.parseInt(denominator);
-        if (getSize()==8)
-        {
-          objectValue = new Double(intNumerator*1.0 / intDenominator*1.0);
-        } else
-        {
-          objectValue = new Float(intNumerator*1.0 / intDenominator*1.0);
-        }
+        objectValue = new BigDecimal(intNumerator*1.0 / intDenominator*1.0);
       } else
       {
-      if (getSize()==8)
-      {
-        objectValue = Double.valueOf(value);
-      } else
-      {
-        objectValue = Float.valueOf(value);
-      }
+        objectValue = new BigDecimal(value);
       }
       try
       {

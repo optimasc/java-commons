@@ -7,26 +7,30 @@ import com.optimasc.datatypes.DatatypeConverter;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.LengthFacet;
 import com.optimasc.datatypes.LengthHelper;
+import com.optimasc.datatypes.Parseable;
 import com.optimasc.datatypes.PatternFacet;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /**
- * This class is used to represent a binary datatype. It includes a minLength
+ * Datatype that represents binary data. It includes a minLength
  * and maxLength attribute as a facet indicating the allowed length of the data.
  * 
  * This is equivalent to the following datatypes:
  * <ul>
- * <li>OCTET STRING ASN.1 datatype</li>
- * <li>octetstring ISO/IEC 11404 General purpose datatype</li>
- * <li>hexBinary and base64Binary XMLSchema built-in datatype</li>
+ * <li><code>OCTET STRING</code> ASN.1 datatype</li>
+ * <li><code>octetstring</code> ISO/IEC 11404 General purpose datatype</li>
+ * <li><code>hexBinary</code> and <code>base64Binary</code> XMLSchema built-in datatype</li>
+ * <li><code>BINARY LARGE OBJECT</code> in SQL2003</li>
  * </ul>
  * 
  * By default, the allowed minimum length of the binary blob type is 0 octects,
  * and the default maximum length is {@code Integer.MAX_VALUE}.
  * 
+ * Internally, values of this type are represented as <code>byte[]</code>.
+ * 
  * @author Carl Eric Codère
  */
-public class BinaryType extends Datatype implements LengthFacet, PatternFacet, DatatypeConverter
+public class BinaryType extends Datatype implements LengthFacet, PatternFacet, DatatypeConverter, Parseable
 {
   protected static final byte[] INSTANCE_BINARY = new byte[0];
   
@@ -80,11 +84,6 @@ public class BinaryType extends Datatype implements LengthFacet, PatternFacet, D
     }
   }
 
-  public int getSize()
-  {
-    return getMaxLength();
-  }
-
   public Class getClassType()
   {
     return byte[].class;
@@ -114,13 +113,6 @@ public class BinaryType extends Datatype implements LengthFacet, PatternFacet, D
   {
     return v.visit(this, arg);
   }
-
-  /**
-   * Validates the equality of two . They shall be equal if they return that
-   * they will allow the same value ranges and are both of BinaryType or its
-   * derived classes.
-   * 
-   */
 
   /**
    * Compares this BinaryType to the specified object. The result is true if and
@@ -211,7 +203,7 @@ public class BinaryType extends Datatype implements LengthFacet, PatternFacet, D
   
   public static String toString(byte[] values)
   {
-    StringBuilder buffer = new StringBuilder(64);
+    StringBuffer buffer = new StringBuffer(64);
     for (int i=0; i < values.length; i++)
     {
         buffer.append(Character.forDigit((values[i] >> 4) & 0xF, 16));
