@@ -25,7 +25,7 @@ import java.util.Calendar;
  * Utility class used to convert between a Calendar object and a Julian day, as
  * used in astronomy standards.
  * 
- * @author Carl Eric Codère
+ * @author Carl Eric Codï¿½re
  */
 public final class JulianDay extends DateConverter
 {
@@ -248,5 +248,80 @@ public final class JulianDay extends DateConverter
     cal.set(Calendar.MINUTE, minute);
     cal.set(Calendar.SECOND, second);
     return cal;
+  }
+  
+  
+  protected static final int MTAB[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+  protected static final int YEAR_MIN = -4799;
+  
+  /** Converts a Gregorian calendar value (including Gregorian
+   *  proleptic calendar) to a Julian day number, as defined by the
+   *  SOFA Astronomy library. Valid ranges are from -4799 January 1. 
+   *  This code has been converted to Java from the C version SOFA 
+   *  Astronomy library and modified to return the Julian Day and add 
+   *  support for seconds.
+   * 
+   * @param year The year
+   * @param month The month number, from 1 to 12
+   * @param day The day number 1 to 31
+   * @param seconds The number of seconds past midnight, from 0 to 86400
+   * @return The Julian day number
+   */
+  public static double toDouble(int year, int month, int day, int seconds)
+  {
+    int ly, my;
+    long iypmy;
+
+ /* Validate year and month. */
+    if (year < YEAR_MIN)
+      throw new IllegalArgumentException("Minimum supported year is "+YEAR_MIN);
+    if (month < 1 || month > 12) 
+      throw new IllegalArgumentException("Month must be between 1 and 12");
+
+ /* If February in a leap year, 1, otherwise 0. */
+    ly = 0;
+    if (month == 2)
+    {
+    if (year % 4 == 0)
+    {
+        if(year % 100 == 0)
+        {
+            // if year is divisible by 400, then the year is a leap year
+            if ( year%400 == 0){
+                ly = 1;
+            }else{
+                ly = 0;
+            }
+        }
+        else{
+            ly = 1;
+        }
+    }else
+    {
+        ly = 0;
+    }
+    }
+    
+
+ /* Validate day, taking into account leap years. */
+    if ( (day < 1) || (day > (MTAB[month-1] + ly)))
+       throw new IllegalArgumentException("Day must be between 1 and "+MTAB[month-1+1]);
+    
+    if ( (seconds < 0) || (seconds > 86400))
+      throw new IllegalArgumentException("Seconds must be between 0 and 86400");
+
+ /* Return result. */
+    my = (month - 14) / 12;
+    iypmy = (long) (year + my);
+    double djm0 = 2400000.5d;
+    double djm = (double)((1461L * (iypmy + 4800L)) / 4L
+                  + (367L * (long) (month - 2 - 12 * my)) / 12L
+                  - (3L * ((iypmy + 4900L) / 100L)) / 4L
+                  + (long) day - 2432076L);
+    
+    /* Take into account the time */
+    djm = djm + (double)((double)seconds / 86400d);
+    /* Return value. */
+    return djm+djm0;
   }
 }
