@@ -1,8 +1,8 @@
 package com.optimasc.datatypes;
 
-/** Certain datatypes are elements of  another Datatype, they then implement
+/** Certain datatypes are elements of another Datatype, they then implement
  *  this interface. Examples of such are strings that are composed of
- *  characters or arrays. 
+ *  characters. 
  *   
  * @author Carl Eric Codere
  *
