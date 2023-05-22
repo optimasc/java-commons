@@ -1,9 +1,7 @@
 package com.optimasc.datatypes;
 
 /** Represents the lower and upper bounds on exact ordered
- *  values. The representation must be convered to an
- *  integral value, see specific datatype information
- *  for integral value representation.
+ *  values. 
  *
  * @author Carl Eric Codere
  */
