@@ -461,7 +461,7 @@ public class BaseIndexableDataset implements IndexableDataset
     RealType realType = (RealType) tableMetadata.getDatatype(columnIndex);
     try
     {
-      realType.validate(x);
+      realType.validate(new Double(x));
     } catch (DatatypeException e)
     {
       throw new IllegalArgumentException(
