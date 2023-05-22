@@ -1,24 +1,20 @@
 package com.optimasc.datatypes.primitives;
 
+import java.math.BigInteger;
 import java.text.ParseException;
 import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.xml.datatype.DatatypeConstants;
-import javax.xml.datatype.XMLGregorianCalendar;
+import junit.framework.TestCase;
 
 import com.optimasc.datatypes.Datatype;
-import com.optimasc.datatypes.EnumerationFacet;
 import com.optimasc.datatypes.LengthFacet;
 import com.optimasc.datatypes.PatternFacet;
-//import com.optimasc.datatypes.aggregate.ListType;
 import com.optimasc.datatypes.derived.LatinCharType;
 import com.optimasc.datatypes.derived.UCS2CharType;
-
-import junit.framework.TestCase;
+import com.optimasc.lang.DateTimeConstants;
+import com.optimasc.lang.GregorianDateTime;
 
 public class DatatypesTest extends TestCase
 {
@@ -94,6 +90,7 @@ public class DatatypesTest extends TestCase
     BinaryType datatype = new BinaryType();
     BinaryType otherDatatype = new BinaryType();
     testBasicDataType(datatype);
+    assertEquals(false, datatype.isOrdered());
     assertEquals(byte[].class, datatype.getClassType());
     assertTrue(byte[].class.isInstance(datatype.getObjectType()));
     assertEquals(otherDatatype, datatype);
@@ -163,7 +160,7 @@ public class DatatypesTest extends TestCase
     assertEquals(true, success);
 
     /* Equals check */
-    assertFalse(new IntegerType().equals(datatype));
+    assertFalse(new IntegralType().equals(datatype));
     /* Since we changed the length, the datatypes should not be equal. */
     assertFalse(otherDatatype.equals(datatype));
 
@@ -175,6 +172,7 @@ public class DatatypesTest extends TestCase
     BooleanType datatype = new BooleanType();
     BooleanType otherDatatype = new BooleanType();
     testBasicDataType(datatype);
+    assertEquals(false, datatype.isOrdered());
     assertEquals(Boolean.class, datatype.getClassType());
     assertTrue(Boolean.class.isInstance(datatype.getObjectType()));
     assertEquals(datatype, datatype);
@@ -251,7 +249,7 @@ public class DatatypesTest extends TestCase
     assertEquals(true, success);
 
     /* Equals check */
-    assertFalse(new IntegerType().equals(datatype));
+    assertFalse(new IntegralType().equals(datatype));
 
   }
 
@@ -261,8 +259,9 @@ public class DatatypesTest extends TestCase
     TimeType datatype = new TimeType();
     TimeType otherDatatype = new TimeType();
     testBasicDataType(datatype);
-    assertEquals(Calendar.class, datatype.getClassType());
-    assertTrue(Calendar.class.isInstance(datatype.getObjectType()));
+    assertEquals(true, datatype.isOrdered());
+    assertEquals(GregorianDateTime.class, datatype.getClassType());
+    assertTrue(GregorianDateTime.class.isInstance(datatype.getObjectType()));
     assertEquals(datatype, datatype);
     assertEquals(otherDatatype, datatype);
 
@@ -304,60 +303,76 @@ public class DatatypesTest extends TestCase
     success = true;
     try
     {
-      Calendar c;
-      c = (Calendar) datatype.parse("00:00:00");
-      assertEquals(false, c.isSet(Calendar.ERA));
-      assertEquals(false, c.isSet(Calendar.YEAR));
-      assertEquals(false, c.isSet(Calendar.MONTH));
-      assertEquals(false, c.isSet(Calendar.DAY_OF_MONTH));
-      assertEquals(00, c.get(Calendar.HOUR_OF_DAY));
-      assertEquals(00, c.get(Calendar.MINUTE));
-      assertEquals(00, c.get(Calendar.SECOND));
+      GregorianDateTime c;
+      c = (GregorianDateTime) datatype.parse("00:00:00");
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getEra());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getYear());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getMonth());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getDay());
+      assertEquals(00, c.getHour());
+      assertEquals(00, c.getMinute());
+      assertEquals(00, c.getSecond());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getFractionalSecond());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getTimezone());
 
-      c = (Calendar) datatype.parse("15:45:54.900");
-      assertEquals(false, c.isSet(Calendar.ERA));
-      assertEquals(false, c.isSet(Calendar.YEAR));
-      assertEquals(false, c.isSet(Calendar.MONTH));
-      assertEquals(false, c.isSet(Calendar.DAY_OF_MONTH));
-      assertEquals(15, c.get(Calendar.HOUR_OF_DAY));
-      assertEquals(45, c.get(Calendar.MINUTE));
-      assertEquals(54, c.get(Calendar.SECOND));
-      assertEquals(900, c.get(Calendar.MILLISECOND));
+      
+      c = (GregorianDateTime) datatype.parse("15:45:54.900");
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getEra());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getYear());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getMonth());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getDay());
+      assertEquals(15, c.getHour());
+      assertEquals(45, c.getMinute());
+      assertEquals(54, c.getSecond());
+      assertEquals(900, c.getFractionalSecond());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getTimezone());
+      
+      
+      c = (GregorianDateTime) datatype.parse("15:45:54Z");
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getEra());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getYear());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getMonth());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getDay());
+      assertEquals(15, c.getHour());
+      assertEquals(45, c.getMinute());
+      assertEquals(54, c.getSecond());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getFractionalSecond());
+      assertEquals(00, c.getTimezone());
 
-      c = (Calendar) datatype.parse("15:45:54Z");
-      assertEquals(false, c.isSet(Calendar.ERA));
-      assertEquals(false, c.isSet(Calendar.YEAR));
-      assertEquals(false, c.isSet(Calendar.MONTH));
-      assertEquals(false, c.isSet(Calendar.DAY_OF_MONTH));
-      assertEquals(15, c.get(Calendar.HOUR_OF_DAY));
-      assertEquals(45, c.get(Calendar.MINUTE));
-      assertEquals(54, c.get(Calendar.SECOND));
-      assertEquals(00, c.getTimeZone().getRawOffset());
+      c = (GregorianDateTime) datatype.parse("15:45:54.90Z");
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getEra());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getYear());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getMonth());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getDay());
+      assertEquals(15, c.getHour());
+      assertEquals(45, c.getMinute());
+      assertEquals(54, c.getSecond());
+      assertEquals(90, c.getFractionalSecond());
+      assertEquals(00, c.getTimezone());
 
-      c = (Calendar) datatype.parse("15:45:54.90Z");
-      assertEquals(false, c.isSet(Calendar.ERA));
-      assertEquals(false, c.isSet(Calendar.YEAR));
-      assertEquals(false, c.isSet(Calendar.MONTH));
-      assertEquals(false, c.isSet(Calendar.DAY_OF_MONTH));
-      assertEquals(15, c.get(Calendar.HOUR_OF_DAY));
-      assertEquals(45, c.get(Calendar.MINUTE));
-      assertEquals(54, c.get(Calendar.SECOND));
-      assertEquals(900, c.get(Calendar.MILLISECOND));
-      assertEquals(00, c.getTimeZone().getRawOffset());
-
-      c = (Calendar) datatype.parse("15:45:54.90+00:30");
-      assertEquals(false, c.isSet(Calendar.ERA));
-      assertEquals(false, c.isSet(Calendar.YEAR));
-      assertEquals(false, c.isSet(Calendar.MONTH));
-      assertEquals(false, c.isSet(Calendar.DAY_OF_MONTH));
-      assertEquals(15, c.get(Calendar.HOUR_OF_DAY));
-      assertEquals(45, c.get(Calendar.MINUTE));
-      assertEquals(54, c.get(Calendar.SECOND));
-      assertEquals(900, c.get(Calendar.MILLISECOND));
-      assertEquals(00, c.getTimeZone().getRawOffset());
-
-      //      !!! ADD TIMEZONE SUPPORT!!!
-
+      c = (GregorianDateTime) datatype.parse("15:45:54.90+00:30");
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getEra());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getYear());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getMonth());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getDay());
+      assertEquals(15, c.getHour());
+      assertEquals(45, c.getMinute());
+      assertEquals(54, c.getSecond());
+      assertEquals(90, c.getFractionalSecond());
+      assertEquals(30, c.getTimezone());
+      
+      
+      c = (GregorianDateTime) datatype.parse("15:45:54.90-10:30");
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getEra());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getYear());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getMonth());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getDay());
+      assertEquals(15, c.getHour());
+      assertEquals(45, c.getMinute());
+      assertEquals(54, c.getSecond());
+      assertEquals(90, c.getFractionalSecond());
+      assertEquals(-630, c.getTimezone());
+      
     } catch (ParseException e)
     {
       fail();
@@ -367,7 +382,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Calendar cal = (Calendar) datatype.parse("ZFa001");
+      GregorianDateTime cal = (GregorianDateTime) datatype.parse("ZFa001");
     } catch (ParseException e)
     {
       success = true;
@@ -377,7 +392,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Calendar cal = (Calendar) datatype.parse("01");
+      GregorianDateTime cal = (GregorianDateTime) datatype.parse("01");
     } catch (ParseException e)
     {
       success = true;
@@ -387,7 +402,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Calendar cal = (Calendar) datatype.parse("31:");
+      GregorianDateTime cal = (GregorianDateTime) datatype.parse("31:");
     } catch (ParseException e)
     {
       success = true;
@@ -397,7 +412,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Calendar cal = (Calendar) datatype.parse("13:466:");
+      GregorianDateTime cal = (GregorianDateTime) datatype.parse("13:466:");
     } catch (ParseException e)
     {
       success = true;
@@ -405,18 +420,19 @@ public class DatatypesTest extends TestCase
     assertEquals(true, success);
 
     /* Equals check */
-    assertFalse(new IntegerType().equals(datatype));
+    assertFalse(new IntegralType().equals(datatype));
 
   }
 
-  public void testDateTimeType()
+  public void testDateType()
   {
     boolean success = false;
     DateTimeType datatype = new DateTimeType();
     DateTimeType otherDatatype = new DateTimeType();
     testBasicDataType(datatype);
-    assertEquals(XMLGregorianCalendar.class, datatype.getClassType());
-    assertTrue(XMLGregorianCalendar.class.isInstance(datatype.getObjectType()));
+    assertEquals(true, datatype.isOrdered());
+    assertEquals(GregorianDateTime.class, datatype.getClassType());
+    assertTrue(GregorianDateTime.class.isInstance(datatype.getObjectType()));
     assertEquals(datatype, datatype);
     assertEquals(otherDatatype, datatype);
 
@@ -486,149 +502,137 @@ public class DatatypesTest extends TestCase
     success = true;
     try
     {
-      XMLGregorianCalendar c;
+      GregorianDateTime c;
       datatype.setResolution(DateTimeType.RESOLUTION_YEAR);
-      c = (XMLGregorianCalendar) datatype.parse("1989");
-      assertEquals(null, c.getEon());
+      c = (GregorianDateTime) datatype.parse("1989");
       assertEquals(1989, c.getYear());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getMonth());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getDay());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getHour());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getMinute());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getSecond());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getMillisecond());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getTimezone());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getMonth());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getDay());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getHour());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getMinute());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getSecond());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getFractionalSecond());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getTimezone());
 
       datatype.setResolution(DateTimeType.RESOLUTION_MONTH);
-      c = (XMLGregorianCalendar) datatype.parse("9001-12");
-      assertEquals(null, c.getEon());
+      c = (GregorianDateTime) datatype.parse("9001-12");
       assertEquals(9001, c.getYear());
       assertEquals(12, c.getMonth());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getDay());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getHour());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getMinute());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getSecond());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getMillisecond());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getTimezone());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getDay());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getHour());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getMinute());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getSecond());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getFractionalSecond());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getTimezone());
 
       datatype.setResolution(DateTimeType.RESOLUTION_MONTH);
-      c = (XMLGregorianCalendar) datatype.parse("9001-01");
-      assertEquals(null, c.getEon());
+      c = (GregorianDateTime) datatype.parse("9001-01");
       assertEquals(9001, c.getYear());
       assertEquals(01, c.getMonth());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getDay());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getHour());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getMinute());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getSecond());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getMillisecond());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getTimezone());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getDay());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getHour());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getMinute());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getSecond());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getFractionalSecond());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getTimezone());
 
       datatype.setResolution(DateTimeType.RESOLUTION_DAY);
-      c = (XMLGregorianCalendar) datatype.parse("1900-01-01");
-      assertEquals(null, c.getEon());
+      c = (GregorianDateTime) datatype.parse("1900-01-01");
       assertEquals(1900, c.getYear());
       assertEquals(01, c.getMonth());
       assertEquals(01, c.getDay());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getHour());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getMinute());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getSecond());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getMillisecond());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getTimezone());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getHour());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getMinute());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getSecond());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getFractionalSecond());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getTimezone());
 
       datatype.setResolution(DateTimeType.RESOLUTION_DAY);
-      c = (XMLGregorianCalendar) datatype.parse("1900-01-11");
-      assertEquals(null, c.getEon());
+      c = (GregorianDateTime) datatype.parse("1900-01-11");
       assertEquals(1900, c.getYear());
       assertEquals(01, c.getMonth());
       assertEquals(11, c.getDay());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getHour());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getMinute());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getSecond());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getMillisecond());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getTimezone());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getHour());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getMinute());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getSecond());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getFractionalSecond());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getTimezone());
 
       datatype.setResolution(DateTimeType.RESOLUTION_DAY);
-      c = (XMLGregorianCalendar) datatype.parse("2018-01-29");
-      assertEquals(null, c.getEon());
+      c = (GregorianDateTime) datatype.parse("2018-01-29");
       assertEquals(2018, c.getYear());
       assertEquals(01, c.getMonth());
       assertEquals(29, c.getDay());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getHour());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getMinute());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getSecond());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getMillisecond());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getTimezone());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getHour());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getMinute());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getSecond());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getFractionalSecond());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getTimezone());
 
       datatype.setResolution(DateTimeType.RESOLUTION_DAY);
-      c = (XMLGregorianCalendar) datatype.parse("2018-11-31");
-      assertEquals(null, c.getEon());
+      c = (GregorianDateTime) datatype.parse("2018-11-31");
       assertEquals(2018, c.getYear());
       assertEquals(11, c.getMonth());
       assertEquals(31, c.getDay());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getHour());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getMinute());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getSecond());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getMillisecond());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getTimezone());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getHour());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getMinute());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getSecond());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getFractionalSecond());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getTimezone());
 
       datatype.setResolution(DateTimeType.RESOLUTION_SECOND);
-      c = (XMLGregorianCalendar) datatype.parse("2018-11-31T00:01:02");
-      assertEquals(null, c.getEon());
+      c = (GregorianDateTime) datatype.parse("2018-11-31T00:01:02");
       assertEquals(2018, c.getYear());
       assertEquals(11, c.getMonth());
       assertEquals(31, c.getDay());
       assertEquals(00, c.getHour());
       assertEquals(01, c.getMinute());
       assertEquals(02, c.getSecond());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getMillisecond());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getTimezone());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getFractionalSecond());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getTimezone());
 
       datatype.setResolution(DateTimeType.RESOLUTION_SECOND);
-      c = (XMLGregorianCalendar) datatype.parse("2018-11-31T15:45:54.900");
-      assertEquals(null, c.getEon());
+      c = (GregorianDateTime) datatype.parse("2018-11-31T15:45:54.900");
       assertEquals(2018, c.getYear());
       assertEquals(11, c.getMonth());
       assertEquals(31, c.getDay());
       assertEquals(15, c.getHour());
       assertEquals(45, c.getMinute());
       assertEquals(54, c.getSecond());
-      assertEquals(900, c.getMillisecond());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getTimezone());
+      assertEquals(900, c.getFractionalSecond());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getTimezone());
 
       datatype.setResolution(DateTimeType.RESOLUTION_SECOND);
-      c = (XMLGregorianCalendar) datatype.parse("2018-11-31T15:45:54Z");
-      assertEquals(null, c.getEon());
+      c = (GregorianDateTime) datatype.parse("2018-11-31T15:45:54Z");
       assertEquals(2018, c.getYear());
       assertEquals(11, c.getMonth());
       assertEquals(31, c.getDay());
       assertEquals(15, c.getHour());
       assertEquals(45, c.getMinute());
       assertEquals(54, c.getSecond());
-      assertEquals(DatatypeConstants.FIELD_UNDEFINED, c.getMillisecond());
+      assertEquals(00, c.getTimezone());
+      assertEquals(DateTimeConstants.FIELD_UNDEFINED, c.getFractionalSecond());
+
+      datatype.setResolution(DateTimeType.RESOLUTION_SECOND);
+      c = (GregorianDateTime) datatype.parse("2018-11-31T15:45:54.90Z");
+      assertEquals(2018, c.getYear());
+      assertEquals(11, c.getMonth());
+      assertEquals(31, c.getDay());
+      assertEquals(15, c.getHour());
+      assertEquals(45, c.getMinute());
+      assertEquals(54, c.getSecond());
+      assertEquals(90, c.getFractionalSecond());
       assertEquals(00, c.getTimezone());
 
       datatype.setResolution(DateTimeType.RESOLUTION_SECOND);
-      c = (XMLGregorianCalendar) datatype.parse("2018-11-31T15:45:54.90Z");
-      assertEquals(null, c.getEon());
+      c = (GregorianDateTime) datatype.parse("2018-11-31T15:45:54.45+00:30");
       assertEquals(2018, c.getYear());
       assertEquals(11, c.getMonth());
       assertEquals(31, c.getDay());
       assertEquals(15, c.getHour());
       assertEquals(45, c.getMinute());
       assertEquals(54, c.getSecond());
-      assertEquals(900, c.getMillisecond());
-      assertEquals(00, c.getTimezone());
-
-      datatype.setResolution(DateTimeType.RESOLUTION_SECOND);
-      c = (XMLGregorianCalendar) datatype.parse("2018-11-31T15:45:54.90+00:30");
-      assertEquals(null, c.getEon());
-      assertEquals(2018, c.getYear());
-      assertEquals(11, c.getMonth());
-      assertEquals(31, c.getDay());
-      assertEquals(15, c.getHour());
-      assertEquals(45, c.getMinute());
-      assertEquals(54, c.getSecond());
-      assertEquals(900, c.getMillisecond());
+      assertEquals(45, c.getFractionalSecond());
       assertEquals(30, c.getTimezone());
 
       //      !!! ADD TIMEZONE SUPPORT!!!
@@ -643,7 +647,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Calendar cal = (Calendar) datatype.parse("-555555");
+      GregorianDateTime cal = (GregorianDateTime) datatype.parse("-555555");
     } catch (ParseException e)
     {
       success = true;
@@ -653,7 +657,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Calendar cal = (Calendar) datatype.parse("1999-");
+      GregorianDateTime cal = (GregorianDateTime) datatype.parse("1999-");
     } catch (ParseException e)
     {
       success = true;
@@ -663,7 +667,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Calendar cal = (Calendar) datatype.parse("1999-12-");
+      GregorianDateTime cal = (GregorianDateTime) datatype.parse("1999-12-");
     } catch (ParseException e)
     {
       success = true;
@@ -673,7 +677,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Calendar cal = (Calendar) datatype.parse("01");
+      GregorianDateTime cal = (GregorianDateTime) datatype.parse("01");
     } catch (ParseException e)
     {
       success = true;
@@ -683,7 +687,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Calendar cal = (Calendar) datatype.parse("ZFa001");
+      GregorianDateTime cal = (GregorianDateTime) datatype.parse("ZFa001");
     } catch (ParseException e)
     {
       success = true;
@@ -693,7 +697,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Calendar cal = (Calendar) datatype.parse("31:");
+      GregorianDateTime cal = (GregorianDateTime) datatype.parse("31:");
     } catch (ParseException e)
     {
       success = true;
@@ -703,7 +707,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Calendar cal = (Calendar) datatype.parse("13:466:");
+      GregorianDateTime cal = (GregorianDateTime) datatype.parse("13:466:");
     } catch (ParseException e)
     {
       success = true;
@@ -711,18 +715,19 @@ public class DatatypesTest extends TestCase
     assertEquals(true, success);
 
     /* Equals check */
-    assertFalse(new IntegerType().equals(datatype));
+    assertFalse(new IntegralType().equals(datatype));
 
   }
 
-  public void testIntegerType()
+  public void testIntegralType()
   {
     boolean success = false;
-    IntegerType datatype = new IntegerType();
-    IntegerType otherDatatype = new IntegerType();
+    IntegralType datatype = new IntegralType();
+    IntegralType otherDatatype = new IntegralType();
     testBasicDataType(datatype);
-    assertEquals(Integer.class, datatype.getClassType());
-    assertTrue(Integer.class.isInstance(datatype.getObjectType()));
+    assertEquals(true, datatype.isOrdered());
+    assertEquals(BigInteger.class, datatype.getClassType());
+    assertTrue(BigInteger.class.isInstance(datatype.getObjectType()));
     assertEquals(datatype, datatype);
     assertEquals(otherDatatype, datatype);
 
@@ -768,17 +773,17 @@ public class DatatypesTest extends TestCase
     success = true;
     try
     {
-      Integer intValue;
-      intValue = (Integer) datatype.parse("00");
+      BigInteger intValue;
+      intValue = (BigInteger) datatype.parse("00");
       assertEquals(0, intValue.intValue());
 
-      intValue = (Integer) datatype.parse("-242");
+      intValue = (BigInteger) datatype.parse("-242");
       assertEquals(-242, intValue.intValue());
 
-      intValue = (Integer) datatype.parse("1");
+      intValue = (BigInteger) datatype.parse("1");
       assertEquals(1, intValue.intValue());
 
-      intValue = (Integer) datatype.parse("1432345534");
+      intValue = (BigInteger) datatype.parse("1432345534");
       assertEquals(1432345534, intValue.intValue());
 
     } catch (ParseException e)
@@ -790,7 +795,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Integer intValue = (Integer) datatype.parse("ZFa001");
+      BigInteger intValue = (BigInteger) datatype.parse("ZFa001");
     } catch (ParseException e)
     {
       success = true;
@@ -801,7 +806,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Integer intValue = (Integer) datatype.parse("31:");
+      BigInteger intValue = (BigInteger) datatype.parse("31:");
     } catch (ParseException e)
     {
       success = true;
@@ -811,7 +816,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Integer intValue = (Integer) datatype.parse("13:466:");
+      BigInteger intValue = (BigInteger) datatype.parse("13:466:");
     } catch (ParseException e)
     {
       success = true;
@@ -821,7 +826,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Integer intValue = (Integer) datatype.parse("00:00:00");
+      BigInteger intValue = (BigInteger) datatype.parse("00:00:00");
     } catch (ParseException e)
     {
       success = true;
@@ -831,7 +836,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Integer intValue = (Integer) datatype.parse("-");
+      BigInteger intValue = (BigInteger) datatype.parse("-");
     } catch (ParseException e)
     {
       success = true;
@@ -841,7 +846,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Integer intValue = (Integer) datatype.parse("+");
+      BigInteger intValue = (BigInteger) datatype.parse("+");
     } catch (ParseException e)
     {
       success = true;
@@ -851,7 +856,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Integer intValue = (Integer) datatype.parse("0AB");
+      BigInteger intValue = (BigInteger) datatype.parse("0AB");
     } catch (ParseException e)
     {
       success = true;
@@ -861,17 +866,14 @@ public class DatatypesTest extends TestCase
     /* Equals check */
     assertFalse(new TimeType().equals(datatype));
 
-    /* Special range value checks */
-    assertEquals(4, datatype.getSize());
 
     /** Special range of values and validates its not working as expected. */
     datatype.setMinInclusive(0);
     datatype.setMaxInclusive(63);
     assertEquals(0, datatype.getMinInclusive());
     assertEquals(63, datatype.getMaxInclusive());
-    assertEquals(1, datatype.getSize());
-    assertEquals(Byte.class, datatype.getClassType());
-    assertTrue(Byte.class.isInstance(datatype.getObjectType()));
+    assertEquals(BigInteger.class, datatype.getClassType());
+    assertTrue(BigInteger.class.isInstance(datatype.getObjectType()));
 
     try
     {
@@ -889,7 +891,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Integer intValue = (Integer) datatype.parse("64");
+      BigInteger intValue = (BigInteger) datatype.parse("64");
     } catch (ParseException e)
     {
       success = true;
@@ -900,7 +902,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Integer intValue = (Integer) datatype.parse("-1");
+      BigInteger intValue = (BigInteger) datatype.parse("-1");
     } catch (ParseException e)
     {
       success = true;
@@ -912,9 +914,8 @@ public class DatatypesTest extends TestCase
     datatype.setMaxInclusive(255);
     assertEquals(-16384, datatype.getMinInclusive());
     assertEquals(255, datatype.getMaxInclusive());
-    assertEquals(2, datatype.getSize());
-    assertEquals(Short.class, datatype.getClassType());
-    assertTrue(Short.class.isInstance(datatype.getObjectType()));
+    assertEquals(BigInteger.class, datatype.getClassType());
+    assertTrue(BigInteger.class.isInstance(datatype.getObjectType()));
 
     try
     {
@@ -932,7 +933,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Integer intValue = (Integer) datatype.parse("256");
+      BigInteger intValue = (BigInteger) datatype.parse("256");
     } catch (ParseException e)
     {
       success = true;
@@ -943,7 +944,7 @@ public class DatatypesTest extends TestCase
     success = false;
     try
     {
-      Integer intValue = (Integer) datatype.parse("-326789");
+      BigInteger intValue = (BigInteger) datatype.parse("-326789");
     } catch (ParseException e)
     {
       success = true;
@@ -956,9 +957,10 @@ public class DatatypesTest extends TestCase
   {
     boolean success = false;
     Character charValue;
-    CharType datatype = new LatinCharType();
-    CharType otherDatatype = new LatinCharType();
+    CharacterType datatype = new LatinCharType();
+    CharacterType otherDatatype = new LatinCharType();
     testBasicDataType(datatype);
+    assertEquals(true, datatype.isOrdered());
     assertEquals(Character.class, datatype.getClassType());
     assertTrue(Character.class.isInstance(datatype.getObjectType()));
     assertEquals(datatype, datatype);
@@ -1021,7 +1023,6 @@ public class DatatypesTest extends TestCase
     assertFalse(new TimeType().equals(datatype));
 
     /** Special range of values and validates its not working as expected. */
-    assertEquals(1, datatype.getSize());
     assertEquals(Character.class, datatype.getClassType());
     assertTrue(Character.class.isInstance(datatype.getObjectType()));
   }
@@ -1035,6 +1036,7 @@ public class DatatypesTest extends TestCase
     int minLength = datatype.getMinLength();
     int maxLength = datatype.getMaxLength();
     testBasicDataType(datatype);
+    assertEquals(false, datatype.isOrdered());
     assertEquals(String.class, datatype.getClassType());
     /** String class in all cases, except in case of enumeration. */
     assertTrue(String.class.isInstance(datatype.getObjectType()));
@@ -1042,7 +1044,7 @@ public class DatatypesTest extends TestCase
     assertEquals(otherDatatype, datatype);
     assertEquals(StringType.WHITESPACE_PRESERVE, datatype.getWhitespace());
     /* Default is UCS-2 character set support. */
-    assertEquals(new UCS2CharType(), datatype.getElementType());
+    assertEquals(new UCS2CharType(), datatype.getBaseType());
 
     try
     {
