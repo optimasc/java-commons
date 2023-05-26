@@ -7,6 +7,7 @@ import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.Type;
+import com.optimasc.datatypes.generated.PointerType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** This datatype represents the Array type that contains
@@ -173,16 +174,22 @@ public class ArrayType extends Datatype implements ConstructedSimple
 */
 public boolean equals(Object obj)
 {
-   ArrayType arrType;
-
-   if (!(obj instanceof ArrayType))
-      return false;
-   arrType = (ArrayType)obj;
-   if (Arrays.equals(arrType.ranks,ranks)==false)
-      return false;
-   if (this.dataType.equals(arrType.getBaseType())==false)
-      return false;
-   return true;
+  /* null always not equal. */
+  if (obj == null)
+    return false;
+  /* Same reference returns true. */
+  if (obj == this)
+  {
+    return true;
+  }
+  if (!(obj instanceof ArrayType))
+  {
+    return false;
+  }
+  ArrayType arrType = (ArrayType)obj;
+  if (Arrays.equals(arrType.ranks,ranks)==false)
+     return false;
+  return super.equals(obj);
 }
 
 public boolean isSubset(Object obj)
