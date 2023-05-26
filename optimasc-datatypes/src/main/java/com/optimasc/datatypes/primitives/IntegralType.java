@@ -167,21 +167,11 @@ public class IntegralType extends PrimitiveType implements BoundedRangeFacet,
     {
       return true;
     }
-    IntegralType intType;
     if (!(obj instanceof IntegralType))
     {
       return false;
     }
-    intType = (IntegralType) obj;
-    if (this.minInclusive != intType.minInclusive)
-    {
-      return false;
-    }
-    if (this.maxInclusive != intType.maxInclusive)
-    {
-      return false;
-    }
-    return true;
+    return super.equals(obj);
   }
 
   /**

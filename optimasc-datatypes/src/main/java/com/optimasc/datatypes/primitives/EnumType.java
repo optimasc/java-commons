@@ -40,11 +40,9 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  * 
  * @author Carl Eric Codère
  */
-public abstract class EnumType extends PrimitiveType implements ConstructedSimple,
-    EnumerationFacet, BoundedRangeFacet
+public abstract class EnumType extends PrimitiveType implements EnumerationFacet, BoundedRangeFacet
 {
   /** Basic element type */
-  protected Type elementType;
   protected Object[] choices;
 
   /** Possible representation of an enumeration element. */
@@ -79,6 +77,28 @@ public abstract class EnumType extends PrimitiveType implements ConstructedSimpl
       this.value = value;
     }
 
+    public boolean equals(Object obj)
+    {
+      if (obj==null)
+        return false;
+      if (obj == this)
+      {
+          return true;
+      }
+      if ((obj instanceof EnumerationElement)==false)
+      {
+        return false;
+      }
+      EnumerationElement otherObj = (EnumerationElement) obj;
+      if (name.equals(otherObj.name)==false)
+        return false;
+      if (value.equals(otherObj.value)==false)
+        return false;
+      return true;
+    }
+    
+    
+
   }
 
   public EnumType()
@@ -88,7 +108,7 @@ public abstract class EnumType extends PrimitiveType implements ConstructedSimpl
 
   public Class getClassType()
   {
-    return elementType.getClass();
+    return Object[].class;
   }
 
   public Object[] getChoices()
@@ -110,6 +130,11 @@ public abstract class EnumType extends PrimitiveType implements ConstructedSimpl
     return null;
   }
 
+  /** Set possible choices and assigns it the
+   *  BaseType depending on the underlying
+   *  type.
+   * 
+   */
   public void setChoices(Object[] choices)
   {
     this.choices = choices;
@@ -125,16 +150,6 @@ public abstract class EnumType extends PrimitiveType implements ConstructedSimpl
       }
     }
     return false;
-  }
-
-  public Type getBaseType()
-  {
-    return elementType;
-  }
-
-  public void setBaseType(Type value)
-  {
-    elementType = value;
   }
 
   public void setMinInclusive(long value)
@@ -228,6 +243,64 @@ public abstract class EnumType extends PrimitiveType implements ConstructedSimpl
     {
       return 0;
     }
+  }
+
+  public boolean equals(Object obj)
+  {
+    /* null always not equal. */
+    if (obj == null)
+      return false;
+    /* Same reference returns true. */
+    if (obj == this)
+    {
+      return true;
+    }
+    if (!(obj instanceof EnumType))
+    {
+        return false;
+    }
+    return super.equals(obj);
+  }
+
+  /**
+   * Return the enumeration index value. If Enumeration contains Objects of type
+   * string, then the original / rank of the enumeration is the index starting
+   * from 0 of the enumeration. If the Enumeration contains Objects of type
+   * EnumerationElement, then the value which should be convertable to Integer
+   * will be used as ordinal value.
+   * 
+   * @param symbol
+   *          The enumeration symbol name.
+   * @return -1 upon error, otherwise the ordinal value of the enumeration
+   *         literal represented by this enum symbol.
+   */
+  public int getEnumOrdinalValue(String symbol)
+  {
+    Object[] choices = getChoices();
+    if (choices[0] instanceof String)
+    {
+      for (int i = 0; i < choices.length; i++)
+      {
+        if (choices[i].equals(symbol))
+        {
+          return i;
+        }
+      }
+      return -1;
+    }
+    if (choices[0] instanceof EnumerationElement)
+    {
+      for (int i = 0; i < choices.length; i++)
+      {
+        EnumerationElement enumElement = (EnumerationElement) choices[i];
+        if (enumElement.getName().equals(symbol))
+        {
+          return Integer.parseInt(enumElement.getValue());
+        }
+      }
+      return -1;
+    }
+    return -1;
   }
 
 }

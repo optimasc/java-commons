@@ -91,12 +91,7 @@ public abstract class CharacterType extends PrimitiveType implements CharacterSe
         return false;
     }
     
-    if (charSetName.equals(((CharacterType)obj).charSetName)==false)
-    {
-        return false;
-    }
-    
-    return true;
+    return super.equals(obj);
     
   }
   

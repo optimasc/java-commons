@@ -382,6 +382,10 @@ public class StringType extends Datatype implements EnumerationFacet, Parseable,
     {
       return false;
     }
+    if (this.getMaxLength() != stringType.getMaxLength())
+    {
+      return false;
+    }
     if (this.getBaseType().equals(stringType.getBaseType())==false)
     {
       return false;
