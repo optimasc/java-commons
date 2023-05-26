@@ -10,6 +10,7 @@ import com.optimasc.datatypes.VariableInstance;
 import com.optimasc.datatypes.aggregate.ArrayType;
 import com.optimasc.datatypes.aggregate.ClassType;
 import com.optimasc.datatypes.aggregate.RecordType;
+import com.optimasc.datatypes.aggregate.SetType;
 import com.optimasc.datatypes.derived.ByteType;
 import com.optimasc.datatypes.derived.CurrencyType;
 import com.optimasc.datatypes.derived.DateType;
@@ -241,6 +242,12 @@ public class DefaultTypeVisitor implements TypeVisitor {
     public Object visit(VoidType n, Object arg)
     {
       // TODO Auto-generated method stub
+      return null;
+    }
+
+    public Object visit(SetType n, Object arg)
+    {
+      n.getBaseType().accept(this, arg);
       return null;
     }
 

@@ -10,6 +10,7 @@ import com.optimasc.datatypes.VariableInstance;
 import com.optimasc.datatypes.aggregate.ArrayType;
 import com.optimasc.datatypes.aggregate.ClassType;
 import com.optimasc.datatypes.aggregate.RecordType;
+import com.optimasc.datatypes.aggregate.SetType;
 import com.optimasc.datatypes.derived.ByteType;
 import com.optimasc.datatypes.derived.CurrencyType;
 import com.optimasc.datatypes.derived.DateType;
@@ -121,5 +122,8 @@ public interface TypeVisitor {
     public Object visit(UnsignedShortType n, Object arg);
     
     public Object visit(CurrencyType n, Object arg);
+    
+    public Object visit(SetType n, Object arg);
+    
     
 }
