@@ -3,12 +3,17 @@ package com.optimasc.datatypes.aggregate;
 import java.util.Arrays;
 import java.util.BitSet;
 
+import omg.org.astm.type.TypeReference;
+
 import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.aggregate.ArrayType.Dimension;
+import com.optimasc.datatypes.derived.ByteType;
+import com.optimasc.datatypes.derived.LatinCharType;
 import com.optimasc.datatypes.derived.RangeType;
+import com.optimasc.datatypes.derived.UnsignedByteType;
 import com.optimasc.datatypes.primitives.BooleanType;
 import com.optimasc.datatypes.primitives.CharacterType;
 import com.optimasc.datatypes.primitives.EnumType;
@@ -17,7 +22,17 @@ import com.optimasc.datatypes.primitives.PrimitiveType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.lang.Duration;
 
-/** * Datatype that represents a set. The baseType must be an ordered value.
+/** * Datatype that represents a set. The baseType must be an ordered value, and
+ *    only allowed types are:
+ *    
+ *    <ul>
+ *     <li>{@link BooleanType}</li>
+ *     <li>{@link LatinCharType}</li>
+ *     <li>{@link ByteType}</li>
+ *     <li>{@link UnsignedByteType}</li>
+ *     <li>A range of the above types</li>
+ *    </ul>
+ *    
 *
 *  This is equivalent to the following datatypes:
 *  <ul>
@@ -35,22 +50,22 @@ public class SetType extends Datatype implements ConstructedSimple
 {
   protected static final BitSet INSTANCE = new BitSet();
   
-  protected PrimitiveType baseType;
+  protected TypeReference baseType;
   
-  public SetType(PrimitiveType baseType)
+  public SetType(TypeReference baseType)
   {
     super(Datatype.OTHER,false);
     setBaseType(baseType);
   }
   
-  public Type getBaseType()
+  public TypeReference getBaseType()
   {
     return baseType;
   }
   
   protected boolean isAllowedType(Type value)
   {
-    if ((value instanceof IntegralType) || (value instanceof CharacterType) || (value instanceof EnumType) ||
+    if ((value instanceof ByteType) || (value instanceof UnsignedByteType) || (value instanceof LatinCharType) || (value instanceof EnumType) ||
         (value instanceof BooleanType))
     {
       return true;
@@ -58,25 +73,25 @@ public class SetType extends Datatype implements ConstructedSimple
     return false;
   }
 
-  public void setBaseType(Type value)
+  public void setBaseType(TypeReference value)
   {
-    if (isAllowedType(value))
+    if (isAllowedType(value.getType()))
     {
-      baseType = (PrimitiveType)value;
+      baseType = (TypeReference)value;
       return;
     } else
-    if (value instanceof RangeType)
+    if (value.getType() instanceof RangeType)
     {
-      Type rangeElementType = ((RangeType)value).getBaseType();
+      Type rangeElementType = ((RangeType)value.getType()).getBaseType().getType();
       if (isAllowedType(rangeElementType))
       {
-        baseType = (PrimitiveType)value;
+        baseType = (TypeReference)value;
         return;
       }
     }
     else
     {
-      throw new IllegalArgumentException("Set base types must be of IntegralType, Character, Enumeration or Range of these types");
+      throw new IllegalArgumentException("Set base types must be of ByteType, UnsignedByteType, LatinCharacter, Enumeration or Range of these types");
     }
   }
 
@@ -96,13 +111,11 @@ public class SetType extends Datatype implements ConstructedSimple
     return BitSet.class;
   }
 
-  @Override
   public Object accept(TypeVisitor v, Object arg)
   {
     return v.visit(this,arg);
   }
 
-  @Override
   public boolean equals(Object obj)
   {
     /* null always not equal. */

@@ -18,6 +18,16 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  * @author Carl Eric Codere
  */
 
-public class TableType extends RecordType
+public class TableType extends AggregateType
 {
+
+  public TableType()
+  {
+    super(Datatype.OTHER);
+  }
+
+  public Object accept(TypeVisitor v, Object arg)
+  {
+    return v.visit(this,arg);
+  }
 }

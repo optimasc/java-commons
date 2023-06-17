@@ -3,11 +3,13 @@ package com.optimasc.datatypes.aggregate;
 import java.text.ParseException;
 import java.util.Arrays;
 
+import omg.org.astm.type.TypeReference;
+
 import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.PackedFacet;
 import com.optimasc.datatypes.Type;
-import com.optimasc.datatypes.generated.PointerType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** This datatype represents the Array type that contains
@@ -16,35 +18,50 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  * @author Carl Eric Codere
  *
  */
-public class ArrayType extends Datatype implements ConstructedSimple
+public class ArrayType extends Datatype implements ConstructedSimple, PackedFacet
 {
+  
+  
   /** Represents the bounds of an array. */
   public static class Dimension
   {
     public int lowBound;
     public int highBound;
+    
+    public Dimension(int lowerBound, int higherBound)
+    {
+      this.lowBound = lowerBound;
+      this.highBound = higherBound;
+    }
   }
   
   protected Dimension ranks[];
   
-  private Type dataType;
+  private TypeReference dataType;
+  /** Indicates if data alignment for underlying platform are ignored, and data is byte aligned. */
+  protected boolean packed;
 
   public ArrayType()
   {
     super(Datatype.ARRAY,false);
   }
 
-  public ArrayType(String name, String comment, Dimension[] ranks, Type type, int flags)
+  /** Array definition of base type and specified
+   *  dimensions. If the <code>ranks</code> array
+   *  contains <code>null</code> entries, it indicates
+   *  an array with unknown number of elements (A
+   *  dynamic array). 
+   * 
+   * @param ranks The bounds of each dimensions,
+   *   but see note above.
+   * @param type The data type of the array elements.
+   */
+  public ArrayType(Dimension[] ranks, TypeReference type)
   {
-    super(name, comment, Datatype.ARRAY,false, flags);
+    super(Datatype.ARRAY,false);
     this.dataType = type;
     this.ranks = ranks;
   }
-
-    public void setDataType(Type dataType)
-    {
-        this.dataType = dataType;
-    }
 
     public Dimension[] getRanks()
     {
@@ -203,12 +220,12 @@ public boolean isSuperset(Object obj)
   return false;
 }
 
-public Type getBaseType()
+public TypeReference getBaseType()
 {
   return dataType;
 }
 
-public void setBaseType(Type value)
+public void setBaseType(TypeReference value)
 {
   dataType = value;
 }
@@ -217,6 +234,16 @@ public Object getObjectType()
 {
   // TODO Auto-generated method stub
   return null;
+}
+
+public boolean isPacked()
+{
+  return packed;
+}
+
+public void setPacked(boolean packed)
+{
+  this.packed = packed;
 }
 
 

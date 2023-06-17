@@ -128,6 +128,51 @@ public class GregorianDateTime implements Cloneable
     setFractionalSecond(fractionalSeconds);
     setTimezone(tz);
   }
+  
+  /** Constructs a date representation based on values. Fields which 
+   *  are not defined will be set to {@link DateTimeConstants#FIELD_UNDEFINED}.
+   * 
+   * @param ayear Year
+   * @param amonth Month, allowed values are between 1 and 12
+   * @param aday Day, allowed values are between 1 and 31
+   */
+  public GregorianDateTime(int ayear, int amonth, int aday)
+  {
+    clear();
+    setYear(ayear);
+    setMonth(amonth);
+    setDay(aday);
+    setHour(DateTimeConstants.FIELD_UNDEFINED);
+    setMinute(DateTimeConstants.FIELD_UNDEFINED);
+    setSecond(DateTimeConstants.FIELD_UNDEFINED);
+    setFractionalSecond(DateTimeConstants.FIELD_UNDEFINED);
+    setTimezone(DateTimeConstants.FIELD_UNDEFINED);
+  }
+  
+  /** Constructs a time representation based on values. Fields which 
+   *  are not defined will be set to {@link DateTimeConstants#FIELD_UNDEFINED}.
+   * 
+   * @param ahour Hours, allowed values are between 0 and 23
+   * @param aminute Minutes, allowed values are between 0 and 59
+   * @param second Seconds, allowed values are between 0 and 60 (for leap seconds)
+   * @param fractionalSeconds fractional values of a second, between 0 and 999
+   * @param tz Timezone offset in minutes
+   */
+  public GregorianDateTime(int ahour, int aminute,
+      int second, int fractionalSeconds, int tz)
+  {
+    clear();
+    setYear(DateTimeConstants.FIELD_UNDEFINED);
+    setMonth(DateTimeConstants.FIELD_UNDEFINED);
+    setDay(DateTimeConstants.FIELD_UNDEFINED);
+    setHour(ahour);
+    setMinute(aminute);
+    setSecond(second);
+    setFractionalSecond(fractionalSeconds);
+    setTimezone(tz);
+  }
+  
+  
 
   /** Clear all fields and set them to {@link #FIELD_UNDEFINED} */
   public void clear()
@@ -1492,6 +1537,88 @@ public class GregorianDateTime implements Cloneable
   public static GregorianDateTime parse(String lexicalRepresentation)
   {
     return new GregorianDateTime(lexicalRepresentation);
+  }
+  
+  /** Add 0 prefixes to the value until length is reached. */
+  public static String addPrefix(int newLength, int value)
+  {
+    StringBuffer builder = new StringBuffer();
+    builder.append(value);
+    while (builder.length()<newLength)
+    {
+      builder.insert(0, '0');
+    }
+    return builder.toString();
+  }
+
+  /** Writes out the ISO 8601 representation of this date
+   *  and time. 
+   * 
+   */
+  public String toString()
+  {
+    StringBuffer buffer = new StringBuffer();
+    
+    if (year != DateTimeConstants.FIELD_UNDEFINED)
+    {
+      buffer.append(addPrefix(4,year));
+    }
+    if (month != DateTimeConstants.FIELD_UNDEFINED)
+    {
+      buffer.append('-');
+      buffer.append(addPrefix(2,month));
+      if (day != DateTimeConstants.FIELD_UNDEFINED)
+      {
+        buffer.append('-');
+        buffer.append(addPrefix(2,day));
+      }
+    }
+    
+    if (hour != DateTimeConstants.FIELD_UNDEFINED)
+    {
+      buffer.append('T');
+      buffer.append(addPrefix(2,hour));
+      if (minute != DateTimeConstants.FIELD_UNDEFINED)
+      {
+        buffer.append(':');
+        buffer.append(addPrefix(2,minute));
+      }
+      if (second != DateTimeConstants.FIELD_UNDEFINED)
+      {
+        buffer.append(':');
+        buffer.append(addPrefix(2,second));
+      }      
+      if (fractionalSecond != DateTimeConstants.FIELD_UNDEFINED)
+      {
+        buffer.append('.');
+        buffer.append(addPrefix(3,fractionalSecond));
+      }      
+      if (timezone!= DateTimeConstants.FIELD_UNDEFINED)
+      {
+        if (timezone == 0)
+          buffer.append('Z');
+        else
+        {
+          int tzHour = Math.abs(timezone / 60);
+          int tzMinute = Math.abs(timezone % 60);
+          if (timezone < 0)
+          {
+            buffer.append('-');
+          } else
+          {
+            buffer.append('+');
+          } 
+          buffer.append(addPrefix(2,tzHour));
+          buffer.append(':');
+          buffer.append(addPrefix(2,tzMinute));
+        }
+      }      
+      return buffer.toString();
+    }
+      
+    
+    
+    return buffer.toString();
   }
 
 }

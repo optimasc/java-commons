@@ -3,6 +3,8 @@ package com.optimasc.datatypes.derived;
 import java.math.BigDecimal;
 import java.text.ParseException;
 
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.primitives.RealType;
@@ -64,6 +66,5 @@ public class DoubleType extends RealType
         throw new ParseException("Cannot parse double point value.",0);
       }
     }
-
 
 }

@@ -2,6 +2,8 @@ package com.optimasc.datatypes.derived;
 
 import java.text.ParseException;
 
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.primitives.IntegralType;
@@ -16,6 +18,8 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
 public class IntType extends IntegralType
 {
   protected static final Integer INTEGER_INSTANCE = new Integer(0);
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new IntType());
+
 
   public IntType()
   {
@@ -56,6 +60,5 @@ public class IntType extends IntegralType
       }
     }
     
-
 
 }

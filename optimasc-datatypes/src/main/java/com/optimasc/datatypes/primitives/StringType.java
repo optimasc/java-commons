@@ -2,6 +2,9 @@ package com.optimasc.datatypes.primitives;
 
 import java.text.ParseException;
 
+import omg.org.astm.type.TypeReference;
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.DatatypeConverter;
 import com.optimasc.datatypes.EnumerationFacet;
 import com.optimasc.datatypes.ConstructedSimple;
@@ -44,6 +47,8 @@ public class StringType extends Datatype implements EnumerationFacet, Parseable,
 {
   protected static final String STRING_INSTANCE = new String();
   
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new StringType());
+  
   
   /** No normalization is done, the value is not changed */
   public static final String WHITESPACE_PRESERVE = "preserve";
@@ -70,7 +75,7 @@ public class StringType extends Datatype implements EnumerationFacet, Parseable,
   protected EnumerationHelper enumHelper;
   protected LengthHelper lengthHelper;
   
-  protected CharacterType characterType;
+  protected TypeReference characterType;
   
   
   public StringType()
@@ -81,7 +86,7 @@ public class StringType extends Datatype implements EnumerationFacet, Parseable,
       lengthHelper = new LengthHelper();
       setMinLength(0);
       setMaxLength(Integer.MAX_VALUE);
-      setBaseType(new UCS2CharType());
+      setBaseType(new UnnamedTypeReference(new UCS2CharType()));
   }
 
   /** Creates a string type definition. This routine verifies the
@@ -93,12 +98,13 @@ public class StringType extends Datatype implements EnumerationFacet, Parseable,
    * @param maxLength The maximum length of allowed characters
    * @param charType The type of characters
    */
-  public StringType(int minLength, int maxLength, Datatype charType)
+  public StringType(int minLength, int maxLength, TypeReference charType)
   {
     super(Datatype.VARCHAR,false);
     whitespace = WHITESPACE_PRESERVE;
     enumHelper = new EnumerationHelper(this);
     lengthHelper = new LengthHelper();
+    setBaseType(charType);
     if (minLength == maxLength)
     {
       this.type = Datatype.CHAR;
@@ -117,12 +123,13 @@ public class StringType extends Datatype implements EnumerationFacet, Parseable,
   public void validate(Object value) throws IllegalArgumentException, DatatypeException
   {
     String s;
+    CharacterType charType = (CharacterType) characterType.getType();
     if (value instanceof char[])
     {
       char[] chArr = (char[])value;
       for (int i = 0; i < chArr.length; i++)
       {
-        if (characterType.isValidCharacter(chArr[i])==false)
+        if (charType.isValidCharacter(chArr[i])==false)
         {
           DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_CHARACTER,"The string does not contain valid characters for this repertoire");
         }
@@ -160,7 +167,7 @@ public class StringType extends Datatype implements EnumerationFacet, Parseable,
           ch = 0x10000+ch+(string.charAt(charCount)-LOW_SURROGATE);
         }
         
-        if (characterType.isValidCharacter(ch)==false)
+        if (charType.isValidCharacter(ch)==false)
         {
           DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_CHARACTER,"The string does not contain valid characters for this repertoire");
         }
@@ -267,7 +274,7 @@ public class StringType extends Datatype implements EnumerationFacet, Parseable,
   }
 
 
-  public Type getBaseType()
+  public TypeReference getBaseType()
   {
     return characterType;
   }
@@ -279,13 +286,13 @@ public class StringType extends Datatype implements EnumerationFacet, Parseable,
   }
 
 
-  public void setBaseType(Type value)
+  public void setBaseType(TypeReference value)
   {
-    if ((value instanceof CharacterType)==false)
+    if ((value.getType() instanceof CharacterType)==false)
     {
-      throw new IllegalArgumentException("Element type must be of Character type.");
+      throw new IllegalArgumentException("Type reference should point to "+CharacterType.class.getName());
     }
-    characterType = (CharacterType) value;
+    characterType = (TypeReference) value;
   }
 
 

@@ -1,5 +1,7 @@
 package com.optimasc.datatypes;
 
+import omg.org.astm.type.TypeReference;
+
 /** Certain datatypes are elements of another Datatype, they then implement
  *  this interface. Examples of such are strings that are composed of
  *  characters. 
@@ -9,6 +11,6 @@ package com.optimasc.datatypes;
  */
 public interface ConstructedSimple
 {
-  public Type getBaseType();
-  public void setBaseType(Type value);
+  public TypeReference getBaseType();
+  public void setBaseType(TypeReference value);
 }

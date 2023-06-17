@@ -8,6 +8,8 @@ package com.optimasc.datatypes.primitives;
 import java.math.BigInteger;
 import java.text.ParseException;
 
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeConverter;
 import com.optimasc.datatypes.DatatypeException;
@@ -39,6 +41,8 @@ public class IntegralType extends PrimitiveType implements BoundedRangeFacet,
     DatatypeConverter, PatternFacet, PrecisionFacet, Parseable
 {
 
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new IntegralType());
+  
   protected static final String REGEX_INTEGER_PATTERN = "-?[0-9]+";
 
   protected long minInclusive;

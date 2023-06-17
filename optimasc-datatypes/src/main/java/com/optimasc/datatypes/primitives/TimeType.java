@@ -15,6 +15,8 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import omg.org.astm.type.UnnamedTypeReference;
+
 /** Datatype that represents an instant of time that recurs every day. 
  *  The value space of time is the space of time of day value.
  *  
@@ -34,6 +36,9 @@ import java.util.regex.Pattern;
 public class TimeType extends Datatype implements PatternFacet, Parseable
 {
   protected static final GregorianDateTime INSTANCE_TYPE = new GregorianDateTime();
+  
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new TimeType());
+  
   
   /* TIME : (0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])([\.,]\d+)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)? */
   protected static final String REGEX_PATTERN = "(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(?:[\\.,](\\d+))?([zZ]|([\\+-])([01]\\d|2[0-3]):?([0-5]\\d)?)?";

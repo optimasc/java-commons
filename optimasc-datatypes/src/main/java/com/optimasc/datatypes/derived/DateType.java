@@ -5,6 +5,8 @@
 
 package com.optimasc.datatypes.derived;
 
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.primitives.DateTimeType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
@@ -27,7 +29,9 @@ import com.optimasc.lang.GregorianDateTime;
  */
 public class DateType extends DateTimeType
 {
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new DateTimeType());
 
+  
     public static final int MASK_YEAR  =  0xFFFF0000;
     public static final int SHIFT_YEAR =  16;
     public static final int MASK_MONTH = 0x0000FF00;
@@ -78,7 +82,5 @@ public class DateType extends DateTimeType
     {
         return v.visit(this,arg);
     }
-
-
 
 }

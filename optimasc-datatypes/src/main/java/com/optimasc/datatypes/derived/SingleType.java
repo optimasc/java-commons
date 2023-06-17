@@ -2,6 +2,8 @@ package com.optimasc.datatypes.derived;
 
 import java.text.ParseException;
 
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.primitives.RealType;
@@ -11,6 +13,8 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
 public class SingleType extends RealType
 {
   protected static final Float FLOAT_INSTANCE = new Float(0);
+
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new SingleType());
 
   
   public SingleType()
@@ -63,5 +67,5 @@ public class SingleType extends RealType
         throw new ParseException("Cannot parse double point value.",0);
       }
     }
-
+    
 }

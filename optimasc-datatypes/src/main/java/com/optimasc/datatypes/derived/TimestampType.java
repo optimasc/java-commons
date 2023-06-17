@@ -1,6 +1,8 @@
 package com.optimasc.datatypes.derived;
 
 
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.primitives.DateTimeType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
@@ -17,6 +19,7 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */  
 public class TimestampType extends DateTimeType
 {
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new TimestampType());
 
   public TimestampType()
   {
@@ -51,7 +54,4 @@ public class TimestampType extends DateTimeType
         return true;
     }
     
-
-
-
 }

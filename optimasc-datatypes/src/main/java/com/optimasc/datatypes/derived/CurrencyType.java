@@ -1,5 +1,7 @@
 package com.optimasc.datatypes.derived;
 
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.PrecisionFacet;
 import com.optimasc.lang.Currency;
@@ -8,7 +10,10 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
 
 public class CurrencyType extends RealType
 {
-  public CurrencyType(int precision)
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new CurrencyType());
+  
+  
+  public CurrencyType()
   {
     super(8,2);
   }
@@ -28,6 +33,4 @@ public class CurrencyType extends RealType
     return Currency.ZERO;
   }
 
-
-  
 }

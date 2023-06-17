@@ -68,16 +68,14 @@ public abstract class Datatype extends Type
   {
     super(ordered);
     this.type = type;
-    this.modifiers = 0;
   }
 
-  public Datatype(String name, String comment, int type, boolean ordered, int flags)
+  public Datatype(String name, String comment, int type, boolean ordered)
   {
     super(ordered);
     this.name = name;
     this.comment = comment;
     this.type = type;
-    this.modifiers = flags;
   }
 
   /**

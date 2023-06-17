@@ -5,7 +5,9 @@ import java.util.Vector;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.MemberObject;
 import com.optimasc.datatypes.PatternFacet;
+import com.optimasc.datatypes.aggregate.AggregateType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Represents a value that can be one or more different
@@ -14,23 +16,20 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  *  @author Carl Eric Codere
  *
  */
-public class UnionType extends Datatype implements PatternFacet
+public class UnionType extends AggregateType implements PatternFacet
 {
   protected static final Object INSTANCE_TYPE = new Object();
   
-  /* Represents each possible datatype allowed. */
-  protected Vector allowedTypes;
-
   public UnionType()
   {
-    super(Datatype.OTHER,false);
-    allowedTypes = new Vector();
+    super(Datatype.OTHER);
   }
-
-  public UnionType(String name, String comment, int type, int flags)
+  
+  public UnionType(MemberObject[] fields)
   {
-    super(name, comment, type, false, flags);
+    super(Datatype.OTHER,fields);
   }
+  
 
   public Class getClassType()
   {
@@ -44,10 +43,10 @@ public class UnionType extends Datatype implements PatternFacet
 
   public void validate(Object value) throws IllegalArgumentException, DatatypeException
   {
-    int i;
+/*    int i;
     boolean success = false;
     Exception thrownException = null;
-    /* We go through each alllowed types, and if one is ok, then we stop. */
+    // We go through each alllowed types, and if one is ok, then we stop.
     for (i = 0; i < allowedTypes.size(); i++)
     {
       try 
@@ -65,7 +64,7 @@ public class UnionType extends Datatype implements PatternFacet
     if (success == false)
     {
       DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE, "Illegal value");
-    }
+    }*/
   }
 
 
@@ -75,24 +74,10 @@ public class UnionType extends Datatype implements PatternFacet
     return null;
   }
   
-  public void addVariantType(Datatype datatype)
-  {
-    allowedTypes.add(datatype);
-  }
-  
-  public Datatype getVariantType(int index)
-  {
-    return (Datatype) allowedTypes.elementAt(index);
-  }
-  
-  public int getVariantCount()
-  {
-    return allowedTypes.size();
-  }
 
   public String getPattern()
   {
-    String pattern = "";
+/*    String pattern = "";
     Datatype type = null;
     for (int i = 0; i < allowedTypes.size(); i++)
     {
@@ -106,7 +91,8 @@ public class UnionType extends Datatype implements PatternFacet
     {
       return ".*";
     }
-    return pattern;
+    return pattern;*/
+    return null;
   }
 
   public void setPattern(String value)

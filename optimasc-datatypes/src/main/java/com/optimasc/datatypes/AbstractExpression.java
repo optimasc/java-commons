@@ -29,6 +29,29 @@ public abstract class AbstractExpression
   {
     return expressionType;
   }
+
+  public boolean equals(Object obj)
+  {
+    if (obj==null)
+      return false;
+    if (obj==this)
+      return true;
+    if (obj instanceof AbstractExpression)
+    {
+       AbstractExpression otherObj = (AbstractExpression) obj;
+       if ((otherObj.expressionType == expressionType) || (otherObj.expressionType == null) && (expressionType == null))
+       {
+         return true;
+       }
+       
+       if ((otherObj.expressionType != null) && (expressionType != null))
+       {
+          return expressionType.equals(otherObj.expressionType);
+       }
+       return false;
+    }
+    return false;
+  }
   
   
   

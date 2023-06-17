@@ -2,6 +2,8 @@ package com.optimasc.datatypes.derived;
 
 import java.text.ParseException;
 
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.primitives.IntegralType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
@@ -14,6 +16,8 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
 public class UnsignedShortType extends NonNegativeIntegerType
 {
   protected static final Short SHORT_INSTANCE = new Short((short) 0);
+  
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new UnsignedShortType());
   
 
   public UnsignedShortType()

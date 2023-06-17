@@ -7,6 +7,8 @@ package com.optimasc.datatypes.derived;
 
 import java.text.ParseException;
 
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.primitives.CharacterType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
@@ -16,6 +18,9 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  * @author Carl Eric Codere
  */
 public class UCS2CharType extends CharacterType {
+  
+  
+     public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new UCS2CharType());
   
     public UCS2CharType()
     {

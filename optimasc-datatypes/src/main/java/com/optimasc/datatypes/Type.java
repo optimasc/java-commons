@@ -1,5 +1,8 @@
 package com.optimasc.datatypes;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /**
@@ -9,12 +12,10 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  * @author Carl Eric Codère
  *
  */
-public abstract class Type
+public abstract class Type implements UserConfiguration
 {
   /** User-specific data associated with this datatype */
-  protected Object userData;
-
-  protected int modifiers;
+  protected Map userData;
 
   protected String comment;
 
@@ -41,6 +42,7 @@ public abstract class Type
   public Type(boolean ordered)
   {
     this.ordered = ordered;
+    this.userData = new HashMap();
   }
 
   /**
@@ -63,30 +65,16 @@ public abstract class Type
     }
   }
 
-  /**
-   * Return user specified user data associated with this data.
-   * 
-   * @return user data.
-   */
-  public Object getUserData()
+  public Object getUserData(String key)
   {
-    return userData;
+    return userData.get(key);
   }
 
-  public void setUserData(Object userData)
+  public Object setUserData(String key, Object data)
   {
-    this.userData = userData;
+     return userData.put(key, data);
   }
 
-  public int getModifiers()
-  {
-    return modifiers;
-  }
-
-  public void setModifiers(int modifiers)
-  {
-    this.modifiers = modifiers;
-  }
 
   /** Returns the comment associated with this datatype if any. */
 

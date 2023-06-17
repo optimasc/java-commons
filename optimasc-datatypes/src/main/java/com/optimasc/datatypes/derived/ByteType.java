@@ -3,6 +3,8 @@ package com.optimasc.datatypes.derived;
 import java.math.BigInteger;
 import java.text.ParseException;
 
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.primitives.IntegralType;
@@ -16,6 +18,7 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
 public class ByteType extends IntegralType
 {
   protected static final Byte BYTE_INSTANCE = new Byte((byte) 0);
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new ByteType());
   
   public ByteType()
   {
@@ -55,8 +58,5 @@ public class ByteType extends IntegralType
         throw new ParseException("Cannot parse string to integer type.", 0);
       }
     }
-    
-    
-    
 
 }

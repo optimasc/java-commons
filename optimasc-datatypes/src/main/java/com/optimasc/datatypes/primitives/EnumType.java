@@ -40,7 +40,7 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  * 
  * @author Carl Eric Codère
  */
-public abstract class EnumType extends PrimitiveType implements EnumerationFacet, BoundedRangeFacet
+public class EnumType extends PrimitiveType implements EnumerationFacet, BoundedRangeFacet
 {
   /** Basic element type */
   protected Object[] choices;
@@ -105,6 +105,13 @@ public abstract class EnumType extends PrimitiveType implements EnumerationFacet
   {
     super(Datatype.OTHER, true);
   }
+  
+  public EnumType(Object[] choices)
+  {
+    super(Datatype.OTHER, true);
+    this.choices = choices;
+  }
+  
 
   public Class getClassType()
   {
@@ -127,7 +134,7 @@ public abstract class EnumType extends PrimitiveType implements EnumerationFacet
 
   public Object accept(TypeVisitor v, Object arg)
   {
-    return null;
+    return v.visit(this, arg);
   }
 
   /** Set possible choices and assigns it the
@@ -301,6 +308,12 @@ public abstract class EnumType extends PrimitiveType implements EnumerationFacet
       return -1;
     }
     return -1;
+  }
+
+  public Object getObjectType()
+  {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

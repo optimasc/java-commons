@@ -1,5 +1,12 @@
 package com.optimasc.datatypes;
 
+import omg.org.astm.type.NamedTypeReference;
+
+import com.optimasc.datatypes.aggregate.ClassType;
+import com.optimasc.datatypes.aggregate.DerivableAggregateType;
+import com.optimasc.datatypes.primitives.IntegralType;
+import com.optimasc.datatypes.primitives.RealType;
+
 /** General type utilities */
 public class TypeUtilities
 {
@@ -41,6 +48,58 @@ public static boolean isUnicodeCharset(String charSetName)
   }
   return false;
 }
-  
+
+
+/** Returns true if this type represents a primitive numeric value.
+ *  In this implementation CharacterType is NOT considered
+ *  a numeric type.
+ *  
+ * @param type
+ * @return
+ */
+public boolean isPrimitiveNumeric(Type type)
+{
+  if (type instanceof RealType)
+  {
+    return true;
+  }
+  if (type instanceof IntegralType)
+  {
+    return true;
+  }
+  return false;
+}
+
+ 
+ /** Verifies if the right operand is  derived from the
+  *  left  operand. 
+  * 
+  * @param left Parent of the derived type
+  * @param right Potentially derived type from left
+  * @return true if right derives from left. 
+  */
+ public static boolean derivesFrom(DerivableAggregateType left, DerivableAggregateType right)
+ {
+   Type rightExpr = right;
+   // Go through all parents of the right class to see if it matches
+   // the left class at any time in the class parent hierarchy.
+   while (rightExpr != null)
+   {
+     if (rightExpr.equals(left))
+     {
+       return true;
+     }
+     if ((rightExpr instanceof DerivableAggregateType)==false)
+     {
+       return false;
+     }
+     NamedTypeReference ref = ((DerivableAggregateType)rightExpr).getDerivesFrom();
+     if (ref == null)
+       return false;
+     rightExpr = ref.getType();
+   }
+   return false;
+ }
+
 
 }

@@ -95,12 +95,6 @@ public abstract class CharacterType extends PrimitiveType implements CharacterSe
     
   }
   
-  public Object accept(TypeVisitor v, Object arg)
-  {
-      return v.visit(this,arg);
-  }
-  
-
   public String getRepertoireList()
   {
     return charSetName;

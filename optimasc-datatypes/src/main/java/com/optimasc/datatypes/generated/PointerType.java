@@ -7,6 +7,8 @@ package com.optimasc.datatypes.generated;
 
 import java.text.ParseException;
 
+import omg.org.astm.type.TypeReference;
+
 import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
@@ -20,12 +22,19 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class PointerType extends Datatype implements ConstructedSimple {
 
-   protected Type pointerTo;
+   protected TypeReference baseType;
 
    public PointerType()
    {
         super(Datatype.REF,false);
    }
+   
+   public PointerType(TypeReference pointerTo)
+   {
+        super(Datatype.REF,false);
+        setBaseType(pointerTo);
+   }
+
 
     public Class getClassType()
     {
@@ -42,14 +51,14 @@ public class PointerType extends Datatype implements ConstructedSimple {
         return v.visit(this,arg);
     }
 
-    public Type getBaseType()
+    public TypeReference getBaseType()
     {
-      return pointerTo;
+      return baseType;
     }
 
-    public void setBaseType(Type value)
+    public void setBaseType(TypeReference value)
     {
-      pointerTo = value;
+      baseType = value;
     }
 
     public Object getObjectType()

@@ -5,84 +5,37 @@
 
 package com.optimasc.datatypes.aggregate;
 
-import com.optimasc.datatypes.VariableInstance;
+import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.generated.ProcedureType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
+
 import java.util.Vector;
+
+import omg.org.astm.type.NamedTypeReference;
 
 /** This represents either a class or a module that contains
  *  methods and variables.
  *
  * @author Carl
  */
-public class ClassType extends RecordType
+public class ClassType extends DerivableAggregateType
 {
-
-    /* Parent class of this class */
-    protected ClassType parent;
-    /* List of implemented interfaces */
+    /* List of implemented interfaces  */
     protected Vector   _implements;
-    /* List of methods */
-    protected Vector   methods;
-    protected boolean  _interface;
 
     public ClassType()
     {
-      methods = new Vector();
+      super();
+      _implements = new Vector(); 
     }
     
-    public ClassType getParent()
+    
+    public ClassType(NamedTypeReference parent)
     {
-        return parent;
+      super(parent);
+      _implements = new Vector(); 
     }
-
-    public void setParent(ClassType parent)
-    {
-        this.parent = parent;
-    }
-
-
-
-/**
-   * Adds the specified filed to this record definition.
-   *
-   * @param fieldIdentifier
-   *          The actual field identifier to access the element.
-   * @param field
-   *          The field datatype definition.
-   */
-  public void addMethod(ProcedureType routine)
-  {
-    methods.addElement(routine);
-  }
-
-
-  /**
-   * Returns the values associated with this name
-   *
-   */
-  public ProcedureType geMethod(int index)
-  {
-    return  (ProcedureType)methods.elementAt(index);
-  }
-
-  public int geMethodCount()
-  {
-    return methods.size();
-  }
-
-
-
-    public boolean isInterface()
-    {
-        return _interface;
-    }
-
-    public void setInterface(boolean _interface)
-    {
-        this._interface = _interface;
-    }
-
+    
 
     /** Search for the specified field with specified access qualifiers
      *  in the current class and parent classes starting with the current
@@ -122,24 +75,6 @@ public class ClassType extends RecordType
         return null;
     }*/
 
-    public VariableInstance lookupField(String name, int flags)
-    {
-        VariableInstance var = super.lookupField(name, flags);
-        ClassType parentType = null;
-        // Look through all parents
-        if (var == null)
-        {
-            parentType = parent;
-            while (parentType != null)
-            {
-                var = parentType.lookupField(name, flags);
-                if (var != null)
-                    return var;
-                parentType = parentType.getParent();
-            }
-        }
-        return null;
-    }
 
     public Object accept(TypeVisitor v, Object arg)
     {

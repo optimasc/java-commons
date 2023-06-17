@@ -2,6 +2,8 @@ package com.optimasc.datatypes.primitives;
 
 import java.text.ParseException;
 
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.visitor.TypeVisitor;
@@ -25,6 +27,9 @@ import com.optimasc.lang.Duration;
  */
 public class DurationType extends PrimitiveType
 {
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new DurationType());
+  
+  
   protected static final Duration INSTANCE = new Duration(0); 
 
   public DurationType()

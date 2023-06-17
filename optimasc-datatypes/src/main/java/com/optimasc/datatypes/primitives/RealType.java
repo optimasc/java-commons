@@ -33,6 +33,7 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class RealType extends PrimitiveType implements RealRangeFacet, Parseable, DatatypeConverter, PrecisionFacet
 {
+  
     protected static final Float FLOAT_INSTANCE = new Float(0);  
     protected static final Double DOUBLE_INSTANCE = new Double(0);  
     protected static final BigDecimal ZERO = new BigDecimal(0);

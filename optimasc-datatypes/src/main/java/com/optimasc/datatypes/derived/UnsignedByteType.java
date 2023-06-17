@@ -2,6 +2,8 @@ package com.optimasc.datatypes.derived;
 
 import java.text.ParseException;
 
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.primitives.IntegralType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
@@ -15,6 +17,9 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
 public class UnsignedByteType extends NonNegativeIntegerType
 {
   protected static final Byte BYTE_INSTANCE = new Byte((byte) 0);
+  
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new UnsignedByteType());
+  
 
   
   public UnsignedByteType()
@@ -41,5 +46,5 @@ public class UnsignedByteType extends NonNegativeIntegerType
       return BYTE_INSTANCE;
     }
     
-    
+   
 }

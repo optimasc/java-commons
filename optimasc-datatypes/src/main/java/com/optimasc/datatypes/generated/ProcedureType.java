@@ -5,16 +5,19 @@
 
 package com.optimasc.datatypes.generated;
 
-import com.optimasc.datatypes.Datatype;
-import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.Type;
-import com.optimasc.datatypes.VariableInstance;
-import com.optimasc.datatypes.aggregate.ClassType;
-import com.optimasc.datatypes.visitor.TypeVisitor;
-
-import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
+
+import omg.org.astm.type.TypeReference;
+import omg.org.astm.type.UnnamedTypeReference;
+
+import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.Type;
+import com.optimasc.datatypes.aggregate.ClassType;
+import com.optimasc.datatypes.primitives.VoidType;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /**
  * Represents a procedure/function/method declaration. A declaration does not
@@ -24,12 +27,11 @@ import java.util.Vector;
  */
 public class ProcedureType extends Type
 {
-
   /** The return type of this routine */
-  protected Object returnType;
+  protected TypeReference returnType;
 
   /**
-   * List of parameters, which is an implementation specific list of Objects
+   * List of parameters, which is an implementation specific list of {@link FormalParameterType} 
    * representing the typeInformation
    */
   protected List formalParameters;
@@ -43,7 +45,7 @@ public class ProcedureType extends Type
    *          The name of the routine
    * @param comment
    *          The comment associated with this routine
-   * @param parent
+   * @param derivesFrom
    *          The parent of this routine if this is defined within a class
    *          otherwise this is null.
    * @param flags
@@ -53,9 +55,17 @@ public class ProcedureType extends Type
   public ProcedureType()
   {
     super(false);
-    formalParameters = new Vector();
-    returnType = null;
+    this.formalParameters = new ArrayList();
+    this.returnType = new UnnamedTypeReference(new VoidType());
   }
+  
+  public ProcedureType(TypeReference returnType,FormalParameterType[] params)
+  {
+    super(false);
+    this.formalParameters = Arrays.asList(params);
+    this.returnType = returnType;
+  }
+  
 
   public ClassType getParent()
   {
@@ -67,9 +77,9 @@ public class ProcedureType extends Type
     this.parent = parent;
   }
 
-  public Object getParameter(int index)
+  public FormalParameterType getParameter(int index)
   {
-    return formalParameters.get(index);
+    return (FormalParameterType) formalParameters.get(index);
   }
 
   public int getParameterCount()
@@ -77,17 +87,23 @@ public class ProcedureType extends Type
     return formalParameters.size();
   }
 
-  public void addParameter(Object param)
+  public void addParameter(FormalParameterType param)
   {
     formalParameters.add(param);
   }
-
-  public Object getReturnType()
+  
+  public void setParameter(int index, FormalParameterType param)
   {
-    return returnType;
+    formalParameters.set(index,param);
+  }
+  
+
+  public TypeReference getReturnType()
+  {
+    return (TypeReference) returnType;
   }
 
-  public void setReturnType(Object returnType)
+  public void setReturnType(TypeReference returnType)
   {
     this.returnType = returnType;
   }
@@ -145,5 +161,12 @@ public class ProcedureType extends Type
     }
     return false;
   }
+
+  public void setParameters(List formalParameters)
+  {
+    this.formalParameters = formalParameters;
+  }
+  
+  
 
 }

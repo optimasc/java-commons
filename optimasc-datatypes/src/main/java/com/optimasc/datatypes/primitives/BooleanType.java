@@ -7,6 +7,8 @@ package com.optimasc.datatypes.primitives;
 
 import java.text.ParseException;
 
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeConverter;
 import com.optimasc.datatypes.DatatypeException;
@@ -25,13 +27,16 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  *   <li><code>BOOLEAN</code> in SQL2003</li>
  *  </ul>
  *
- * <p>Internally, values of this type are represented as {@link Boolean} objects.</p>
+ *  <p>Contrary to ISO/IEC 11404, this type is considered ordered. </p>
+ * <p>Internally, values of this type are represented as {@link Boolean} objects. </p>
  *  
  *
  * @author Carl Eric Codère
  */
 public class BooleanType extends PrimitiveType implements DatatypeConverter, PatternFacet, Parseable
 {
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new BooleanType());
+  
   protected static final String REGEX_PATTERN = "true|false|0|1|TRUE|FALSE";
   
     /** Creates a new boolean type definition.
@@ -41,7 +46,7 @@ public class BooleanType extends PrimitiveType implements DatatypeConverter, Pat
      */
     public BooleanType()
     {
-        super(Datatype.BOOLEAN,false);
+        super(Datatype.BOOLEAN,true);
     }
     
     /** Validates if the Boolean object is compatible with the defined datatype.

@@ -7,6 +7,8 @@ package com.optimasc.datatypes.derived;
 
 import java.text.ParseException;
 
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.primitives.CharacterType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
@@ -17,6 +19,8 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class LatinCharType extends CharacterType
 {
+  
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new LatinCharType());
   
   public LatinCharType()
   {
