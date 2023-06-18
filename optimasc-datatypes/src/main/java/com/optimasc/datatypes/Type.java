@@ -72,9 +72,8 @@ public abstract class Type implements UserConfiguration
 
   public Object setUserData(String key, Object data)
   {
-     return userData.put(key, data);
+    return userData.put(key, data);
   }
-
 
   /** Returns the comment associated with this datatype if any. */
 
@@ -197,8 +196,7 @@ public abstract class Type implements UserConfiguration
           if (otherChoices[i].equals(thisChoices[i]) == false)
             return false;
         }
-              }
-      return false;
+      }
     }
     return true;
   }

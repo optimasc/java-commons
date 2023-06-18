@@ -18,7 +18,7 @@ public class NamedTypeReference extends TypeReference
    /** Creates a named reference to a Type definition.
     * 
     * @param typeName The name for this type.
-    * @param type The associated type definition
+    * @param type The associated and original type definition
     */
   public NamedTypeReference(String typeName, Type type)
   {

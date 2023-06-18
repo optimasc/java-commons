@@ -15,7 +15,7 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  * This is equivalent to the following datatypes:
  * <ul>
  *   <li><code>ENUMERATED</code> ASN.1 datatype</li>
- * <li><code>enumerated</code> ISO/IEC 11404 General purpose datatype</li>
+ *   <li><code>enumerated</code> ISO/IEC 11404 General purpose datatype</li>
  * </ul>
  * 
  * <p>

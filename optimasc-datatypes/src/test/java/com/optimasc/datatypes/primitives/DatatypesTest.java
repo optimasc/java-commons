@@ -172,7 +172,7 @@ public class DatatypesTest extends TestCase
     BooleanType datatype = new BooleanType();
     BooleanType otherDatatype = new BooleanType();
     testBasicDataType(datatype);
-    assertEquals(false, datatype.isOrdered());
+    assertEquals(true, datatype.isOrdered());
     assertEquals(Boolean.class, datatype.getClassType());
     assertTrue(Boolean.class.isInstance(datatype.getObjectType()));
     assertEquals(datatype, datatype);
@@ -1044,7 +1044,7 @@ public class DatatypesTest extends TestCase
     assertEquals(otherDatatype, datatype);
     assertEquals(StringType.WHITESPACE_PRESERVE, datatype.getWhitespace());
     /* Default is UCS-2 character set support. */
-    assertEquals(new UCS2CharType(), datatype.getBaseType());
+    assertEquals(new UCS2CharType(), datatype.getBaseType().getType());
 
     try
     {
