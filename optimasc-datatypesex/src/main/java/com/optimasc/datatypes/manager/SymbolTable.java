@@ -5,11 +5,18 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.optimasc.datatypes.Datatype;
+import com.optimasc.datatypes.Type;
 
-/** Represents an interface to access symbol table */
+/** Represents an interface to access a type symbol table */
 public interface SymbolTable<K,V> extends Map<K, V>
 {
-  public Datatype get(String name);
+  /** Get specified named type. The name is used
+   *  to identified a type using a QName format.
+   * 
+   * @param name
+   * @return
+   */
+  public Type get(String name);
 
   /** Register the specified namespace with the proposed prefix. */
   public void registerNamespace(String namespaceURI, String suggestedPrefix);

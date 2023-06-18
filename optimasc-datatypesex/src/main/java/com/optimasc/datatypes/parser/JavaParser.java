@@ -7,7 +7,7 @@ import com.optimasc.datatypes.DatatypeConverter;
 import com.optimasc.datatypes.EnumerationFacet;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.primitives.BooleanType;
-import com.optimasc.datatypes.primitives.IntegerType;
+import com.optimasc.datatypes.primitives.IntegralType;
 import com.optimasc.datatypes.primitives.StringType;
 
 public class JavaParser implements DatatypeParser
@@ -44,24 +44,13 @@ public class JavaParser implements DatatypeParser
     }
     
     
-    if (datatype instanceof IntegerType)
+    if (datatype instanceof IntegralType)
     {
-      IntegerType integerType = (IntegerType)datatype;
+      IntegralType integerType = (IntegralType)datatype;
       try 
       {
         long longValue = Long.parseLong(value);
         integerType.validate(longValue);
-        switch (integerType.getSize())
-        {
-          case 1:
-              return new Byte((byte)longValue);
-          case 2:
-            return new Short((short)longValue);
-          case 4:
-            return new Integer((int)longValue);
-          case 8:
-            return new Long(longValue);
-        }
       } catch (NumberFormatException e)
       {
         throw new ParseException("Cannot parse string to Long type.",0);

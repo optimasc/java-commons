@@ -1,6 +1,5 @@
 package com.optimasc.datatypes.generated;
 
-import java.net.URI;
 import java.text.ParseException;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -9,9 +8,10 @@ import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.EnumerationFacet;
 import com.optimasc.datatypes.EnumerationHelper;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.Parseable;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
-public class LanguageType extends Datatype implements EnumerationFacet
+public class LanguageType extends Datatype implements EnumerationFacet, Parseable
 {
   protected static final Locale LOCALE_INSTANCE = new Locale("en");
 
@@ -19,15 +19,8 @@ public class LanguageType extends Datatype implements EnumerationFacet
 
   public LanguageType()
   {
-    super(Datatype.OTHER);
+    super(Datatype.OTHER,false);
     enumHelper = new EnumerationHelper(this);
-  }
-
-  @Override
-  public int getSize()
-  {
-    // TODO Auto-generated method stub
-    return 0;
   }
 
   @Override
@@ -53,13 +46,13 @@ public class LanguageType extends Datatype implements EnumerationFacet
     checkClass(value);
     if (validateChoice(value) == false)
     {
-      DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE,
+      DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,
           "The Locale does not match the datatype specification");
     }
   }
 
   @Override
-  public Object accept(DatatypeVisitor v, Object arg)
+  public Object accept(TypeVisitor v, Object arg)
   {
     // TODO Auto-generated method stub
     return null;

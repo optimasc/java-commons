@@ -5,26 +5,32 @@ import java.text.ParseException;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import omg.org.astm.type.TypeReference;
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.LengthFacet;
 import com.optimasc.datatypes.LengthHelper;
+import com.optimasc.datatypes.Parseable;
+import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.generated.StringTypeEx;
-import com.optimasc.datatypes.primitives.IntegerType;
+import com.optimasc.datatypes.primitives.IntegralType;
 import com.optimasc.datatypes.utils.VisualList;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 
 
 /** This datatype represents a sequence datatype consisting
  *  of a set of ordered items in a specified order. Internally
  *  this is represented in the Java language as a <code>Vector</code>. 
- *  Several items with the same value is allowed.
+ *  Several items with the same value are allowed.
  *  
  *  This is equivalent to the following datatypes:
  *  <ul>
- *   <li>list type in XMLSchema</li>
- *   <li>Seq ISO/IEC 11404 General purpose datatype</li>
+ *   <li><code>list</code> type in XMLSchema</li>
+ *   <li><code>Seq</code> ISO/IEC 11404 General purpose datatype</li>
+ *   <li><code>SEQUENCE</code> ASN.1 datatype</li>
  *  </ul>
  * 
  * @author Carl Eric Codere
@@ -32,27 +38,21 @@ import com.optimasc.datatypes.visitor.DatatypeVisitor;
 public abstract class ListType extends Datatype implements LengthFacet, ConstructedSimple
 {
   protected LengthHelper lengthHelper;
-  protected Datatype datatype;
+  protected TypeReference datatypeReference;
+  protected Type datatype;
   /* Delimiter between the list items, by default the space character. */
   protected String delimiter = " ";
-  /* Indicates if this list is ordered or not. */
-  protected boolean ordered;
   
   public ListType()
   {
-      super(Datatype.OTHER);
+      super(Datatype.OTHER,true);
       lengthHelper = new LengthHelper();
       setMinLength(0);
       setMaxLength(Integer.MAX_VALUE);
-      setElementType(new StringTypeEx());
+      setBaseType(new UnnamedTypeReference(new StringTypeEx()));
   }
   
   
-  public int getSize()
-  {
-    return -1;
-  }
-
   public Class getClassType()
   {
     return Vector.class;
@@ -71,13 +71,16 @@ public abstract class ListType extends Datatype implements LengthFacet, Construc
     int size = v.size();
     if ((size < getMinLength()) || (size > getMaxLength()))
     {
-      DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE, "Sequence has an invalid length.");
+      DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE, "Sequence has an invalid length.");
     }
     /* Check each value in the list. */
     for (i = 0; i < size; i++)
     {
       Object item = v.elementAt(i);
-      datatype.validate(item);
+      if (datatypeReference.getType() instanceof Datatype)
+      {
+        ((Datatype)datatypeReference.getType()).validate(item);
+      }
     }
   }
 
@@ -88,7 +91,11 @@ public abstract class ListType extends Datatype implements LengthFacet, Construc
     while (tokenizer.hasMoreTokens()) 
     {
       String itemValue = tokenizer.nextToken();
-      Object o = datatype.parse(itemValue);
+      Object o = itemValue;
+      if (datatype instanceof Parseable)
+      {
+         o = ((Parseable)datatype).parse(itemValue);
+      }
       v.addElement(o);
     }
     try
@@ -104,21 +111,15 @@ public abstract class ListType extends Datatype implements LengthFacet, Construc
     return v;
   }
 
-  public Object accept(DatatypeVisitor v, Object arg)
+  public TypeReference getBaseType()
   {
-    // TODO Auto-generated method stub
-    return null;
+    return datatypeReference;
   }
 
-
-  public Datatype getElementType()
+  public void setBaseType(TypeReference value)
   {
-    return datatype;
-  }
-
-  public void setElementType(Datatype value)
-  {
-    datatype = value;
+    datatypeReference = value;
+    datatype = value.getType();
   }
   
 
@@ -182,7 +183,7 @@ public abstract class ListType extends Datatype implements LengthFacet, Construc
     {
       return false;
     }
-    if (this.datatype.equals(seqType.datatype)==false)
+    if (this.datatypeReference.equals(seqType.datatypeReference)==false)
     {
       return false;
     }

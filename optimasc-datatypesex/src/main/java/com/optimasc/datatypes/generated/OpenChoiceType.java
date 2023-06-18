@@ -1,10 +1,13 @@
 package com.optimasc.datatypes.generated;
 
+import omg.org.astm.type.TypeReference;
+
 import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.EnumerationFacet;
 import com.optimasc.datatypes.EnumerationHelper;
+import com.optimasc.datatypes.Type;
 
 /** Represents a choice between different elements all of
  *  the same datatype. It is possible to have another
@@ -16,7 +19,7 @@ import com.optimasc.datatypes.EnumerationHelper;
  */
 public class OpenChoiceType extends UnionType implements EnumerationFacet, ConstructedSimple
 {
-  protected Datatype elementType;
+  protected TypeReference elementType;
   protected EnumerationHelper enumHelper;
   
   public OpenChoiceType()
@@ -25,13 +28,13 @@ public class OpenChoiceType extends UnionType implements EnumerationFacet, Const
   }
 
   @Override
-  public Datatype getElementType()
+  public TypeReference getBaseType()
   {
     return elementType;
   }
 
   @Override
-  public void setElementType(Datatype value)
+  public void setBaseType(TypeReference value)
   {
     elementType = value; 
   }

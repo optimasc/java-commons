@@ -4,8 +4,11 @@ import java.text.ParseException;
 import java.util.Locale;
 import java.util.StringTokenizer;
 
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.Parseable;
 import com.optimasc.datatypes.utils.VisualAltLangMap;
 import com.optimasc.datatypes.utils.VisualMap;
 
@@ -28,7 +31,7 @@ public class AltLangMapType extends MapType
   public AltLangMapType()
   {
       super();
-      setKeyDatatype(new LanguageType());
+      setKeyDatatype(new UnnamedTypeReference(new LanguageType()));
   }
 
   @Override
@@ -39,13 +42,27 @@ public class AltLangMapType extends MapType
     while (st.hasMoreTokens()) 
     {
         String entryString = st.nextToken();
+        
+        
         if (entryString.indexOf(keySeparatorChar)!=-1)
         {
           String entry[] = entryString.split(keySeparatorChar);
-          visualMap.put((Locale)keyDatatype.parse(entry[0]),valueDatatype.parse(entry[1]).toString());
+          
+          String valueString = entry[1].toString();
+          if (valueDatatype instanceof Parseable)
+          {
+            valueString =  ((Parseable)valueDatatype).parse(entry[1]).toString();
+          }
+          visualMap.put((Locale) ((LanguageType)keyDatatype).parse(entry[0]),valueString);
         } else
         {
-          visualMap.put(new Locale(X_DEFAULT),valueDatatype.parse(entryString).toString());
+          String valueString = entryString;;
+          if (valueDatatype instanceof Parseable)
+          {
+            valueString =  ((Parseable)valueDatatype).parse(valueString).toString();
+          }
+          
+          visualMap.put(new Locale(X_DEFAULT),valueString);
         }
     }
     try

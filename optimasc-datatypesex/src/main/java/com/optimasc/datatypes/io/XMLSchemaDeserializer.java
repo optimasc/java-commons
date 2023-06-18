@@ -21,6 +21,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import omg.org.astm.type.UnnamedTypeReference;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -30,6 +32,7 @@ import org.xml.sax.SAXException;
 
 import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Datatype;
+import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.aggregate.BagType;
 import com.optimasc.datatypes.aggregate.ListType;
 import com.optimasc.datatypes.aggregate.SequenceType;
@@ -63,7 +66,7 @@ import com.optimasc.datatypes.manager.SymbolTable;
 import com.optimasc.datatypes.manager.TypeSymbolTable;
 import com.optimasc.datatypes.primitives.BinaryType;
 import com.optimasc.datatypes.primitives.BooleanType;
-import com.optimasc.datatypes.primitives.IntegerType;
+import com.optimasc.datatypes.primitives.IntegralType;
 import com.optimasc.datatypes.primitives.RealType;
 import com.optimasc.datatypes.primitives.StringType;
 import com.sapient.BeanUtil;
@@ -194,7 +197,7 @@ public class XMLSchemaDeserializer implements Deserializer
       new FacetData("gYearMonth", FACET_GYEARMONTH, YearMonthType.class),
       new FacetData("hexBinary", FACET_STRINGS, BinaryType.class),
       new FacetData("int", FACET_DECIMAL, IntType.class),
-      new FacetData("integer", FACET_DECIMAL, IntegerType.class),
+      new FacetData("integer", FACET_DECIMAL, IntegralType.class),
       new FacetData("language", FACET_STRINGS, LanguageType.class),
       new FacetData("long", FACET_DECIMAL, LongType.class),
       new FacetData("negativeInteger", FACET_DECIMAL, NegativeIntegerType.class),
@@ -336,7 +339,8 @@ public class XMLSchemaDeserializer implements Deserializer
       for (int i = 0; i < simpleTypeList.size(); i++)
       {
         Datatype datatype = parseSimpleType(symbolTable,(Element) simpleTypeList.get(i),xsdPrefix,false);
-        unionType.addVariantType(datatype);
+      // TODO: To complete here
+      //  unionType.addVariantType(datatype);
       }
       unionType.setComment(typeDocumentation);
       unionType.setName(dataTypeName);
@@ -380,14 +384,14 @@ public class XMLSchemaDeserializer implements Deserializer
       {
         throw new IllegalArgumentException("'listType' value is invalid");
       }
-      Datatype listElementDatatype = symbolTable.get(listItemType);
+      Type listElementDatatype = symbolTable.get(listItemType);
       if (listElementDatatype == null)
       {
         throw new IllegalArgumentException("Datatype '"+listItemType+"' is not defined.");
       }
       if (listType instanceof ConstructedSimple)
       {
-        ((ConstructedSimple)listType).setElementType(listElementDatatype);
+        ((ConstructedSimple)listType).setBaseType(new UnnamedTypeReference(listElementDatatype));
       }
       listType.setComment(typeDocumentation);
       listType.setName(dataTypeName);
@@ -587,7 +591,7 @@ public class XMLSchemaDeserializer implements Deserializer
         || (name.equals("minInclusive")) || (name.equals("minExclusive")))
     {
       /** Check if facetData has IntegerType parent. */
-      if (IntegerType.class.isAssignableFrom(facetData.classType))
+      if (IntegralType.class.isAssignableFrom(facetData.classType))
       {
         long longValue = Long.parseLong(value);
         return new Long(longValue);

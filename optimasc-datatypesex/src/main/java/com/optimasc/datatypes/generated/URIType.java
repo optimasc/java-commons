@@ -11,10 +11,12 @@ import com.optimasc.datatypes.EnumerationFacet;
 import com.optimasc.datatypes.EnumerationHelper;
 import com.optimasc.datatypes.LengthFacet;
 import com.optimasc.datatypes.LengthHelper;
+import com.optimasc.datatypes.Parseable;
 import com.optimasc.datatypes.PatternFacet;
-import com.optimasc.datatypes.visitor.DatatypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitor;
+import com.optimasc.datatypes.visitor.TypeVisitorEx;
 
-public class URIType extends Datatype implements LengthFacet, EnumerationFacet, PatternFacet
+public class URIType extends Datatype implements LengthFacet, EnumerationFacet, PatternFacet, Parseable
 {
   protected static final String SAMPLE_URI = "http://www.example.com/";
   protected String pattern;
@@ -24,7 +26,7 @@ public class URIType extends Datatype implements LengthFacet, EnumerationFacet, 
   
   public URIType()
   {
-    super(Datatype.OTHER);
+    super(Datatype.OTHER,false);
     enumHelper = new EnumerationHelper(this);
     lengthHelper = new LengthHelper();
     setMinLength(0);
@@ -76,11 +78,6 @@ public class URIType extends Datatype implements LengthFacet, EnumerationFacet, 
     return lengthHelper.getMaxLength();
   }
 
-  @Override
-  public int getSize()
-  {
-    return -1;
-  }
 
   @Override
   public Class getClassType()
@@ -109,21 +106,15 @@ public class URIType extends Datatype implements LengthFacet, EnumerationFacet, 
       URI uri = (URI)value;
       if ((uri.toString().length() < getMinLength()) || (uri.toString().length() > getMaxLength()))
       {
-        DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE,"The URI does not match the datatype specification");
+        DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,"The URI does not match the datatype specification");
       }
       validatePattern(uri);
       if (validateChoice(uri)==false)
       {
-        DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE,"The URI does not match the datatype specification");
+        DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,"The URI does not match the datatype specification");
       }
       return;
     }
-  }
-
-  @Override
-  public Object accept(DatatypeVisitor v, Object arg)
-  {
-    return null;
   }
 
   @Override
@@ -146,7 +137,7 @@ public class URIType extends Datatype implements LengthFacet, EnumerationFacet, 
       regexPattern =Pattern.compile(pattern);
       if (regexPattern.matcher(uri.toString()).matches()==false)
       {
-        DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE,"The URI does not match the pattern specification '"+pattern+"'");
+        DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,"The URI does not match the pattern specification '"+pattern+"'");
       }
     }
   }
@@ -170,6 +161,13 @@ public class URIType extends Datatype implements LengthFacet, EnumerationFacet, 
     }    
   }
   
-  
+  @Override
+  public Object accept(TypeVisitor v, Object arg)
+  {
+    if ((v instanceof TypeVisitorEx)==false)
+      throw new IllegalArgumentException("Visitor must of type "+TypeVisitorEx.class.getName());
+    return ((TypeVisitorEx)v).visit(this, arg);
+  }
+
   
 }

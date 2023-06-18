@@ -27,14 +27,14 @@ public class DeserializerTest extends TestCase
   public void testNormal01()
   {
     Object o;
-    InputStream stream = getClass().getResourceAsStream("/res/schemas.xsd");
+    InputStream stream = getClass().getClassLoader().getResourceAsStream("res/schemas.xsd");
     XMLSchemaDeserializer input = new XMLSchemaDeserializer();
     TypeSymbolTable dataTypes = input.load(stream);
     /* Check if all the values are valid now. */
 
     o =  dataTypes.get("myInteger");
     assertNotNull(o);
-    IntegerType integerType = (IntegerType)o;
+    IntegralType integerType = (IntegralType)o;
     IntType intType = (IntType) dataTypes.get("MyLimitedInteger");
     assertNotNull(intType);
     assertEquals(0, intType.minInclusive);
@@ -66,7 +66,7 @@ public class DeserializerTest extends TestCase
 
     o =  dataTypes.get("ratingLevel");
     assertNotNull(o);
-    integerType = (IntegerType)o;
+    integerType = (IntegralType)o;
     assertEquals(0, integerType.minInclusive);
     assertEquals(100, integerType.maxInclusive);
 

@@ -10,6 +10,8 @@ import java.util.regex.Pattern;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.EnumerationFacet;
 import com.optimasc.datatypes.LengthFacet;
@@ -55,9 +57,9 @@ public class DatatypesTest extends TestCase
     Vector v;
     ListType datatype = new SequenceType();
     /* List of string types. */
-    datatype.setElementType(new StringType());
+    datatype.setBaseType(new UnnamedTypeReference(new StringType()));
     ListType otherDatatype = new SequenceType();
-    otherDatatype.setElementType(new StringType());
+    otherDatatype.setBaseType(new UnnamedTypeReference(new StringType()));
     testBasicDataType(datatype);
     assertEquals(Vector.class, datatype.getClassType());
     assertTrue(Vector.class.isInstance(datatype.getObjectType()));

@@ -65,6 +65,10 @@
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.6.2</version>
+          <configuration>
+            <source>1.6</source>
+            <target>1.6</target>
+          </configuration>
         </plugin>
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
@@ -87,7 +91,7 @@
         		<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 		        </manifest>
       			</archive>
-    		</configuration>          
+    		</configuration>
         </plugin>
         <plugin>
           <artifactId>maven-install-plugin</artifactId>
@@ -106,7 +110,7 @@
           <artifactId>maven-project-info-reports-plugin</artifactId>
           <version>2.9</version>
         </plugin>
-    
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
@@ -122,18 +126,18 @@
               <goal>javadoc</goal>
             </goals>
           </execution>
-        </executions>        
+        </executions>
       </plugin>
-      
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
         <version>3.0.1</version>
 	    <configuration>
     	  <classifier>src</classifier>
-    	</configuration>        
-      </plugin>     
-      
+    	</configuration>
+      </plugin>
+
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>3.0.0</version>
@@ -141,8 +145,8 @@
           <descriptors>
             <descriptor>src/assembly/src.xml</descriptor>
             <descriptor>src/assembly/bin.xml</descriptor>
-            <descriptor>src/assembly/doc.xml</descriptor>            
-          </descriptors>       
+            <descriptor>src/assembly/doc.xml</descriptor>
+          </descriptors>
         </configuration>
         <executions>
           <execution>
@@ -153,9 +157,9 @@
             </goals>
           </execution>
         </executions>
-      </plugin> 
-      
-      
+      </plugin>
+
+
       <plugin>
       <groupId>org.apache.maven.plugins</groupId>
       <artifactId>maven-pdf-plugin</artifactId>
@@ -174,13 +178,13 @@
         </execution>
       </executions>
     </plugin>
-              
+
       </plugins>
 
     <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
     </pluginManagement>
   </build>
-  
+
   <reporting>
     <plugins>
       <plugin>
@@ -191,10 +195,11 @@
         </configuration>
       </plugin>
     </plugins>
-  </reporting>  
-  
+  </reporting>
+
   <name>Data types validators and serializers</name>
   <inceptionYear>2018</inceptionYear>
   <artifactId>optimasc-datatypesex</artifactId>
   <description></description>
 </project>
+

@@ -1,12 +1,14 @@
 package com.optimasc.datatypes.generated;
 
 import java.text.ParseException;
-import java.util.regex.Pattern;
+
+import omg.org.astm.type.TypeReference;
 
 import com.optimasc.datatypes.ConstructedSimple;
-import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.primitives.EnumeratedType;
+import com.optimasc.datatypes.Parseable;
+import com.optimasc.datatypes.Type;
+import com.optimasc.datatypes.primitives.EnumType;
 
 /** Represents a choice between different elements all of
  *  the same datatype. It is required to have the value
@@ -15,27 +17,14 @@ import com.optimasc.datatypes.primitives.EnumeratedType;
  * @author Carl Eric Codere
  *
  */
-public class ClosedChoiceType extends EnumeratedType implements ConstructedSimple
+public class ClosedChoiceType extends EnumType implements ConstructedSimple, Parseable
 {
-  protected Datatype elementType;
-  protected Object[] choices;
-
+  protected TypeReference elementTypeReference;
+  protected Type elementType;
+  
   public ClosedChoiceType()
   {
     super();
-  }
-
-
-  @Override
-  public Class getClassType()
-  {
-    return elementType.getClass();
-  }
-  
-  
-  public Object[] getChoices()
-  {
-    return choices;
   }
 
   @Override
@@ -43,7 +32,7 @@ public class ClosedChoiceType extends EnumeratedType implements ConstructedSimpl
   {
    if (validateChoice(value) == false)
    {
-     DatatypeException.throwIt(DatatypeException.ILLEGAL_VALUE, "Value is not in choice list.");
+     DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE, "Value is not in choice list.");
    }
   }
 
@@ -61,18 +50,6 @@ public class ClosedChoiceType extends EnumeratedType implements ConstructedSimpl
    return false;
   }
 
-  @Override
-  public Datatype getElementType()
-  {
-    return elementType;
-  }
-
-  @Override
-  public void setElementType(Datatype value)
-  {
-    elementType = value;
-  }
-  
   public Object getObjectType()
   {
     return choices;
@@ -85,7 +62,11 @@ public class ClosedChoiceType extends EnumeratedType implements ConstructedSimpl
     try
     {
       validate(value);
-      return elementType.parse(value);
+      if (elementType instanceof Parseable)
+      {
+        return ((Parseable)elementType).parse(value);
+      }
+      throw new UnsupportedOperationException("Unsupporting of element Type");
     } catch (IllegalArgumentException e)
     {
       throw new ParseException("Error validating string.",0);
@@ -94,6 +75,19 @@ public class ClosedChoiceType extends EnumeratedType implements ConstructedSimpl
       throw new ParseException("Error validating string.",0);
     }
     
+  }
+
+  @Override
+  public TypeReference getBaseType()
+  {
+    return elementTypeReference;
+  }
+
+  @Override
+  public void setBaseType(TypeReference value)
+  {
+    this.elementTypeReference = value;
+    this.elementType = value.getType();
   }
   
 
