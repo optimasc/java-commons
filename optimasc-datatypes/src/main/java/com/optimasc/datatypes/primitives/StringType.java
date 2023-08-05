@@ -94,8 +94,8 @@ public abstract class StringType extends SequenceType implements EnumerationFace
     {
       this.type = Datatype.CHAR;
     }
-    setMinLength(0);
-    setMaxLength(minLength);
+    setMinLength(minLength);
+    setMaxLength(maxLength);
   }
   
 
