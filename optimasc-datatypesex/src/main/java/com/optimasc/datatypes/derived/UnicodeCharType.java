@@ -17,14 +17,14 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  * @author Carl Eric Codere
  *
  */
-public class UnicodeCharacter extends CharacterType
+public class UnicodeCharType extends CharacterType
 {
   protected Charset charSet = null; 
   protected CharsetEncoder charsetEncoder = null;
   
   
 
-  public UnicodeCharacter()
+  public UnicodeCharType()
   {
     super();
     setCharSetName("ISO-10646-UCS-4");

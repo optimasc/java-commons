@@ -5,7 +5,7 @@ import com.optimasc.datatypes.aggregate.ListType;
 import com.optimasc.datatypes.aggregate.SequenceType;
 import com.optimasc.datatypes.derived.NormalizedStringType;
 import com.optimasc.datatypes.derived.TokenType;
-import com.optimasc.datatypes.derived.UnicodeCharacter;
+import com.optimasc.datatypes.derived.UnicodeCharType;
 import com.optimasc.datatypes.generated.StringTypeEx;
 import com.optimasc.datatypes.generated.URIType;
 
@@ -18,7 +18,7 @@ public class DefaultDatatypeVisitorEx extends DefaultTypeVisitor implements Type
   }
 
   @Override
-  public Object visit(UnicodeCharacter n, Object arg)
+  public Object visit(UnicodeCharType n, Object arg)
   {
     // TODO Auto-generated method stub
     return null;

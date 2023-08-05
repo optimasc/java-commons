@@ -37,16 +37,16 @@ public class MapType extends Datatype implements ConstructedSimple, Parseable
   public MapType()
   {
       super(Datatype.OTHER,false);
-      setBaseType(new UnnamedTypeReference(new StringTypeEx()));
+      setBaseTypeReference(new UnnamedTypeReference(new StringTypeEx()));
       setKeyDatatype(new UnnamedTypeReference(new StringTypeEx()));
   }
 
-  public TypeReference getBaseType()
+  public TypeReference getBaseTypeReference()
   {
     return valueDatatypeReference;
   }
 
-  public void setBaseType(TypeReference value)
+  public void setBaseTypeReference(TypeReference value)
   {
     valueDatatypeReference = value;
     valueDatatype = value.getType();

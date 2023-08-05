@@ -49,7 +49,7 @@ public abstract class ListType extends Datatype implements LengthFacet, Construc
       lengthHelper = new LengthHelper();
       setMinLength(0);
       setMaxLength(Integer.MAX_VALUE);
-      setBaseType(new UnnamedTypeReference(new StringTypeEx()));
+      setBaseTypeReference(new UnnamedTypeReference(new StringTypeEx()));
   }
   
   
@@ -111,12 +111,12 @@ public abstract class ListType extends Datatype implements LengthFacet, Construc
     return v;
   }
 
-  public TypeReference getBaseType()
+  public TypeReference getBaseTypeReference()
   {
     return datatypeReference;
   }
 
-  public void setBaseType(TypeReference value)
+  public void setBaseTypeReference(TypeReference value)
   {
     datatypeReference = value;
     datatype = value.getType();

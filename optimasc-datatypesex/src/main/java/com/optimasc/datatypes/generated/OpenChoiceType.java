@@ -28,13 +28,13 @@ public class OpenChoiceType extends UnionType implements EnumerationFacet, Const
   }
 
   @Override
-  public TypeReference getBaseType()
+  public TypeReference getBaseTypeReference()
   {
     return elementType;
   }
 
   @Override
-  public void setBaseType(TypeReference value)
+  public void setBaseTypeReference(TypeReference value)
   {
     elementType = value; 
   }

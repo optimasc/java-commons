@@ -57,9 +57,9 @@ public class DatatypesTest extends TestCase
     Vector v;
     ListType datatype = new SequenceType();
     /* List of string types. */
-    datatype.setBaseType(new UnnamedTypeReference(new StringType()));
+    datatype.setBaseTypeReference(new UnnamedTypeReference(new StringType()));
     ListType otherDatatype = new SequenceType();
-    otherDatatype.setBaseType(new UnnamedTypeReference(new StringType()));
+    otherDatatype.setBaseTypeReference(new UnnamedTypeReference(new StringType()));
     testBasicDataType(datatype);
     assertEquals(Vector.class, datatype.getClassType());
     assertTrue(Vector.class.isInstance(datatype.getObjectType()));

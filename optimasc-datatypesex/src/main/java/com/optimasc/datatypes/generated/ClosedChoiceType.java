@@ -78,13 +78,13 @@ public class ClosedChoiceType extends EnumType implements ConstructedSimple, Par
   }
 
   @Override
-  public TypeReference getBaseType()
+  public TypeReference getBaseTypeReference()
   {
     return elementTypeReference;
   }
 
   @Override
-  public void setBaseType(TypeReference value)
+  public void setBaseTypeReference(TypeReference value)
   {
     this.elementTypeReference = value;
     this.elementType = value.getType();

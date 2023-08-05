@@ -391,7 +391,7 @@ public class XMLSchemaDeserializer implements Deserializer
       }
       if (listType instanceof ConstructedSimple)
       {
-        ((ConstructedSimple)listType).setBaseType(new UnnamedTypeReference(listElementDatatype));
+        ((ConstructedSimple)listType).setBaseTypeReference(new UnnamedTypeReference(listElementDatatype));
       }
       listType.setComment(typeDocumentation);
       listType.setName(dataTypeName);

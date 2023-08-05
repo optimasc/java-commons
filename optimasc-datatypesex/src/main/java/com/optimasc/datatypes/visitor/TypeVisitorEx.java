@@ -5,7 +5,7 @@ import com.optimasc.datatypes.aggregate.ListType;
 import com.optimasc.datatypes.aggregate.SequenceType;
 import com.optimasc.datatypes.derived.NormalizedStringType;
 import com.optimasc.datatypes.derived.TokenType;
-import com.optimasc.datatypes.derived.UnicodeCharacter;
+import com.optimasc.datatypes.derived.UnicodeCharType;
 import com.optimasc.datatypes.generated.StringTypeEx;
 import com.optimasc.datatypes.generated.URIType;
 
@@ -13,7 +13,7 @@ public interface TypeVisitorEx extends TypeVisitor
 {
   /********************** Derived types *************************/
   
-  public Object visit(UnicodeCharacter n, Object arg);
+  public Object visit(UnicodeCharType n, Object arg);
   
   public Object visit(TokenType n, Object arg);
   
