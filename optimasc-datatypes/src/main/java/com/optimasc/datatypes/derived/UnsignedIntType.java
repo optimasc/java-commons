@@ -18,7 +18,8 @@ public class UnsignedIntType extends NonNegativeIntegerType
 {
   protected static final Integer INTEGER_INSTANCE = new Integer(0);
   
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new UnsignedIntType());
+  public static final UnsignedIntType DEFAULT_INSTANCE = new UnsignedIntType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
   
   public UnsignedIntType()
   {

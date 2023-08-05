@@ -16,6 +16,7 @@ import omg.org.astm.type.UnnamedTypeReference;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.aggregate.ClassType;
+import com.optimasc.datatypes.primitives.BinaryType;
 import com.optimasc.datatypes.primitives.VoidType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
@@ -27,6 +28,10 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class ProcedureType extends Type
 {
+  public static final ProcedureType DEFAULT_INSTANCE = new ProcedureType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
+  
+  
   /** The return type of this routine */
   protected TypeReference returnType;
 

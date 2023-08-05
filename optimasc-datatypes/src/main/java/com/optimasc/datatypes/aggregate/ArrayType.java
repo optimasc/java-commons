@@ -220,12 +220,12 @@ public boolean isSuperset(Object obj)
   return false;
 }
 
-public TypeReference getBaseType()
+public TypeReference getBaseTypeReference()
 {
   return dataType;
 }
 
-public void setBaseType(TypeReference value)
+public void setBaseTypeReference(TypeReference value)
 {
   dataType = value;
 }

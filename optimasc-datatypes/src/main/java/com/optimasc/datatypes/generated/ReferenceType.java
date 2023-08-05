@@ -7,6 +7,7 @@ import omg.org.astm.type.TypeReference;
 import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.primitives.VoidType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 public class ReferenceType extends Datatype implements ConstructedSimple
@@ -17,20 +18,21 @@ public class ReferenceType extends Datatype implements ConstructedSimple
   public ReferenceType()
   {
        super(Datatype.REF,false);
+       setBaseTypeReference(VoidType.DEFAULT_TYPE_REFERENCE);
   }
   
   public ReferenceType(TypeReference pointsTo)
   {
        super(Datatype.REF,false);
-       setBaseType(pointsTo);
+       setBaseTypeReference(pointsTo);
   }
 
-  public TypeReference getBaseType()
+  public TypeReference getBaseTypeReference()
   {
     return baseType;
   }
 
-  public void setBaseType(TypeReference value)
+  public void setBaseTypeReference(TypeReference value)
   {
     baseType = value;
   }

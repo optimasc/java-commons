@@ -27,7 +27,8 @@ import com.optimasc.lang.Duration;
  */
 public class DurationType extends PrimitiveType
 {
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new DurationType());
+  public static final DurationType DEFAULT_INSTANCE = new DurationType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
   
   
   protected static final Duration INSTANCE = new Duration(0); 

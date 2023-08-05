@@ -18,7 +18,8 @@ public class UnsignedByteType extends NonNegativeIntegerType
 {
   protected static final Byte BYTE_INSTANCE = new Byte((byte) 0);
   
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new UnsignedByteType());
+  public static final UnsignedByteType DEFAULT_INSTANCE = new UnsignedByteType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
   
 
   

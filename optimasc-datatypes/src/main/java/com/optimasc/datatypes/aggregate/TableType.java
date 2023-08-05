@@ -5,6 +5,7 @@ import java.util.Vector;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.MemberObject;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** This datatype represents a table datatype that consists of fields
@@ -25,6 +26,12 @@ public class TableType extends AggregateType
   {
     super(Datatype.OTHER);
   }
+  
+  public TableType(MemberObject[] members)
+  {
+    super(Datatype.OTHER,members);
+  }
+  
 
   public Object accept(TypeVisitor v, Object arg)
   {

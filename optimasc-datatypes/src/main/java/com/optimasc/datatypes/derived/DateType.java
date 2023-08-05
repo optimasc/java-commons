@@ -29,7 +29,8 @@ import com.optimasc.lang.GregorianDateTime;
  */
 public class DateType extends DateTimeType
 {
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new DateTimeType());
+  public static final DateType DEFAULT_INSTANCE = new DateType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
 
   
     public static final int MASK_YEAR  =  0xFFFF0000;

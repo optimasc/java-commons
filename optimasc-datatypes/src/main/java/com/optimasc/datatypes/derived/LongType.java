@@ -18,7 +18,8 @@ public class LongType extends IntegralType
 {
   protected static final Long LONG_INSTANCE = new Long(0);
   
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new LongType());
+  public static final LongType DEFAULT_INSTANCE = new LongType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
   
 
   public LongType()

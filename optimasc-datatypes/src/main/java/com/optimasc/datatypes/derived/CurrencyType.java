@@ -10,7 +10,8 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
 
 public class CurrencyType extends RealType
 {
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new CurrencyType());
+  public static final CurrencyType DEFAULT_INSTANCE = new CurrencyType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
   
   
   public CurrencyType()

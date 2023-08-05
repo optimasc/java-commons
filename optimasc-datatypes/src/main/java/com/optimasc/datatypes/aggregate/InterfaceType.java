@@ -4,6 +4,7 @@ import java.util.Vector;
 
 import omg.org.astm.type.NamedTypeReference;
 
+import com.optimasc.datatypes.MemberObject;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Represents an interface, such as used in the Java
@@ -24,6 +25,11 @@ public class InterfaceType extends DerivableAggregateType
   public InterfaceType(NamedTypeReference parent)
   {
     super(parent);
+  }
+  
+  public InterfaceType(NamedTypeReference parent, MemberObject[] members)
+  {
+    super(parent,members);
   }
   
   

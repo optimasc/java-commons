@@ -32,7 +32,7 @@ public class NamedTypeReference extends TypeReference
     return typeName;
   }
 
-
+  // TODO: To check if we should the typeName or not
   public boolean equals(Object obj)
   {
     boolean b = super.equals(obj);

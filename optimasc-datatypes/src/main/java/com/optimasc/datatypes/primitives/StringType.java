@@ -16,6 +16,8 @@ import com.optimasc.datatypes.LengthHelper;
 import com.optimasc.datatypes.Parseable;
 import com.optimasc.datatypes.PatternFacet;
 import com.optimasc.datatypes.Type;
+import com.optimasc.datatypes.aggregate.SequenceType;
+import com.optimasc.datatypes.derived.LatinCharType;
 import com.optimasc.datatypes.derived.UCS2CharType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.utils.StringUtilities;
@@ -43,12 +45,9 @@ import com.optimasc.utils.StringUtilities;
  *
  * @author Carl Eric Codère
  */
-public class StringType extends Datatype implements EnumerationFacet, Parseable, LengthFacet, PatternFacet, ConstructedSimple, DatatypeConverter
+public abstract class StringType extends SequenceType implements EnumerationFacet, Parseable, LengthFacet, PatternFacet, DatatypeConverter
 {
   protected static final String STRING_INSTANCE = new String();
-  
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new StringType());
-  
   
   /** No normalization is done, the value is not changed */
   public static final String WHITESPACE_PRESERVE = "preserve";
@@ -75,20 +74,7 @@ public class StringType extends Datatype implements EnumerationFacet, Parseable,
   protected EnumerationHelper enumHelper;
   protected LengthHelper lengthHelper;
   
-  protected TypeReference characterType;
   
-  
-  public StringType()
-  {
-      super(Datatype.VARCHAR,false);
-      whitespace = WHITESPACE_PRESERVE;
-      enumHelper = new EnumerationHelper(this);
-      lengthHelper = new LengthHelper();
-      setMinLength(0);
-      setMaxLength(Integer.MAX_VALUE);
-      setBaseType(new UnnamedTypeReference(new UCS2CharType()));
-  }
-
   /** Creates a string type definition. This routine verifies the
    *  minLength and maxLength characters, if they are equal created
    *  a {@link Datatype#CHAR} type, otherwise it creates a 
@@ -100,18 +86,16 @@ public class StringType extends Datatype implements EnumerationFacet, Parseable,
    */
   public StringType(int minLength, int maxLength, TypeReference charType)
   {
-    super(Datatype.VARCHAR,false);
+    super(Datatype.VARCHAR,false,charType);
     whitespace = WHITESPACE_PRESERVE;
     enumHelper = new EnumerationHelper(this);
     lengthHelper = new LengthHelper();
-    setBaseType(charType);
     if (minLength == maxLength)
     {
       this.type = Datatype.CHAR;
     }
     setMinLength(0);
     setMaxLength(minLength);
-    setBaseType(charType);
   }
   
 
@@ -123,7 +107,7 @@ public class StringType extends Datatype implements EnumerationFacet, Parseable,
   public void validate(Object value) throws IllegalArgumentException, DatatypeException
   {
     String s;
-    CharacterType charType = (CharacterType) characterType.getType();
+    CharacterType charType = (CharacterType)elementType.getType(); 
     if (value instanceof char[])
     {
       char[] chArr = (char[])value;
@@ -192,11 +176,6 @@ public class StringType extends Datatype implements EnumerationFacet, Parseable,
     }
   }
 
-  public Object accept(TypeVisitor v, Object arg)
-  {
-      return v.visit(this,arg);
-  }
-  
 
   public void setMinLength(int value)
   {
@@ -274,26 +253,12 @@ public class StringType extends Datatype implements EnumerationFacet, Parseable,
   }
 
 
-  public TypeReference getBaseType()
-  {
-    return characterType;
-  }
-
-
   public void setPattern(String value)
   {
     pattern = value;
   }
 
 
-  public void setBaseType(TypeReference value)
-  {
-    if ((value.getType() instanceof CharacterType)==false)
-    {
-      throw new IllegalArgumentException("Type reference should point to "+CharacterType.class.getName());
-    }
-    characterType = (TypeReference) value;
-  }
 
 
 
@@ -393,7 +358,7 @@ public class StringType extends Datatype implements EnumerationFacet, Parseable,
     {
       return false;
     }
-    if (this.getBaseType().equals(stringType.getBaseType())==false)
+    if (this.getBaseTypeReference().equals(stringType.getBaseTypeReference())==false)
     {
       return false;
     }

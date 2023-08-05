@@ -9,7 +9,8 @@ import com.optimasc.datatypes.primitives.DateTimeType;
 
 public class YearMonthType extends DateTimeType
 {
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new YearMonthType());
+  public static final YearMonthType DEFAULT_INSTANCE = new YearMonthType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
   
   
   public YearMonthType()

@@ -19,8 +19,8 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class LatinCharType extends CharacterType
 {
-  
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new LatinCharType());
+  public static final LatinCharType DEFAULT_INSTANCE = new LatinCharType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
   
   public LatinCharType()
   {

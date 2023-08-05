@@ -24,12 +24,14 @@ import com.optimasc.datatypes.derived.DateType;
 import com.optimasc.datatypes.derived.DoubleType;
 import com.optimasc.datatypes.derived.IntType;
 import com.optimasc.datatypes.derived.LatinCharType;
+import com.optimasc.datatypes.derived.LatinStringType;
 import com.optimasc.datatypes.derived.LongType;
 import com.optimasc.datatypes.derived.RangeType;
 import com.optimasc.datatypes.derived.ShortType;
 import com.optimasc.datatypes.derived.SingleType;
 import com.optimasc.datatypes.derived.TimestampType;
 import com.optimasc.datatypes.derived.UCS2CharType;
+import com.optimasc.datatypes.derived.UCS2StringType;
 import com.optimasc.datatypes.derived.UnsignedByteType;
 import com.optimasc.datatypes.derived.UnsignedIntType;
 import com.optimasc.datatypes.derived.UnsignedShortType;
@@ -62,7 +64,7 @@ public class DefaultTypeVisitor implements TypeVisitor {
 
     public Object visit(ArrayType n, Object arg)
     {
-      n.setBaseType((TypeReference) n.getBaseType().getType().accept(this, arg));
+      n.setBaseTypeReference((TypeReference) n.getBaseTypeReference().getType().accept(this, arg));
       return n;
     }
 
@@ -82,7 +84,7 @@ public class DefaultTypeVisitor implements TypeVisitor {
       int count = n.getMemberCount();
       for (int i=0; i < count; i++)
       {
-        n.setMember(i, (MemberObject) n.getMember(i).getType().accept(this, arg));
+        n.setMember(i, (MemberObject) n.getMember(i).getDefinitionType().accept(this, arg));
       }
       return n;
     }
@@ -93,7 +95,7 @@ public class DefaultTypeVisitor implements TypeVisitor {
       int count = n.getMemberCount();
       for (int i=0; i < count; i++)
       {
-        n.setMember(i, (MemberObject) n.getMember(i).getType().accept(this, arg));
+        n.setMember(i, (MemberObject) n.getMember(i).getDefinitionType().accept(this, arg));
       }
       return n;
     }
@@ -135,7 +137,7 @@ public class DefaultTypeVisitor implements TypeVisitor {
       int count = n.getMemberCount();
       for (int i=0; i < count; i++)
       {
-        n.setMember(i, (MemberObject) n.getMember(i).getType().accept(this, arg));
+        n.setMember(i, (MemberObject) n.getMember(i).getDefinitionType().accept(this, arg));
       }
       return n;
     }
@@ -145,7 +147,7 @@ public class DefaultTypeVisitor implements TypeVisitor {
       int count = n.getMemberCount();
       for (int i=0; i < count; i++)
       {
-        n.setMember(i, (MemberObject) n.getMember(i).getType().accept(this, arg));
+        n.setMember(i, (MemberObject) n.getMember(i).getDefinitionType().accept(this, arg));
       }
       return n;
     }
@@ -153,13 +155,13 @@ public class DefaultTypeVisitor implements TypeVisitor {
 
     public Object visit(PointerType n, Object arg)
     {
-        n.setBaseType((TypeReference) n.getBaseType().getType().accept(this, arg));
+        n.setBaseTypeReference((TypeReference) n.getBaseTypeReference().getType().accept(this, arg));
         return null;
     }
     
     public Object visit(ReferenceType n, Object arg)
     {
-        n.setBaseType((TypeReference) n.getBaseType().getType().accept(this, arg));
+        n.setBaseTypeReference((TypeReference) n.getBaseTypeReference().getType().accept(this, arg));
         return null;
     }
     
@@ -249,16 +251,18 @@ public class DefaultTypeVisitor implements TypeVisitor {
       return n;
     }
 
-    public Object visit(StringType n, Object arg)
+    public Object visit(LatinStringType n, Object arg)
     {
-      n.setBaseType((TypeReference) n.getBaseType().getType().accept(this, arg));
+      n.setBaseTypeReference((TypeReference) n.getBaseTypeReference().getType().accept(this, arg));
       return n;
     }
-
-    public Object visit(DateTimeType n, Object arg)
+    
+    public Object visit(UCS2StringType n, Object arg)
     {
+      n.setBaseTypeReference((TypeReference) n.getBaseTypeReference().getType().accept(this, arg));
       return n;
     }
+    
 
     public Object visit(DurationType n, Object arg)
     {
@@ -271,7 +275,7 @@ public class DefaultTypeVisitor implements TypeVisitor {
       int count = n.getMemberCount();
       for (int i=0; i < count; i++)
       {
-        n.setMember(i, (MemberObject) n.getMember(i).getType().accept(this, arg));
+        n.setMember(i, (MemberObject) n.getMember(i).getDefinitionType().accept(this, arg));
       }
       return n;
     }
@@ -283,7 +287,7 @@ public class DefaultTypeVisitor implements TypeVisitor {
 
     public Object visit(SetType n, Object arg)
     {
-      n.setBaseType((TypeReference) n.getBaseType().getType().accept(this, arg));
+      n.setBaseTypeReference((TypeReference) n.getBaseTypeReference().getType().accept(this, arg));
       return n;
     }
     

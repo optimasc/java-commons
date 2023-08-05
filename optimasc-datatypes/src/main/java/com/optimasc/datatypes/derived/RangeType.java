@@ -51,6 +51,11 @@ public class RangeType extends Type implements BoundedRangeFacet, ConstructedSim
   
   protected TypeReference dataType;
   
+
+  public RangeType()
+  {
+    super(true);
+  }
   
   public RangeType(Object minBound, Object maxBound, TypeReference typeRef)
   {
@@ -95,12 +100,12 @@ public class RangeType extends Type implements BoundedRangeFacet, ConstructedSim
     this.lowValue = minBound;
   }
   
-  public TypeReference getBaseType()
+  public TypeReference getBaseTypeReference()
   {
     return dataType;
   }
 
-  public void setBaseType(TypeReference value)
+  public void setBaseTypeReference(TypeReference value)
   {
     dataType = value;
 

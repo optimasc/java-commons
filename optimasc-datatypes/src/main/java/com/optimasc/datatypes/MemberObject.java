@@ -20,7 +20,7 @@ public interface MemberObject extends UserConfiguration
   public int getOffset();
   /** Represents a reference to a type associated with this field. This
    *  value may be <code>null</code> depending on the aggregate type. */
-  public TypeReference getType();
+  public TypeReference getDefinitionType();
   /** Returns the visibility of this member object in relation
    *  to the containing type.
    */

@@ -124,7 +124,7 @@ public abstract class Type implements UserConfiguration
           return false;
         }
         ConstructedSimple otherObject = (ConstructedSimple) obj;
-        if (otherObject.getBaseType().equals(thisObject.getBaseType()) == false)
+        if (otherObject.getBaseTypeReference().equals(thisObject.getBaseTypeReference()) == false)
         {
           return false;
         }

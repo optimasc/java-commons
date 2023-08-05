@@ -81,11 +81,6 @@ public class DateTimeType extends PrimitiveType implements PatternFacet, Parseab
     setResolution(RESOLUTION_UNDEFINED);
   }
   
-  public Object accept(TypeVisitor v, Object arg)
-  {
-      return v.visit(this,arg);
-  }
-  
 
   public int getResolution()
   {
@@ -289,6 +284,13 @@ public class DateTimeType extends PrimitiveType implements PatternFacet, Parseab
     {
       throw new IllegalArgumentException("Unsupported parsing for this resolution in "+this.getClass().getName());
     }
+  }
+
+  @Override
+  public Object accept(TypeVisitor v, Object arg)
+  {
+    // TODO Auto-generated method stub
+    return null;
   }
   
   

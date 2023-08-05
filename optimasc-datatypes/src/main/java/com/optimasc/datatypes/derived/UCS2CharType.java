@@ -17,10 +17,10 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  *
  * @author Carl Eric Codere
  */
-public class UCS2CharType extends CharacterType {
-  
-  
-     public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new UCS2CharType());
+public class UCS2CharType extends CharacterType 
+{
+  public static final UCS2CharType DEFAULT_INSTANCE = new UCS2CharType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
   
     public UCS2CharType()
     {

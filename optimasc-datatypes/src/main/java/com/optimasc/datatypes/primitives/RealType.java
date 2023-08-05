@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.ParseException;
 
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeConverter;
 import com.optimasc.datatypes.DatatypeException;
@@ -33,6 +35,9 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class RealType extends PrimitiveType implements RealRangeFacet, Parseable, DatatypeConverter, PrecisionFacet
 {
+  public static final RealType DEFAULT_INSTANCE = new RealType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
+  
   
     protected static final Float FLOAT_INSTANCE = new Float(0);  
     protected static final Double DOUBLE_INSTANCE = new Double(0);  
@@ -43,12 +48,32 @@ public class RealType extends PrimitiveType implements RealRangeFacet, Parseable
     protected int precision;
     protected int scale;
 
+    /** Creates a real type value with the specified 
+     *  precision and scale.
+     * 
+     * @param precision The total precision of the
+     *  value in digits.
+     * @param scale The number of decimal digits.
+     */
     public RealType(int precision, int scale)
     {
         super(Datatype.REAL,true);
         this.precision = precision;
         this.scale = scale;
     }
+    
+    /** Creates a real type value with a default
+     *  precision of 12 digits and a scale of
+     *  4 digits.
+     * 
+     */
+    public RealType()
+    {
+        super(Datatype.REAL,true);
+        this.precision = 12;
+        this.scale = 4;
+    }
+    
     
 
     public void validate(Object value) throws IllegalArgumentException,

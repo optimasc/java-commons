@@ -37,7 +37,8 @@ public class TimeType extends Datatype implements PatternFacet, Parseable
 {
   protected static final GregorianDateTime INSTANCE_TYPE = new GregorianDateTime();
   
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new TimeType());
+  public static final TimeType DEFAULT_INSTANCE = new TimeType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
   
   
   /* TIME : (0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])([\.,]\d+)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)? */

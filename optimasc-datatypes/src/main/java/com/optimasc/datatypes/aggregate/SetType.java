@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 
 import omg.org.astm.type.TypeReference;
+import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Datatype;
@@ -50,15 +51,29 @@ public class SetType extends Datatype implements ConstructedSimple
 {
   protected static final BitSet INSTANCE = new BitSet();
   
+  public static final SetType DEFAULT_INSTANCE = new SetType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
+  
+  
   protected TypeReference baseType;
   
   public SetType(TypeReference baseType)
   {
     super(Datatype.OTHER,false);
-    setBaseType(baseType);
+    setBaseTypeReference(baseType);
   }
   
-  public TypeReference getBaseType()
+  /** Constructs a set type based on 
+   *  a byte.  
+   */
+  public SetType()
+  {
+    super(Datatype.OTHER,false);
+    setBaseTypeReference(UnsignedByteType.DEFAULT_TYPE_REFERENCE);
+  }
+  
+  
+  public TypeReference getBaseTypeReference()
   {
     return baseType;
   }
@@ -73,7 +88,7 @@ public class SetType extends Datatype implements ConstructedSimple
     return false;
   }
 
-  public void setBaseType(TypeReference value)
+  public void setBaseTypeReference(TypeReference value)
   {
     if (isAllowedType(value.getType()))
     {
@@ -82,7 +97,7 @@ public class SetType extends Datatype implements ConstructedSimple
     } else
     if (value.getType() instanceof RangeType)
     {
-      Type rangeElementType = ((RangeType)value.getType()).getBaseType().getType();
+      Type rangeElementType = ((RangeType)value.getType()).getBaseTypeReference().getType();
       if (isAllowedType(rangeElementType))
       {
         baseType = (TypeReference)value;

@@ -14,25 +14,29 @@ import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.primitives.IntegralType;
+import com.optimasc.datatypes.primitives.VoidType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** This datatype represents a pointer to another object.
  *
  * @author Carl Eric Codere
  */
-public class PointerType extends Datatype implements ConstructedSimple {
-
+public class PointerType extends Datatype implements ConstructedSimple 
+{
+    
+  
    protected TypeReference baseType;
 
    public PointerType()
    {
-        super(Datatype.REF,false);
+        super(Datatype.REF,true);
+        setBaseTypeReference(VoidType.DEFAULT_TYPE_REFERENCE);
    }
    
    public PointerType(TypeReference pointerTo)
    {
-        super(Datatype.REF,false);
-        setBaseType(pointerTo);
+        super(Datatype.REF,true);
+        setBaseTypeReference(pointerTo);
    }
 
 
@@ -51,12 +55,12 @@ public class PointerType extends Datatype implements ConstructedSimple {
         return v.visit(this,arg);
     }
 
-    public TypeReference getBaseType()
+    public TypeReference getBaseTypeReference()
     {
       return baseType;
     }
 
-    public void setBaseType(TypeReference value)
+    public void setBaseTypeReference(TypeReference value)
     {
       baseType = value;
     }

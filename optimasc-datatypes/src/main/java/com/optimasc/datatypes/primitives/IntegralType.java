@@ -40,8 +40,8 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
 public class IntegralType extends PrimitiveType implements BoundedRangeFacet,
     DatatypeConverter, PatternFacet, PrecisionFacet, Parseable
 {
-
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new IntegralType());
+  public static final IntegralType DEFAULT_INSTANCE = new IntegralType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
   
   protected static final String REGEX_INTEGER_PATTERN = "-?[0-9]+";
 

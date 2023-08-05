@@ -13,6 +13,7 @@ import com.optimasc.datatypes.LengthFacet;
 import com.optimasc.datatypes.PatternFacet;
 import com.optimasc.datatypes.derived.LatinCharType;
 import com.optimasc.datatypes.derived.UCS2CharType;
+import com.optimasc.datatypes.derived.UCS2StringType;
 import com.optimasc.lang.DateTimeConstants;
 import com.optimasc.lang.GregorianDateTime;
 
@@ -1031,8 +1032,8 @@ public class DatatypesTest extends TestCase
   {
     boolean success = false;
     String stringValue;
-    StringType datatype = new StringType();
-    StringType otherDatatype = new StringType();
+    StringType datatype = new UCS2StringType();
+    StringType otherDatatype = new UCS2StringType();
     int minLength = datatype.getMinLength();
     int maxLength = datatype.getMaxLength();
     testBasicDataType(datatype);
@@ -1044,7 +1045,7 @@ public class DatatypesTest extends TestCase
     assertEquals(otherDatatype, datatype);
     assertEquals(StringType.WHITESPACE_PRESERVE, datatype.getWhitespace());
     /* Default is UCS-2 character set support. */
-    assertEquals(new UCS2CharType(), datatype.getBaseType().getType());
+    assertEquals(new UCS2CharType(), datatype.getBaseTypeReference().getType());
 
     try
     {

@@ -19,7 +19,8 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */  
 public class TimestampType extends DateTimeType
 {
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new TimestampType());
+  public static final TimestampType DEFAULT_INSTANCE = new TimestampType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
 
   public TimestampType()
   {

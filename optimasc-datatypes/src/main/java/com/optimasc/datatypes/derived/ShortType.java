@@ -19,7 +19,8 @@ public class ShortType extends IntegralType
 {
   protected static final Short SHORT_INSTANCE = new Short((short) 0);
   
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new ShortType());
+  public static final ShortType DEFAULT_INSTANCE = new ShortType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
 
   
   public ShortType()

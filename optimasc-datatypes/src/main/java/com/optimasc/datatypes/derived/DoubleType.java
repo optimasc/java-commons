@@ -14,6 +14,10 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
 public class DoubleType extends RealType
 {
     protected static final Double DOUBLE_INSTANCE = new Double(0);
+    
+    public static final DoubleType DEFAULT_INSTANCE = new DoubleType();
+    public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
+    
   
   
     public DoubleType()

@@ -14,7 +14,8 @@ public class SingleType extends RealType
 {
   protected static final Float FLOAT_INSTANCE = new Float(0);
 
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new SingleType());
+  public static final SingleType DEFAULT_INSTANCE = new SingleType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
 
   
   public SingleType()

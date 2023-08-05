@@ -6,9 +6,12 @@
 package com.optimasc.datatypes.aggregate;
 
 import com.optimasc.datatypes.Datatype;
+import com.optimasc.datatypes.MemberObject;
 import com.optimasc.datatypes.generated.ProcedureType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Vector;
 
 import omg.org.astm.type.NamedTypeReference;
@@ -21,12 +24,24 @@ import omg.org.astm.type.NamedTypeReference;
 public class ClassType extends DerivableAggregateType
 {
     /* List of implemented interfaces  */
-    protected Vector   _implements;
+    protected List   _implements;
 
     public ClassType()
     {
       super();
       _implements = new Vector(); 
+    }
+    
+    public ClassType(NamedTypeReference parent, MemberObject[] members)
+    {
+      super(parent,members);
+      _implements = new Vector(); 
+    }
+    
+    public ClassType(NamedTypeReference parent, InterfaceType[] _implements, MemberObject[] members)
+    {
+      super(parent,members);
+      this._implements = Arrays.asList(_implements); 
     }
     
     

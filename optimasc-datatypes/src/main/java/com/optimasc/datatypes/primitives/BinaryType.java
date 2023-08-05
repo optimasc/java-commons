@@ -2,6 +2,9 @@ package com.optimasc.datatypes.primitives;
 
 import java.text.ParseException;
 
+import omg.org.astm.type.TypeReference;
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeConverter;
 import com.optimasc.datatypes.DatatypeException;
@@ -9,6 +12,8 @@ import com.optimasc.datatypes.LengthFacet;
 import com.optimasc.datatypes.LengthHelper;
 import com.optimasc.datatypes.Parseable;
 import com.optimasc.datatypes.PatternFacet;
+import com.optimasc.datatypes.aggregate.SequenceType;
+import com.optimasc.datatypes.derived.UnsignedByteType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /**
@@ -30,8 +35,11 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  * 
  * @author Carl Eric Codère
  */
-public class BinaryType extends Datatype implements LengthFacet, PatternFacet, DatatypeConverter, Parseable
+public class BinaryType extends SequenceType implements LengthFacet, PatternFacet, DatatypeConverter, Parseable
 {
+  public static final BinaryType DEFAULT_INSTANCE = new BinaryType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
+  
   protected static final byte[] INSTANCE_BINARY = new byte[0];
   
   protected static final String REGEX_PATTERN = "([0-9a-fA-F][0-9a-fA-F])+";
@@ -40,26 +48,31 @@ public class BinaryType extends Datatype implements LengthFacet, PatternFacet, D
   protected LengthHelper lengthHelper;
   
 
-  /**
-   * Creates a new binary datatype with the specified minimum length and maximum
-   * length and with an optional regular expression pattern.
-   * 
-   * @param name
-   *          The associated datatype name
-   * @param minLength
-   *          The minimum lengh of the bytes associated with this datatype.
-   * @param maxLength
-   *          The maximum length of the bytes associated with this datatype.
-   * @param comment
-   *          The comment associated with this datatype.
-   */
   public BinaryType()
   {
-    super(Datatype.BINARY,false);
+    super(Datatype.BINARY,false,UnsignedByteType.DEFAULT_TYPE_REFERENCE);
     lengthHelper = new LengthHelper();
     setMinLength(0);
     setMaxLength(Integer.MAX_VALUE);
   }
+  
+  /**
+   * Creates a new binary datatype with the specified minimum length and maximum
+   * length.
+   * 
+   * @param minLength
+   *          The minimum lengh of the bytes associated with this datatype.
+   * @param maxLength
+   *          The maximum length of the bytes associated with this datatype.
+   */
+  public BinaryType(int minLength, int maxLength)
+  {
+    super(Datatype.BINARY,false,UnsignedByteType.DEFAULT_TYPE_REFERENCE);
+    lengthHelper = new LengthHelper();
+    setMinLength(minLength);
+    setMaxLength(maxLength);
+  }
+  
 
   /**
    * Validates if the byte[] array is valid with the defined datatype.
@@ -211,5 +224,6 @@ public class BinaryType extends Datatype implements LengthFacet, PatternFacet, D
     }
     return buffer.toString();
   }
+
 
 }

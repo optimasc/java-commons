@@ -21,12 +21,14 @@ import com.optimasc.datatypes.derived.DateType;
 import com.optimasc.datatypes.derived.DoubleType;
 import com.optimasc.datatypes.derived.IntType;
 import com.optimasc.datatypes.derived.LatinCharType;
+import com.optimasc.datatypes.derived.LatinStringType;
 import com.optimasc.datatypes.derived.LongType;
 import com.optimasc.datatypes.derived.RangeType;
 import com.optimasc.datatypes.derived.ShortType;
 import com.optimasc.datatypes.derived.SingleType;
 import com.optimasc.datatypes.derived.TimestampType;
 import com.optimasc.datatypes.derived.UCS2CharType;
+import com.optimasc.datatypes.derived.UCS2StringType;
 import com.optimasc.datatypes.derived.UnsignedByteType;
 import com.optimasc.datatypes.derived.UnsignedIntType;
 import com.optimasc.datatypes.derived.UnsignedShortType;
@@ -38,7 +40,6 @@ import com.optimasc.datatypes.generated.UnionType;
 import com.optimasc.datatypes.primitives.BinaryType;
 import com.optimasc.datatypes.primitives.BooleanType;
 import com.optimasc.datatypes.primitives.CharacterType;
-import com.optimasc.datatypes.primitives.DateTimeType;
 import com.optimasc.datatypes.primitives.DurationType;
 import com.optimasc.datatypes.primitives.EnumType;
 import com.optimasc.datatypes.primitives.ExceptionType;
@@ -67,8 +68,6 @@ public interface TypeVisitor {
   public Object visit(ClassType n, Object arg);
 
   public Object visit(CurrencyType n, Object arg);
-  
-  public Object visit(DateTimeType n, Object arg);
   
   public Object visit(DateType n, Object arg);
   
@@ -114,7 +113,9 @@ public interface TypeVisitor {
 
     public Object visit(SingleType n, Object arg);
 
-    public Object visit(StringType n, Object arg);
+    public Object visit(LatinStringType n, Object arg);
+    
+    public Object visit(UCS2StringType n, Object arg);
 
     public Object visit(TableType n, Object arg);
 

@@ -35,7 +35,8 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class BooleanType extends PrimitiveType implements DatatypeConverter, PatternFacet, Parseable
 {
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new BooleanType());
+  public static final BooleanType DEFAULT_INSTANCE = new BooleanType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
   
   protected static final String REGEX_PATTERN = "true|false|0|1|TRUE|FALSE";
   

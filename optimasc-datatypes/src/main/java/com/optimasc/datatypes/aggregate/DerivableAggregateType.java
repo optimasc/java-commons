@@ -3,6 +3,7 @@ package com.optimasc.datatypes.aggregate;
 import omg.org.astm.type.NamedTypeReference;
 
 import com.optimasc.datatypes.Datatype;
+import com.optimasc.datatypes.MemberObject;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Represents an object oriented aggregate type. This
@@ -22,6 +23,13 @@ public abstract class DerivableAggregateType extends AggregateType
     super(Datatype.OTHER);
     this.derivesFrom = parent;
   }
+  
+  public DerivableAggregateType(NamedTypeReference parent, MemberObject[] members)
+  {
+    super(Datatype.OTHER,members);
+    this.derivesFrom = parent;
+  }
+  
   
   public DerivableAggregateType()
   {

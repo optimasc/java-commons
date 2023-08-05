@@ -70,8 +70,7 @@ public class UnionType extends AggregateType implements PatternFacet
 
   public Object accept(TypeVisitor v, Object arg)
   {
-    // TODO Auto-generated method stub
-    return null;
+    return v.visit(this, arg);
   }
   
 

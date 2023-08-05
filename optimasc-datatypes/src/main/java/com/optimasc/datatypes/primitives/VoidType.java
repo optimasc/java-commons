@@ -11,7 +11,8 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
 
 public class VoidType extends PrimitiveType
 {
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new VoidType());
+  public static final VoidType DEFAULT_INSTANCE = new VoidType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
 
   
   public VoidType()
