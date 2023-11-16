@@ -90,9 +90,9 @@ public class ZIPFileReader extends ArchiveFileReader
         String comment = null;
         byte[] extraDataBuffer = null;
         Vector v = new Vector();
-        Calendar internalmodificationTime;
-        Calendar internalCreationTime;
-        Calendar internalAccessTime;
+        Date internalmodificationTime;
+        Date internalCreationTime;
+        Date internalAccessTime;
 
         // Local header signature
         signature = readUnsignedInt();
@@ -107,7 +107,7 @@ public class ZIPFileReader extends ArchiveFileReader
             int flags = readUnsignedShort();
             int method = readUnsignedShort();
             long tstamp = readUnsignedInt();
-            internalmodificationTime = DOSDateTimeToCalendar(tstamp);
+            internalmodificationTime = DOSDateTimeToCalendar(tstamp).getTime();
             long crc32 = readUnsignedInt();
             long compressedSize = readUnsignedInt();
             long uncompressedSize = readUnsignedInt();
@@ -167,7 +167,7 @@ public class ZIPFileReader extends ArchiveFileReader
             int flags = readUnsignedShort();
             int method = readUnsignedShort();
             long tstamp = readUnsignedInt();
-            internalmodificationTime = DOSDateTimeToCalendar(tstamp);
+            internalmodificationTime = DOSDateTimeToCalendar(tstamp).getTime();
             long crc32 = readUnsignedInt();
             long compressedSize = readUnsignedInt();
             long uncompressedSize = readUnsignedInt();
@@ -240,13 +240,13 @@ public class ZIPFileReader extends ArchiveFileReader
                         {
                             long mtime = getLongLittle(extraDataBuffer,internalOffset);
                             internalOffset += 8;
-                            internalmodificationTime =  FiletimeToCalendar(mtime);
+                            internalmodificationTime =  FiletimeToCalendar(mtime).getTime();
                             long atime = getLongLittle(extraDataBuffer,internalOffset);
                             internalOffset += 8;
-                            internalAccessTime =  FiletimeToCalendar(atime);
+                            internalAccessTime =  FiletimeToCalendar(atime).getTime();
                             long ctime = getLongLittle(extraDataBuffer,internalOffset);
                             internalOffset += 8;
-                            internalCreationTime =  FiletimeToCalendar(ctime);
+                            internalCreationTime =  FiletimeToCalendar(ctime).getTime();
                         }
                     }
 
@@ -260,11 +260,9 @@ public class ZIPFileReader extends ArchiveFileReader
                     int flag = extraDataBuffer[offset] & 0xFF;
                     offset++;
                     long mtime = getIntLittle(extraDataBuffer,offset);
-                    internalmodificationTime = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-//                    internalmodificationTime.clear();
                     Date d = new Date();
                     d.setTime(mtime * 1000);
-                    internalmodificationTime.setTime(d);
+                    internalmodificationTime = d;
                 }
 
 

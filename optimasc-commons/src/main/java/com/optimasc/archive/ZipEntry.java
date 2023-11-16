@@ -1,8 +1,9 @@
 package com.optimasc.archive;
 
 import java.util.Calendar;
+import java.util.Date;
 
-public class ZipEntry extends ArchiveEntry
+public class ZipEntry extends AbstractArchiveEntry
 {
 
     /**
@@ -69,6 +70,7 @@ public class ZipEntry extends ArchiveEntry
 
     /** Offset to this file header from the start of the stream */
     protected long offset;
+    long crc = -1; // crc-32 of entry data
 
     /**
      * Sets the uncompressed size of the entry data.
@@ -211,17 +213,17 @@ public class ZipEntry extends ArchiveEntry
     }
 
 
-  public void setModificationTime(Calendar cal)
+  public void setModificationTime(Date cal)
   {
     modificationTime = cal;
   }
 
-  public void setCreationTime(Calendar cal)
+  public void setCreationTime(Date cal)
   {
     creationTime = cal;
   }
 
-  public void setLastAccessTime(Calendar cal)
+  public void setLastAccessTime(Date cal)
   {
     accessTime = cal;
   }

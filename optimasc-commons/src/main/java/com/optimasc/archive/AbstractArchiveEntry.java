@@ -1,6 +1,6 @@
 package com.optimasc.archive;
 
-import java.util.Calendar;
+import java.util.Date;
 
 /** Represents an abstract representation of an entry in an 
  *  archive or disk file, containing all the attributes
@@ -12,20 +12,19 @@ import java.util.Calendar;
  * @author Carl Eric Codere
  *
  */
-public abstract class ArchiveEntry
+public abstract class AbstractArchiveEntry implements ArchiveEntry
 {
 
   String name = null; // entry name
-  Calendar modificationTime = null; // Last Modification time
-  Calendar creationTime = null; // Creation time 
-  Calendar accessTime = null; // Access time
+  Date modificationTime = null; // Last Modification time
+  Date creationTime = null; // Creation time 
+  Date accessTime = null; // Access time
 
   long compressedSize = -1;
   long uncompressedSize = -1;
 
   String comment; // Comment associated with this entry;
 
-  long crc = -1; // crc-32 of entry data
   long size = -1; // uncompressed size of entry data
   int method = -1; // compression method
   byte[] extra; // optional extra field data for entry
@@ -91,37 +90,6 @@ public abstract class ArchiveEntry
   public abstract void setCompressedSize(long csize);
 
   
-  /**
-   * Sets the checksum of the uncompressed entry data.
-   * 
-   * @param checksum
-   *          the checksum value
-   * @exception IllegalArgumentException
-   *              if the specified CRC-32 value is less than 0 or greater than
-   *              0xFFFFFFFF
-   * @see #setCrc(long)
-   */
-  public void setCrc(long crc)
-  {
-    if (crc < 0 || crc > 0xFFFFFFFFL)
-    {
-      throw new IllegalArgumentException("invalid entry crc-32");
-    }
-    this.crc = crc;
-  }
-
-  /**
-   * Returns the CRC-32 checksum of the uncompressed entry data, or -1 if not
-   * known.
-   * 
-   * @return the CRC-32 checksum of the uncompressed entry data, or -1 if not
-   *         known
-   * @see #getCrc()
-   */
-  public long getCrc()
-  {
-    return crc;
-  }
 
   /**
    * Sets the compression method for the entry.
@@ -214,7 +182,7 @@ public abstract class ArchiveEntry
    *  
    * @return
    */
-  public Calendar getModificationTime()
+  public Date getLastModifiedDate()
   {
     return modificationTime;
   }
@@ -225,7 +193,7 @@ public abstract class ArchiveEntry
    *  
    * @return
    */
-  public Calendar getCreationTime()
+  public Date getCreationTime()
   {
     return creationTime;
   }
@@ -236,7 +204,7 @@ public abstract class ArchiveEntry
    *  
    * @return
    */
-  public Calendar getAccessTime()
+  public Date getAccessTime()
   {
     return accessTime;
   }

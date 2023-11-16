@@ -82,8 +82,6 @@ public abstract class ArchiveFileReader
      */
     public abstract InputStream getInputStream(ArchiveEntry entry)  throws IOException, IllegalArgumentException;
 
-//  String getName() 
-//  Returns the path name of the ZIP file.
     /** Returns the number of entries in the archive file.
      *
      * @return
