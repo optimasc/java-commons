@@ -9,7 +9,9 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import com.optimasc.date.BaseISO8601Date;
+import com.optimasc.io.LineReader;
+import com.optimasc.text.BaseISO8601Date;
+import com.optimasc.text.StringUtilities;
 
 /**
  * Implements a simplified property list of data that can be read and output to
@@ -30,7 +32,7 @@ import com.optimasc.date.BaseISO8601Date;
  * @author Carl Eric Codere
  * 
  */
-public class PropertyList extends PropertyAbstractBase
+public class PropertyList
 {
   private static final String ALTERNATE_COMMENT_CHAR = "!";
   private static final String COMMENT_CHAR = "#";
