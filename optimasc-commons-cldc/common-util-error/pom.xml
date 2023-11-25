@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.optimasc.commons</groupId>
+        <artifactId>common-cldc</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+    <artifactId>optimasc-commons-util-error-cldc</artifactId>
+    <packaging>jar</packaging>
+    <name>Common error management utilities</name>
+    <url></url>
+    <inceptionYear>2016</inceptionYear>
+     <description>A set of common error management utilities compatible with CLDC 1.1 
+      and Java 1.4 that can be used to write portable code. </description>
+  
+  <licenses>
+   <license>
+        <name>Apache-2.0</name>
+        <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        <comments>For all the code, excluding willcode4beer package.</comments>
+   </license>
+  </licenses> 
+  
+   <developers>
+    <developer>
+      <name>Carl Eric Codère</name>
+      <roles>
+        <role>creator</role>
+        <role>developer</role>
+      </roles>
+    </developer>
+  </developers>
+  
+  <contributors>
+  </contributors>
+  
+  
+	<!-- List of organization associated with this project -->
+	<organization>
+		<name>Optima SC Inc.</name>
+		<url>http://www.optimasc.com</url>
+	</organization>
+	
+</project>
+
