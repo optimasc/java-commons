@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package com.optimasc.utils;
+package com.optimasc.text;
 
 import java.util.NoSuchElementException;
 import junit.framework.TestCase;

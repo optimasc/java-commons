@@ -47,7 +47,7 @@
  */
 
 
-package com.optimasc.utils;
+package com.optimasc.text;
 
 import junit.framework.TestCase;
 

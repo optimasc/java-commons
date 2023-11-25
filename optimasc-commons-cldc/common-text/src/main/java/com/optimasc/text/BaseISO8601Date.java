@@ -14,10 +14,9 @@
  * SPECIFICALLY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTY OF FITNESS FOR
  * HIGH RISK ACTIVITIES.
  */
-package com.optimasc.date;
+package com.optimasc.text;
 
 import com.optimasc.text.PrintfFormat;
-import com.optimasc.utils.StringTokenizer;
 
 import java.util.*;
 

@@ -1,4 +1,4 @@
-package com.optimasc.date;
+package com.optimasc.text;
 
 /** Contains constants for SimpleDateFormat parsing of dates. */
 public class DatePatterns
