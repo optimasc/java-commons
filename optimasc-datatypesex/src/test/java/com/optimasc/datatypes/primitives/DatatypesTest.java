@@ -19,6 +19,7 @@ import com.optimasc.datatypes.PatternFacet;
 import com.optimasc.datatypes.aggregate.ListType;
 import com.optimasc.datatypes.aggregate.SequenceType;
 import com.optimasc.datatypes.derived.LatinCharType;
+import com.optimasc.datatypes.derived.LatinStringType;
 import com.optimasc.datatypes.derived.UCS2CharType;
 
 import junit.framework.TestCase;
@@ -57,9 +58,9 @@ public class DatatypesTest extends TestCase
     Vector v;
     ListType datatype = new SequenceType();
     /* List of string types. */
-    datatype.setBaseTypeReference(new UnnamedTypeReference(new StringType()));
+    datatype.setBaseTypeReference(new UnnamedTypeReference(new LatinStringType()));
     ListType otherDatatype = new SequenceType();
-    otherDatatype.setBaseTypeReference(new UnnamedTypeReference(new StringType()));
+    otherDatatype.setBaseTypeReference(new UnnamedTypeReference(new LatinStringType()));
     testBasicDataType(datatype);
     assertEquals(Vector.class, datatype.getClassType());
     assertTrue(Vector.class.isInstance(datatype.getObjectType()));

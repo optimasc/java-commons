@@ -1,14 +1,12 @@
 package com.optimasc.datatypes.primitives;
 
 import java.text.ParseException;
-import java.util.GregorianCalendar;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.Parseable;
 import com.optimasc.datatypes.PatternFacet;
 import com.optimasc.datatypes.visitor.TypeVisitor;
-import com.optimasc.date.BaseISO8601Date;
 import com.optimasc.lang.DateTimeConstants;
 import com.optimasc.lang.GregorianDateTime;
 

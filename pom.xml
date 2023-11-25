@@ -4,15 +4,15 @@
                              http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     
-    <groupId>com.optimasc.datatypes</groupId>
+    <groupId>com.optimasc.commons</groupId>
     <artifactId>simple-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.0</version>
+    <version>1.0.0</version>
     
     <modules>
+        <module>optimasc-commons-cldc</module>
         <module>optimasc-commons</module>
         <module>optimasc-datatypes</module>
-        <module>optimasc-datatypesex</module>
     </modules>    
     
 </project>    

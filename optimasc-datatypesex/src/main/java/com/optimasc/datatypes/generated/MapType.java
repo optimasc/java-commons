@@ -15,6 +15,7 @@ import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.Parseable;
 import com.optimasc.datatypes.Type;
+import com.optimasc.datatypes.derived.UCS2StringType;
 import com.optimasc.datatypes.utils.VisualMap;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
@@ -37,8 +38,8 @@ public class MapType extends Datatype implements ConstructedSimple, Parseable
   public MapType()
   {
       super(Datatype.OTHER,false);
-      setBaseTypeReference(new UnnamedTypeReference(new StringTypeEx()));
-      setKeyDatatype(new UnnamedTypeReference(new StringTypeEx()));
+      setBaseTypeReference(UCS2StringType.TYPE_REFERENCE);
+      setKeyDatatype(UCS2StringType.TYPE_REFERENCE);
   }
 
   public TypeReference getBaseTypeReference()

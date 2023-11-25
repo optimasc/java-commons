@@ -2,6 +2,8 @@ package com.optimasc.datatypes.generated;
 
 import java.util.regex.Pattern;
 
+import omg.org.astm.type.TypeReference;
+
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.primitives.CharacterType;
 import com.optimasc.datatypes.primitives.StringType;
@@ -17,9 +19,14 @@ import com.optimasc.datatypes.visitor.TypeVisitorEx;
 public class StringTypeEx extends StringType
 {
   
-  public StringTypeEx()
+  public StringTypeEx(TypeReference charType)
   {
-    super();
+    super(0,Integer.MAX_VALUE,charType);
+  }
+  
+  public StringTypeEx(int minLength, int maxLength, TypeReference charType)
+  {
+    super(minLength,maxLength,charType);
   }
 
   @Override

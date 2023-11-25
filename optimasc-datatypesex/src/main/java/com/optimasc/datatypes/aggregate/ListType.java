@@ -15,6 +15,7 @@ import com.optimasc.datatypes.LengthFacet;
 import com.optimasc.datatypes.LengthHelper;
 import com.optimasc.datatypes.Parseable;
 import com.optimasc.datatypes.Type;
+import com.optimasc.datatypes.derived.UCS2StringType;
 import com.optimasc.datatypes.generated.StringTypeEx;
 import com.optimasc.datatypes.primitives.IntegralType;
 import com.optimasc.datatypes.utils.VisualList;
@@ -49,7 +50,7 @@ public abstract class ListType extends Datatype implements LengthFacet, Construc
       lengthHelper = new LengthHelper();
       setMinLength(0);
       setMaxLength(Integer.MAX_VALUE);
-      setBaseTypeReference(new UnnamedTypeReference(new StringTypeEx()));
+      setBaseTypeReference(UCS2StringType.TYPE_REFERENCE);
   }
   
   

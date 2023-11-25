@@ -50,7 +50,7 @@
     </dependency>
     <dependency>
       <groupId>com.optimasc.commons</groupId>
-      <artifactId>optimasc-commons</artifactId>
+      <artifactId>optimasc-commons-text-cldc</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
   </dependencies>

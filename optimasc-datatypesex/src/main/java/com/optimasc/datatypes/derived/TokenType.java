@@ -1,15 +1,25 @@
 package com.optimasc.datatypes.derived;
 
+import omg.org.astm.type.TypeReference;
+
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.datatypes.visitor.TypeVisitorEx;
 
 public class TokenType extends NormalizedStringType
 {
-  public TokenType()
+  public TokenType(TypeReference charType)
   {
-    super();
+    super(0,Integer.MAX_VALUE,charType);
     setWhitespace(WHITESPACE_COLLAPSE);
   }
+  
+  
+  public TokenType(int minLength, int maxLength, TypeReference charType)
+  {
+    super(minLength, maxLength,charType);
+    setWhitespace(WHITESPACE_COLLAPSE);
+  }
+  
   
   @Override
   public Object accept(TypeVisitor v, Object arg)

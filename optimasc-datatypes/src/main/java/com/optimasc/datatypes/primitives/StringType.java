@@ -20,7 +20,7 @@ import com.optimasc.datatypes.aggregate.SequenceType;
 import com.optimasc.datatypes.derived.LatinCharType;
 import com.optimasc.datatypes.derived.UCS2CharType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
-import com.optimasc.utils.StringUtilities;
+import com.optimasc.text.StringUtilities;
 
 
 /** Datatype that represents a character string datatype. The actual encoding 

@@ -1,6 +1,7 @@
 package com.optimasc.datatypes.derived;
 
 import com.optimasc.datatypes.generated.StringTypeEx;
+import omg.org.astm.type.TypeReference;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.datatypes.visitor.TypeVisitorEx;
 
@@ -11,11 +12,18 @@ import com.optimasc.datatypes.visitor.TypeVisitorEx;
  */
 public class NormalizedStringType extends StringTypeEx
 {
-  public NormalizedStringType()
+  public NormalizedStringType(int minLength, int maxLength, TypeReference charType)
   {
-    super();
+    super(minLength, maxLength, charType);
     setWhitespace(WHITESPACE_REPLACE);
   }
+  
+  public NormalizedStringType(TypeReference charType)
+  {
+    super(0, Integer.MAX_VALUE, charType);
+    setWhitespace(WHITESPACE_REPLACE);
+  }
+  
 
   @Override
   public Object accept(TypeVisitor v, Object arg)
