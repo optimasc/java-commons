@@ -1,0 +1,44 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.optimasc.commons</groupId>
+        <artifactId>common</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+  <name>Common I/O utilities</name>
+  <url></url>
+  <inceptionYear>2016</inceptionYear>
+  <artifactId>optimasc-commons-io</artifactId>
+  <description>A set of common I/O utilities compatible with CDC 1.1.2 Foundation profile that can be used to write portable code.</description>
+  
+  
+  <licenses>
+   <license>
+        <name>Apache-2.0</name>
+        <url>${project.basedir}/LICENSE.txt</url>
+   </license>
+  </licenses> 
+  
+   <developers>
+    <developer>
+      <name>Carl Eric Codère</name>
+      <roles>
+        <role>creator</role>
+        <role>developer</role>
+      </roles>
+    </developer>
+  </developers>
+  
+  <contributors>
+  </contributors>
+  
+  <dependencies>
+    <dependency>
+       <groupId>${project.groupId}</groupId>
+       <artifactId>optimasc-commons-io-cldc</artifactId>
+       <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+  
+
+</project>
