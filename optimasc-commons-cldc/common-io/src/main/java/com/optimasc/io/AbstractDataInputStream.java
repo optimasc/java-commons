@@ -542,8 +542,10 @@ public abstract class AbstractDataInputStream extends InputStream implements Dat
   public abstract void mark(int readlimit); 
   public abstract boolean markSupported(); 
   public abstract int read(byte[] b) throws IOException; 
-  public abstract int read(byte[] b, int off, int len) throws IOException; 
+  public abstract int read(byte[] b, int off, int len) throws IOException;
+  public abstract int read() throws IOException;
   public abstract void reset() throws IOException; 
-  public abstract long skip(long n) throws IOException; 
+  public abstract long skip(long n) throws IOException;
+  public abstract int available() throws IOException;
 
 }

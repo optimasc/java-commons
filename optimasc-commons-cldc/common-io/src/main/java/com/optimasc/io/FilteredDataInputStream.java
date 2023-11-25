@@ -1,15 +1,27 @@
 package com.optimasc.io;
 
+import java.io.DataInput;
 import java.io.IOException;
 import java.io.InputStream;
 
-/** A filtered input stream that permits to have access to all methods
- *  of {@link com.optimasc.io.AbstractDataInputStream}. 
+/** Class that permits to create a seekable data input stream. It can do this
+ *  if the original InputStream follows these rules:
+ *  
+ *  <ul>
+ *   <li>{@link java.io.InputStream#mark(int)} is supported.</li>
+ *   <li>{@link java.io.InputStream#available()} returns the full length 
+ *    of the stream when this filter stream is created.</li>
+ *   <li>{@link java.io.InputStream#skip(long)} always skips the correct
+ *    number of bytes.</li>
+ *  </ul>
+ *  
+ *  <p>The {@link java.io.ByteInputStream} and {@link java.io.FileInputStream}
+ *  classes do follow the above contracts and can be used directly.</p>.
  * 
- * @author Carl Eric codere
+ * @author Carl Eric Codere
  *
  */
-public class FilteredDataInputStream extends AbstractDataInputStream
+public class FilteredDataInputStream extends SeekableDataInputStream implements DataInput
 {
   protected InputStream in;
   
@@ -17,62 +29,66 @@ public class FilteredDataInputStream extends AbstractDataInputStream
    *  input stream.
    * 
    * @param in [in] The underlying input stream,
+   * @throws IOException 
    */
-  public FilteredDataInputStream(InputStream in)
+  public FilteredDataInputStream(InputStream in) throws IOException
   {
     super();
     this.in = in;
+    if (in.markSupported()==false)
+    {
+      throw new IllegalArgumentException("mark must be supported!");
+    }
+    length = in.available();
+    markPos = 0;
   }
 
-  public long skip(long n) throws IOException
+  public long getStreamPosition() throws IOException
   {
-    return in.skip(n);
+    return currentPos;
   }
 
-  public int available() throws IOException
-  {
-    return in.available();
-  }
-
-  public synchronized void mark(int readlimit)
-  {
-    in.mark(readlimit);
-  }
-
-  public synchronized void reset() throws IOException
+  public void seek(long pos) throws IOException
   {
     in.reset();
+    long toskip = pos;
+    while (toskip > 0)
+    {
+      toskip = toskip - in.skip(toskip);
+    }
+    currentPos = pos;
   }
-
-  public boolean markSupported()
-  {
-    return in.markSupported();
-  }
-
-  public int read(byte[] b) throws IOException
-  {
-    int value = in.read(b);
-    readCount +=  value;
-    return value;
-  }
-
-  public int read(byte[] buffer, int off, int len) throws IOException
-  {
-    int read = in.read(buffer, off, len);
-    readCount = readCount + read;
-    return read;
-  }
-
+  
   public void close() throws IOException
   {
     in.close();
+  }
+  
+
+  public int read(byte[] b) throws IOException
+  {
+    return read(b,0,b.length);
+  }
+
+
+  public int read(byte[] b, int off, int len) throws IOException
+  {
+    int value = in.read(b, off, len);
+    currentPos = currentPos + len;
+    return value;
   }
 
   public int read() throws IOException
   {
     int value = in.read();
-    readCount++;
+    currentPos++;
     return value;
   }
+
+  public boolean isCached()
+  {
+    return false;
+  }
+  
 
 }

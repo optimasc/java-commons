@@ -34,4 +34,10 @@ public interface Seekable
    * @throws IOException
    */
   public long length() throws IOException;
+  
+ /** Indicates if this stream is cached so as to seek into it.
+  *   
+  * @return true if the actual stream is cached, otherwise returns false.
+  */
+  public boolean isCached();
 }

@@ -1,6 +1,7 @@
 package com.optimasc.io;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 /** Represents a seekable, readable and writable stream
  *  composed of a byte array. It supports either a fixed
@@ -9,19 +10,20 @@ import java.io.IOException;
  * @author Carl Eric Codere
  *
  */
-public class ByteArrayStream extends AbstractDataStream
+public class ByteArrayStream extends SeekableDataStream
 {
   protected byte[] buf;
   protected long streamPos;
   protected long markPos;
   protected boolean canResize;
+  protected int length;
   
   public ByteArrayStream(byte[] buffer)
   {
     super();
     canResize = false;
     this.buf = buffer;
-    markPos = -1;
+    markPos = 0;
   }
   
   public ByteArrayStream(int size)
@@ -33,7 +35,7 @@ public class ByteArrayStream extends AbstractDataStream
       throw new IllegalArgumentException("Negative size");
     }
     buf = new byte[size];
-    markPos = -1;
+    markPos = 0;
   }
   
   
@@ -55,7 +57,7 @@ public class ByteArrayStream extends AbstractDataStream
 
   public long length()
   {
-    return buf.length;
+    return length;
   }
 
 
@@ -68,7 +70,7 @@ public class ByteArrayStream extends AbstractDataStream
 
   public int read() throws IOException
   {
-    if ((streamPos+1) > buf.length)
+    if ((streamPos+1) > length)
     {
       return -1;
     }
@@ -82,7 +84,7 @@ public class ByteArrayStream extends AbstractDataStream
     {
       throw new IndexOutOfBoundsException("Invalid parameters");
     }
-    if (streamPos > buf.length)
+    if (streamPos > length)
     {
       return -1;
     }
@@ -108,22 +110,18 @@ public class ByteArrayStream extends AbstractDataStream
 
   public int available() throws IOException
   {
-    return buf.length;
+    return (int) (length-streamPos);
   }
 
 
-  public synchronized void mark(int readlimit)
+  public void mark(int readlimit)
   {
     markPos = streamPos;
   }
 
 
-  public synchronized void reset() throws IOException
+  public void reset() throws IOException
   {
-    if (markPos == -1)
-    {
-      throw new IOException("Stream is not marked.");
-    }
     seek(markPos);
   }
 
@@ -148,6 +146,24 @@ public class ByteArrayStream extends AbstractDataStream
     return read(b,0,b.length);
   }
 
+  /**
+   * Takes the contents of this stream and writes it to the output stream
+   * {@code out}.
+   *
+   * @param out
+   *            an OutputStream on which to write the contents of this stream.
+   * @throws IOException
+   *             if an error occurs while writing to {@code out}.
+   */
+  public void writeTo(OutputStream out) throws IOException
+  {
+    out.write(buf,0,length);
+  }
+
+  public boolean isCached()
+  {
+    return false;
+  }
 
     
 }

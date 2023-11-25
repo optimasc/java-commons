@@ -5,19 +5,16 @@ import java.io.IOException;
 /** Implementation of an Input Stream that that directly works on a byte array buffer. 
  *  This is similar to {@link java.io.ByteArrayInputStram} with the additional 
  *  functionality afforded by the {@link com.optimasc.io.AbstractDataInputStream} 
- *  class.
+ *  class as well as being not synchronized and hence <em>not</em> thread-safe.
  *
  * 
  * @author Carl Eric Codere
  *
  */
-public class ByteArrayInputStream extends AbstractDataInputStream implements Seekable
+public class ByteArrayInputStream extends SeekableDataInputStream
 {
   protected byte[] buf;
-  protected final int length;
   protected final int offset;
-  protected long streamPos;
-  protected long markPos;
   
   
   /** Create a stream from the byte array as input. 
@@ -30,8 +27,6 @@ public class ByteArrayInputStream extends AbstractDataInputStream implements See
     this.buf = buffer;
     this.length = buffer.length;
     this.offset = 0;
-    // Initial bookmark is set to position 0
-    markPos = 0;
   }
   
   /** Creates a virtual stream that is composed on the part of 
@@ -42,38 +37,34 @@ public class ByteArrayInputStream extends AbstractDataInputStream implements See
    * @param off [in] Offset in buffer where the stream should start
    * @param len [in] Length of the stream in bytes, starting from <code>off</code> 
    */
-  public ByteArrayInputStream(byte[] buffer, int off, int len)
+  public ByteArrayInputStream(byte[] buffer, int off, int len) throws IOException
   {
     super();
     this.buf = buffer;
     this.length = len;
     this.offset = off;
-    // Initial bookmark is set to position 0
-    markPos = 0;
   }
   
 
-  public long length()
+  public final long length()
   {
     return length;
   }
 
-
-
-  public void seek(long newPosition) throws IOException
+  public final void seek(long newPosition) throws IOException
   {
-    streamPos = newPosition;
+    currentPos = newPosition;
   }
 
 
   public final int read() throws IOException
   {
-    if ((streamPos+1) > length)
+    if ((currentPos+1) > length)
     {
       return -1;
     }
     readCount++;
-    return buf[ offset+(int)streamPos++] & 0xff;
+    return buf[ offset+(int)currentPos++] & 0xff;
   }
 
   public final int read(byte[] b, int off, int len) throws IOException
@@ -82,75 +73,36 @@ public class ByteArrayInputStream extends AbstractDataInputStream implements See
     {
       throw new IndexOutOfBoundsException("Invalid parameters");
     }
-    if (streamPos >= length)
+    if (currentPos >= length)
     {
       return -1;
     }
-    if (streamPos + len > length) 
+    if (currentPos + len > length) 
     {
-      len = (int) (length - streamPos);
+      len = (int) (length - currentPos);
     }
     if (len <= 0) 
     {
       return 0;
     }
-    System.arraycopy(buf, (int) streamPos+offset, b, off, len);
-    streamPos = streamPos + len;
+    System.arraycopy(buf, (int) currentPos+offset, b, off, len);
+    currentPos = currentPos + len;
     readCount += len;
     return len;
   }
 
-
-  public long getStreamPosition() throws IOException
+  public final long getStreamPosition() throws IOException
   {
-    return streamPos;
+    return currentPos;
   }
 
-
-  public long skip(long n) throws IOException
-  {
-    if ((streamPos + n) > length)
-    {
-      n = length - streamPos;
-    }
-    if (n <= 0)
-    {
-      return 0;
-    }
-    seek(streamPos + n);
-    return n;
-  }
-
-
-  public int available() throws IOException
+  public final int available() throws IOException
   {
     if (buf == null)
     {
       throw new IOException("Stream is closed.");
     }
-    return (int) (length - streamPos);
-  }
-
-
-  public synchronized void mark(int readlimit)
-  {
-    markPos = streamPos;
-  }
-
-
-  public synchronized void reset() throws IOException
-  {
-    if (markPos == -1)
-    {
-      throw new IOException("Stream is not marked.");
-    }
-    seek(markPos);
-  }
-
-
-  public boolean markSupported()
-  {
-    return true;
+    return (int) (length - currentPos);
   }
 
 
@@ -163,6 +115,11 @@ public class ByteArrayInputStream extends AbstractDataInputStream implements See
   public int read(byte[] b) throws IOException
   {
     return read(b,0,b.length);
+  }
+
+  public boolean isCached()
+  {
+    return false;
   }
   
   

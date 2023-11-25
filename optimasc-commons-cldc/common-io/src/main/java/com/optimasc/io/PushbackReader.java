@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package com.optimasc.utils;
+package com.optimasc.io;
 
 import java.io.IOException;
 import java.io.Reader;
