@@ -27,15 +27,24 @@ import java.util.Calendar;
  *  
  * @author Carl Eric Codere
  */
-public final class DOSDate extends DateConverter
+public class DOSDate extends DateConverter
 {
-    public static final DateConverter converter = new DOSDate();
+  public static final DateConverter converter = new DOSDate();
+  
+  
+    /** Represents the number of bits to encode the value 
+     *  in this format. The value is returned in the LSB
+     *  of the <code>long</code> primitive type.
+     */
+    public static final int SIZE = 32;
+    
+    protected static final int PRECISION = Calendar.SECOND;
   
     /**
      * Smallest supported DOS date/time value in a ZIP file,
      * which is January 1<sup>st</sup>, 1980 AD 00:00:00 local time.
      */
-    static final long MIN_DOS_TIME = (1 << 21) | (1 << 16); // 0x210000;
+    protected static final int MIN_DOS_TIME = (1 << 21) | (1 << 16); // 0x210000;
 
 
     /** Converts an MS-DOS encoded Date and Time to 
@@ -45,7 +54,7 @@ public final class DOSDate extends DateConverter
      * 
      * @return
      */
-    public Calendar toCalendar(long datetime)
+    public Calendar decode(long datetime)
     {
         if (datetime <= 0)
            datetime =  MIN_DOS_TIME;
@@ -80,7 +89,7 @@ public final class DOSDate extends DateConverter
     }
 
     /** Converts a Calendar Datetime to an MS-DOS encoded Datetime */
-    public long toLong(final Calendar cal)
+    public long encode(final Calendar cal)
     {
         final int year = cal.get(Calendar.YEAR) - 1980;
         if (year < 0)
@@ -88,7 +97,7 @@ public final class DOSDate extends DateConverter
         if (year > 0x7f)
             throw new IllegalArgumentException(
                     "Year of Java time is later than 2107 AD: " + (1980 + year));
-        final long dTime = (year << 25)
+        final int dTime = (year << 25)
                 | ((cal.get(Calendar.MONTH) + 1) << 21)
                 | (cal.get(Calendar.DAY_OF_MONTH) << 16)
                 | (cal.get(Calendar.HOUR_OF_DAY) << 11)
@@ -121,6 +130,15 @@ public final class DOSDate extends DateConverter
                 | (cal.get(Calendar.SECOND) >> 1);
         return dTime & 0xFFF;
     }
-    
+
+    public int getPrecision()
+    {
+      return PRECISION;
+    }
+
+    public int getMinBits()
+    {
+      return SIZE;
+    }
 
 }

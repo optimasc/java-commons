@@ -30,7 +30,7 @@ public class TestJulianDay extends TestCase
   public void testToDouble()
   {
      // Valid values
-     double result = JulianDay.toDouble(2000, 01, 01, 23*60*60+59*60);
+     double result = JulianDateTime.encode(2000, 01, 01, 23*60*60+59*60);
      BigDecimal aa = new BigDecimal(result);
      aa = aa.setScale(4, BigDecimal.ROUND_DOWN);
      BigDecimal bb = new BigDecimal("2451545.4993");
@@ -38,7 +38,7 @@ public class TestJulianDay extends TestCase
      assertEquals(true,aa.equals(bb));
 
      // Valid values
-     result = JulianDay.toDouble(-2000, 01, 01, 0);
+     result = JulianDateTime.encode(-2000, 01, 01, 0);
      System.out.println(result);
      aa = new BigDecimal(result);
      aa = aa.setScale(4, BigDecimal.ROUND_DOWN);

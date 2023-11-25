@@ -13,6 +13,8 @@ public final class ParadoxDate extends DateConverter
 {
   public static final DateConverter converter = new ParadoxDate();
   
+  protected static final int PRECISION = Calendar.DAY_OF_MONTH;
+  
   private static final int PARADOX_OFFSET = 1721425;
   
   /** Converts a 4-byte representation of a Paradox date field to
@@ -28,17 +30,17 @@ public final class ParadoxDate extends DateConverter
    * @param date The Paradox date value (4-byte value)
    * @return null if error otherwise a calendar instance.
    */
-  public Calendar toCalendar(long data)
+  public Calendar decode(long data)
   {
     // Convert to a Julian Day
     data = data + PARADOX_OFFSET;
-    return JulianDay.JulianDayToCalendar(data);
+    return JulianDay.converter.decode(data);
   }
   
   
-  public long toLong(Calendar cal)
+  public long encode(Calendar cal)
   {
-    return JulianDay.converter.toLong(cal)-PARADOX_OFFSET;
+    return JulianDay.converter.encode(cal)-PARADOX_OFFSET;
   }
 
   /** Converts a 4-byte representation of a Paradox time field
@@ -69,24 +71,15 @@ public final class ParadoxDate extends DateConverter
     return cal.get(Calendar.HOUR_OF_DAY)*3600000 + cal.get(Calendar.MINUTE)*60000 + cal.get(Calendar.SECOND)*1000+cal.get(Calendar.MILLISECOND);
   }
   
-  public static double CalendarToTimeStamp(Calendar cal)
+  public int getPrecision()
   {
-    double value = converter.toLong(cal);
-    value = (value * 86400.0D + cal.get(11) * 3600 + cal.get(12) * 60 + cal.get(13)) * 1000.0D + cal.get(14);
-    return value;
+    return PRECISION;
   }
 
-  public static Calendar ParadoxTimestampToCalendar(double data)
-  {
-    double secvalues = data / 1000.0D;
-    int days = (int)(secvalues / 86400.0D);
-    int secs = (int)(secvalues % 86400.0D);
-    Calendar cal = converter.toCalendar(days);
-    cal.set(11, secs / 3600);
-    cal.set(12, secs / 60 % 60);
-    cal.set(13, secs % 60);
-    cal.set(14, (int)(data % 1000.0D));
-    return cal;
-  }  
 
+  public int getMinBits()
+  {
+    return JulianDay.SIZE;
+  }
+  
 }
