@@ -4,7 +4,7 @@ import java.util.Hashtable;
 
 /** A class used to manage properties.
  * 
- * @author Carl Eric Codère
+ * @author Carl Eric Codere
  *
  */
 public class PropertyArray

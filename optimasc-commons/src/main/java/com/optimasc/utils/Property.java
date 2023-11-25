@@ -16,7 +16,7 @@ import java.util.Hashtable;
  *  as a big-endian 16-bit value. The Values are encoded as UTF-8 strings.
  *  
  *  
- * @author Carl Eric Codère
+ * @author Carl Eric Codere
  *
  */
 public class Property {
