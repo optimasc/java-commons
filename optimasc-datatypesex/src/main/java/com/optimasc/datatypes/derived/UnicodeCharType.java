@@ -30,19 +30,16 @@ public class UnicodeCharType extends CharacterType
     setCharSetName("ISO-10646-UCS-4");
   }
 
-  @Override
   public long getMinInclusive()
   {
     return Character.MIN_CODE_POINT;
   }
 
-  @Override
   public long getMaxInclusive()
   {
     return Character.MAX_CODE_POINT;
   }
 
-  @Override
   public void setCharSetName(String charSetName)
   {
     this.charSetName = charSetName;

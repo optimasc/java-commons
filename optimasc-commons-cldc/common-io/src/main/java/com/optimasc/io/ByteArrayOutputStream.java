@@ -61,7 +61,6 @@ public class ByteArrayOutputStream extends SeekableDataOutputStream
     // Do nothing
   }
 
-  @Override
   public void write(byte[] b) throws IOException
   {
     // TODO Auto-generated method stub

@@ -52,7 +52,6 @@ public class FileDataOutputStream extends SeekableDataOutputStream
     fd.write(b);
   }
 
-  @Override
   public void close() throws IOException
   {
     fd.close();

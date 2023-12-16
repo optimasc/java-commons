@@ -8,11 +8,14 @@ import java.util.Map;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 
+import omg.org.astm.type.TypeReference;
+
 import com.optimasc.datatypes.Datatype;
+import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.io.Deserializer;
 import com.optimasc.datatypes.io.XMLSchemaDeserializer;
 
-public class DefaultTypeSymbolTable extends Hashtable<QName,Datatype> implements TypeSymbolTable
+public class DefaultTypeSymbolTable extends Hashtable<QName,Type> implements TypeSymbolTable
 {
   /* Represents all type definitions. */
   protected Hashtable<String,String>  schemaRegistry;
@@ -24,7 +27,7 @@ public class DefaultTypeSymbolTable extends Hashtable<QName,Datatype> implements
     registerNamespace(XMLSchemaDeserializer.XSD_NAMESPACE,"xsd");
   }
 
-  public Datatype get(String name)
+  public Type get(String name)
   {
     QName qName;
     String prefix = getPrefixFromQName(name);
@@ -43,19 +46,17 @@ public class DefaultTypeSymbolTable extends Hashtable<QName,Datatype> implements
     return get(qName);
   }
 
-  @Override
+
   public void registerNamespace(String namespaceURI, String suggestedPrefix)
   {
     schemaRegistry.put(suggestedPrefix, namespaceURI);
   }
 
-  @Override
   public String getNamespaceURI(String prefix)
   {
     return schemaRegistry.get(prefix);
   }
 
-  @Override
   public Map getPrefixes()
   {
     return schemaRegistry;

@@ -1,6 +1,7 @@
 package com.optimasc.datatypes;
 
 import omg.org.astm.type.NamedTypeReference;
+import omg.org.astm.type.TypeReference;
 
 import com.optimasc.datatypes.aggregate.ClassType;
 import com.optimasc.datatypes.aggregate.DerivableAggregateType;
@@ -99,6 +100,33 @@ public boolean isPrimitiveNumeric(Type type)
      rightExpr = ref.getType();
    }
    return false;
+ }
+ 
+ /** Resolves a type, such as a {@link TypeReference} to
+  *  to its underlying datatype if it exists.
+  * 
+  * @param type [in] The type to resolve.
+  * @return <code>null</code> if this type is 
+  *  not a TypeReference pointing to a Datatype
+  *  or is not a direct Datatype, otherwise the
+  *  datatype instance.
+  */
+ public static Datatype getDatatype(Type type)
+ {
+   if (type == null)
+   {
+     return null;
+   }
+   if (type instanceof Datatype)
+   {
+     return (Datatype) type;
+   }
+   if (type instanceof TypeReference)
+   {
+     TypeReference typRef = (TypeReference) type;
+     return getDatatype(typRef.getType());
+   }
+   return null;
  }
 
 

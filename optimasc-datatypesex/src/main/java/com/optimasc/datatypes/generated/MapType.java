@@ -89,7 +89,6 @@ public class MapType extends Datatype implements ConstructedSimple, Parseable
     }
   }
 
-  @Override
   public Object parse(String value) throws ParseException
   {
     VisualMap<Object,Object> visualMap = new VisualMap<Object, Object>();

@@ -17,15 +17,11 @@ public abstract class SequenceType extends Datatype implements ConstructedSimple
     elementType = baseType;
   }
   
-
-  
-  @Override
   public TypeReference getBaseTypeReference()
   {
     return elementType;
   }
 
-  @Override
   public void setBaseTypeReference(TypeReference value)
   {
     throw new IllegalArgumentException("Unsupported operation");

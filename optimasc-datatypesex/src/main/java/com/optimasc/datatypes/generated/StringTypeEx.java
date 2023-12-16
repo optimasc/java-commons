@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 import omg.org.astm.type.TypeReference;
 
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.derived.UCS2CharType;
 import com.optimasc.datatypes.primitives.CharacterType;
 import com.optimasc.datatypes.primitives.StringType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
@@ -28,6 +29,12 @@ public class StringTypeEx extends StringType
   {
     super(minLength,maxLength,charType);
   }
+  
+  public StringTypeEx()
+  {
+    super(0,Integer.MAX_VALUE,UCS2CharType.DEFAULT_TYPE_REFERENCE);
+  }
+  
 
   @Override
   public void validatePattern(String value) throws DatatypeException

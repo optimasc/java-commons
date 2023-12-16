@@ -27,25 +27,21 @@ public class OpenChoiceType extends UnionType implements EnumerationFacet, Const
     super();
   }
 
-  @Override
   public TypeReference getBaseTypeReference()
   {
     return elementType;
   }
 
-  @Override
   public void setBaseTypeReference(TypeReference value)
   {
     elementType = value; 
   }
 
-  @Override
   public Object[] getChoices()
   {
     return enumHelper.getChoices();
   }
 
-  @Override
   public void setChoices(Object[] choices)
   {
     int i;
@@ -59,7 +55,6 @@ public class OpenChoiceType extends UnionType implements EnumerationFacet, Const
     enumHelper.setChoices(choices);
   }
 
-  @Override
   public boolean validateChoice(Object value)
   {
     return false;

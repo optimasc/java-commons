@@ -10,10 +10,10 @@ import com.optimasc.datatypes.visitor.TypeVisitorEx;
  * @author Carl Eric Codere
  *
  */
-public class SequenceType extends ListType
+public class SequenceListType extends ListType
 {
 
-  public SequenceType()
+  public SequenceListType()
   {
     super();
     setOrdered(true);

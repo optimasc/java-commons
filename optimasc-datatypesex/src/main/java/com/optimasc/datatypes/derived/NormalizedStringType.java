@@ -24,6 +24,13 @@ public class NormalizedStringType extends StringTypeEx
     setWhitespace(WHITESPACE_REPLACE);
   }
   
+  public NormalizedStringType()
+  {
+    super(0, Integer.MAX_VALUE, UCS2CharType.DEFAULT_TYPE_REFERENCE);
+    setWhitespace(WHITESPACE_REPLACE);
+  }
+  
+  
 
   @Override
   public Object accept(TypeVisitor v, Object arg)

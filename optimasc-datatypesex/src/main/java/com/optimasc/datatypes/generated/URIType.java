@@ -36,43 +36,36 @@ public class URIType extends Datatype implements LengthFacet, EnumerationFacet, 
     setMaxLength(2000);
   }
 
-  @Override
   public Object[] getChoices()
   {
     return enumHelper.getChoices();
   }
 
-  @Override
   public void setChoices(Object[] choices)
   {
     enumHelper.setChoices(choices);
   }
 
-  @Override
   public boolean validateChoice(Object value)
   {
     return enumHelper.validateChoice(value);
   }
 
-  @Override
   public void setMinLength(int value)
   {
     lengthHelper.setMinLength(value);
   }
 
-  @Override
   public void setMaxLength(int value)
   {
     lengthHelper.setMaxLength(value);
   }
 
-  @Override
   public int getMinLength()
   {
     return lengthHelper.getMinLength();
   }
 
-  @Override
   public int getMaxLength()
   {
     return lengthHelper.getMaxLength();
@@ -117,13 +110,11 @@ public class URIType extends Datatype implements LengthFacet, EnumerationFacet, 
     }
   }
 
-  @Override
   public String getPattern()
   {
     return pattern;
   }
 
-  @Override
   public void setPattern(String value)
   {
     pattern = value;
@@ -141,8 +132,7 @@ public class URIType extends Datatype implements LengthFacet, EnumerationFacet, 
       }
     }
   }
-
-  @Override
+  
   public Object parse(String value) throws ParseException
   {
     URI uri = null;

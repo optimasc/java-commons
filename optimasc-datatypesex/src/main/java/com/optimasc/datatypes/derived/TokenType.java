@@ -19,6 +19,12 @@ public class TokenType extends NormalizedStringType
     super(minLength, maxLength,charType);
     setWhitespace(WHITESPACE_COLLAPSE);
   }
+
+  public TokenType()
+  {
+    super(0,Integer.MAX_VALUE,UCS2CharType.DEFAULT_TYPE_REFERENCE);
+    setWhitespace(WHITESPACE_COLLAPSE);
+  }
   
   
   @Override

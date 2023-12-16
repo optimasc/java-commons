@@ -7,7 +7,7 @@ import javax.xml.namespace.QName;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.Type;
 
-/** Represents an interface to access a type symbol table */
+/** Represents an interface to access a symbol table */
 public interface SymbolTable<K,V> extends Map<K, V>
 {
   /** Get specified named type. The name is used
@@ -16,7 +16,7 @@ public interface SymbolTable<K,V> extends Map<K, V>
    * @param name
    * @return
    */
-  public Type get(String name);
+  public V get(String name);
 
   /** Register the specified namespace with the proposed prefix. */
   public void registerNamespace(String namespaceURI, String suggestedPrefix);

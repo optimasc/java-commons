@@ -86,7 +86,6 @@ public final class FiletimeDate extends DateConverter
       return PRECISION;
     }
 
-    @Override
     public int getMinBits()
     {
       return SIZE;

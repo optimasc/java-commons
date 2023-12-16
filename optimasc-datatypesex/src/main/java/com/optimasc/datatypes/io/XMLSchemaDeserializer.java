@@ -35,6 +35,7 @@ import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.aggregate.BagType;
 import com.optimasc.datatypes.aggregate.ListType;
+import com.optimasc.datatypes.aggregate.SequenceListType;
 import com.optimasc.datatypes.aggregate.SequenceType;
 import com.optimasc.datatypes.derived.ByteType;
 import com.optimasc.datatypes.derived.DateType;
@@ -215,11 +216,10 @@ public class XMLSchemaDeserializer implements Deserializer
       new FacetData("unsignedShort", FACET_DECIMAL, UnsignedShortType.class),
   };
 
-  public static class FacetComparator implements Comparator
+  public static class FacetComparator implements Comparator<Object>
   {
 
-    @Override
-    public int compare(Object arg0, Object arg1)
+    public int compare(Object arg0,Object arg1)
     {
       FacetData obj1 = (FacetData) arg0;
       String obj2 = (String) arg1;
@@ -371,7 +371,7 @@ public class XMLSchemaDeserializer implements Deserializer
       } else
       if ((listOrdering.equals(RDF_ARRAY_ORDERED)))
       {
-        listType = new SequenceType();
+        listType = new SequenceListType();
       } else
       if ((listOrdering.equals(RDF_ALT_ARRAY)))
       {
@@ -504,7 +504,6 @@ public class XMLSchemaDeserializer implements Deserializer
 
   
   
-  @Override
   public TypeSymbolTable load(InputStream stream)
   {
     String xsdPrefix;

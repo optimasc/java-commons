@@ -56,7 +56,6 @@ public class ClosedChoiceType extends EnumType implements ConstructedSimple, Par
   }
 
 
-  @Override
   public Object parse(String value) throws ParseException
   {
     try
@@ -77,13 +76,11 @@ public class ClosedChoiceType extends EnumType implements ConstructedSimple, Par
     
   }
 
-  @Override
   public TypeReference getBaseTypeReference()
   {
     return elementTypeReference;
   }
 
-  @Override
   public void setBaseTypeReference(TypeReference value)
   {
     this.elementTypeReference = value;
