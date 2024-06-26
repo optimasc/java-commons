@@ -21,25 +21,29 @@
 package com.optimasc.date;
 
 import java.util.Calendar;
+import com.optimasc.date.DateTime.*;
 
 /** Utility class used to convert between a Calendar object and a 
- *  MS-DOS Date and time value.
+ *  MS-DOS Date value.
  *  
  * @author Carl Eric Codere
  */
-public class DOSDate extends DateConverter
+public class DOSDate extends DateEncoder
 {
-  public static final DateConverter converter = new DOSDate();
+  public static final DateEncoder converter = new DOSDate();
   
   
     /** Represents the number of bits to encode the value 
      *  in this format. The value is returned in the LSB
      *  of the <code>long</code> primitive type.
      */
-    public static final int SIZE = 32;
+    public static final int SIZE = 16;
     
-    protected static final int PRECISION = Calendar.SECOND;
-  
+    protected static final int PRECISION = Calendar.DAY_OF_MONTH;
+    
+    public static final int MIN_YEAR = 1980;
+    public static final int MAX_YEAR = 2107;
+    
     /**
      * Smallest supported DOS date/time value in a ZIP file,
      * which is January 1<sup>st</sup>, 1980 AD 00:00:00 local time.
@@ -47,27 +51,6 @@ public class DOSDate extends DateConverter
     protected static final int MIN_DOS_TIME = (1 << 21) | (1 << 16); // 0x210000;
 
 
-    /** Converts an MS-DOS encoded Date and Time to 
-     *  a Gregorian Calendar representation. Since the
-     *  MS-DOS Datetime does not contain any timezone information,
-     *  the TZ shall be set to GMT by default. 
-     * 
-     * @return
-     */
-    public Calendar decode(long datetime)
-    {
-        if (datetime <= 0)
-           datetime =  MIN_DOS_TIME;
-        Calendar cal = Calendar.getInstance();
-//        cal.setTimeZone(TimeZone.getTimeZone("GMT"));
-        cal.set(Calendar.YEAR, (int)(1980 + ((datetime >> 25) & 0x7f)));
-        cal.set(Calendar.MONTH, (int)((datetime >> 21) & 0x0f) - 1);
-        cal.set(Calendar.DAY_OF_MONTH, (int)(datetime >> 16) & 0x1f);
-        cal.set(Calendar.HOUR_OF_DAY, (int)(datetime >> 11) & 0x1f);
-        cal.set(Calendar.MINUTE, (int)(datetime >> 5) & 0x3f);
-        cal.set(Calendar.SECOND, (int)(datetime << 1) & 0x3e);
-        return cal;
-    }
     
     /** Converts an MS-DOS encoded Date and Timeto  a Gregorian Calendar representation. Since the
      *  MS-DOS Datetime does not contain any timezone information, the timezone indicator 
@@ -87,27 +70,19 @@ public class DOSDate extends DateConverter
      cal.set(Calendar.SECOND, (int)(time << 1) & 0x3e);
      return cal;
     }
-
-    /** Converts a Calendar Datetime to an MS-DOS encoded Datetime */
-    public long encode(final Calendar cal)
+    
+    
+    public DateTime decode(long date)
     {
-        final int year = cal.get(Calendar.YEAR) - 1980;
-        if (year < 0)
-            return MIN_DOS_TIME;
-        if (year > 0x7f)
-            throw new IllegalArgumentException(
-                    "Year of Java time is later than 2107 AD: " + (1980 + year));
-        final int dTime = (year << 25)
-                | ((cal.get(Calendar.MONTH) + 1) << 21)
-                | (cal.get(Calendar.DAY_OF_MONTH) << 16)
-                | (cal.get(Calendar.HOUR_OF_DAY) << 11)
-                | (cal.get(Calendar.MINUTE) << 5)
-                | (cal.get(Calendar.SECOND) >> 1);
-        return dTime;
+     int year =  (int)(1980 + ((date >> 9) & 0x7f));
+     int month = (int)((date >> 5) & 0x0f);
+     int day = (int)(date) & 0x1f;
+     return new DateTime(year,month,day);
     }
+    
 
     /** Converts a Calendar Datetime to an MS-DOS encoded date */
-    public static int CalendarToDOSDate(final Calendar cal)
+    public long encode(final Calendar cal)
     {
         final int year = cal.get(Calendar.YEAR) - 1980;
         if (year < 0)
@@ -121,15 +96,6 @@ public class DOSDate extends DateConverter
         return dTime & 0xFFFF;
     }
     
-    /** Converts a Calendar Datetime to an MS-DOS encoded time */
-    public static int CalendarToDOSTime(final Calendar cal)
-    {
-        final int dTime = 
-                (cal.get(Calendar.HOUR_OF_DAY) << 11)
-                | (cal.get(Calendar.MINUTE) << 5)
-                | (cal.get(Calendar.SECOND) >> 1);
-        return dTime & 0xFFF;
-    }
 
     public int getPrecision()
     {
@@ -139,6 +105,53 @@ public class DOSDate extends DateConverter
     public int getMinBits()
     {
       return SIZE;
+    }
+    
+    protected long encode(int year, int month, int day)
+    {
+      /* check for invalid dates */
+      if ((month < DateTime.MIN_MONTH) || (month > DateTime.MAX_MONTH))
+      {
+        throw new IllegalArgumentException("Invalid month value, should be "+DateTime.MIN_MONTH+".."+DateTime.MAX_MONTH);
+      }
+      if ((day < DateTime.MIN_DAY) || (day > DateTime.MAX_DAY))
+      {
+        throw new IllegalArgumentException("Invalid day value, should be "+DateTime.MIN_DAY+".."+DateTime.MAX_DAY);
+      }
+      if ((year < MIN_YEAR) || (year > MAX_YEAR))
+      {
+        throw new IllegalArgumentException("Invalid year value, should be "+MIN_YEAR+".."+MAX_YEAR);
+      }
+      year = year - 1980;
+      if (year < 0)
+          return 0;
+      final int dTime = (year << 9)
+              | (month << 5)
+              | (day);
+      return dTime & 0xFFFF;
+    }    
+
+
+    public long encode(DateTime value)
+    {
+      if (value.precision != Calendar.DAY_OF_MONTH)
+      {
+        throw new IllegalArgumentException("Precision should be day of month");
+      }
+      Date date = value.date;
+      return encode(date.year,date.month,date.day);
+    }
+
+
+    public int getMinimumYear()
+    {
+      return MIN_YEAR;
+    }
+
+
+    public int getMaximumYear()
+    {
+      return MAX_YEAR;
     }
 
 }

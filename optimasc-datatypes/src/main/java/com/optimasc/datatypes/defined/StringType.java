@@ -1,25 +1,17 @@
-package com.optimasc.datatypes.primitives;
-
-import java.text.ParseException;
+package com.optimasc.datatypes.defined;
 
 import omg.org.astm.type.TypeReference;
-import omg.org.astm.type.UnnamedTypeReference;
 
-import com.optimasc.datatypes.DatatypeConverter;
-import com.optimasc.datatypes.EnumerationFacet;
-import com.optimasc.datatypes.ConstructedSimple;
+import com.optimasc.datatypes.CharacterSetEncodingFacet;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.EnumerationFacet;
 import com.optimasc.datatypes.EnumerationHelper;
-import com.optimasc.datatypes.LengthFacet;
-import com.optimasc.datatypes.LengthHelper;
-import com.optimasc.datatypes.Parseable;
 import com.optimasc.datatypes.PatternFacet;
-import com.optimasc.datatypes.Type;
+import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.aggregate.SequenceType;
-import com.optimasc.datatypes.derived.LatinCharType;
-import com.optimasc.datatypes.derived.UCS2CharType;
-import com.optimasc.datatypes.visitor.TypeVisitor;
+import com.optimasc.datatypes.primitives.CharacterType;
+import com.optimasc.lang.CharacterSet;
 import com.optimasc.text.StringUtilities;
 
 
@@ -45,10 +37,8 @@ import com.optimasc.text.StringUtilities;
  *
  * @author Carl Eric Codère
  */
-public abstract class StringType extends SequenceType implements EnumerationFacet, Parseable, LengthFacet, PatternFacet, DatatypeConverter
+public abstract class StringType extends SequenceType implements CharacterSetEncodingFacet,EnumerationFacet, PatternFacet
 {
-  protected static final String STRING_INSTANCE = new String();
-  
   /** No normalization is done, the value is not changed */
   public static final String WHITESPACE_PRESERVE = "preserve";
   /** All occurrences of #x9 (tab), #xA (line feed) and #xD (carriage return) are replaced with #x20 (space) */ 
@@ -72,7 +62,6 @@ public abstract class StringType extends SequenceType implements EnumerationFace
   protected String whitespace;
 
   protected EnumerationHelper enumHelper;
-  protected LengthHelper lengthHelper;
   
   
   /** Creates a string type definition. This routine verifies the
@@ -82,20 +71,41 @@ public abstract class StringType extends SequenceType implements EnumerationFace
    * 
    * @param minLength The minimum length of allowed characters
    * @param maxLength The maximum length of allowed characters
-   * @param charType The type of characters
+   * @param charType The type reference that should point to a <code>CharacterType</code>
+   *   type.
    */
   public StringType(int minLength, int maxLength, TypeReference charType)
   {
-    super(Datatype.VARCHAR,false,charType);
+    super(Datatype.VARCHAR,minLength,maxLength,charType);
+    if ((charType.getType() instanceof CharacterType)==false)
+    {
+       throw new IllegalArgumentException("The type reference should point to '"+charType.getType().getClass().getName()+"'"
+            + " but points to '"+charType.getType().getClass().getName()+"'.");   
+    }
     whitespace = WHITESPACE_PRESERVE;
     enumHelper = new EnumerationHelper(this);
-    lengthHelper = new LengthHelper();
     if (minLength == maxLength)
     {
       this.type = Datatype.CHAR;
     }
-    setMinLength(minLength);
-    setMaxLength(maxLength);
+  }
+  
+  /** Creates a string type definition with no length bounds. 
+   *  It creates a {@link Datatype#CLOB} type.   
+   * 
+   * @param charType The type reference that should point to a <code>CharacterType</code>
+   *   type.
+   */
+  public StringType(TypeReference charType)
+  {
+    super(Datatype.CLOB,charType);
+    if ((charType.getType() instanceof CharacterType)==false)
+    {
+       throw new IllegalArgumentException("The type reference should point to '"+charType.getType().getClass().getName()+"'"
+            + " but points to '"+charType.getType().getClass().getName()+"'.");   
+    }
+    whitespace = WHITESPACE_PRESERVE;
+    enumHelper = new EnumerationHelper(this);
   }
   
 
@@ -104,98 +114,121 @@ public abstract class StringType extends SequenceType implements EnumerationFace
      return String.class;
   }
 
-  public void validate(Object value) throws IllegalArgumentException, DatatypeException
+
+  /** {@inheritDoc}
+   * 
+   *  <p>This verification and conversion routine supports the following inputs:
+   *   <ul>
+   *     <li><code>char[]</code>, including support for surrogate pairs.</li>
+   *     <li><code>CharSequence</code>, including support for surrogate pairs.</li>
+   *     <li><code>int[]</code>, where each element is considered a unicode codepoint.</li>
+   *   </ul>
+   *   The output value is a <code>String</code> that also includes any surrogate
+   *   pairs in UTF-16 encoding, as required, if the character cannot be represented
+   *   in one character.
+   *  </p>
+   * 
+   */
+  public Object toValue(Object value, TypeCheckResult conversionResult)
   {
-    String s;
-    CharacterType charType = (CharacterType)elementType.getType(); 
+    StringBuffer buffer = new StringBuffer(32);
+    int charCount = 0;
+    CharacterType charType = (CharacterType)elementType.getType();
+    conversionResult.reset();
     if (value instanceof char[])
     {
       char[] chArr = (char[])value;
-      for (int i = 0; i < chArr.length; i++)
-      {
-        if (charType.isValidCharacter(chArr[i])==false)
-        {
-          DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_CHARACTER,"The string does not contain valid characters for this repertoire");
-        }
-      }
-      if ((chArr.length < getMinLength()))
-      {
-        DatatypeException.throwIt(DatatypeException.ERROR_STRING_ILLEGAL_LENGTH,"The string length does not match the datatype specification, expected "+getMinLength()+" characters, got "+chArr.length);
-      }
-      if  (chArr.length > getMaxLength())
-      {
-        DatatypeException.throwIt(DatatypeException.ERROR_STRING_TRUNCATION,"The string length does not match the datatype specification, expected "+getMaxLength()+" characters, got "+chArr.length);
-      }
-      s = new String(chArr);
-      validatePattern(s);
-      if (validateChoice(s)==false)
-      {
-        DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,"The string does not match the datatype specification");
-      }
-    }
-    else
-    if (value instanceof String)
-    {
-      String string = (String)value;
-      int charCount = 0;
-      while (charCount < string.length())
+      int charIndex = 0;
+      while (charIndex < chArr.length)
       {
         // Manually check for surrogate pairs
-        int ch = string.charAt(charCount);
+        int ch = chArr[charIndex];
+        buffer.append((char)ch);
 
         // Reconstruct a full UCS-4 codepoint
         if ((ch & HIGH_SURROGATE)==HIGH_SURROGATE)
         {
           ch = (ch - HIGH_SURROGATE)*0x400;
-          charCount++;
-          ch = 0x10000+ch+(string.charAt(charCount)-LOW_SURROGATE);
+          charIndex++;
+          int ch1 = chArr[charIndex];
+          buffer.append((char)ch1);
+          ch = 0x10000+ch+(ch1-LOW_SURROGATE);
         }
-        
-        if (charType.isValidCharacter(ch)==false)
+        if (charType.toValue(ch,conversionResult)==null)
         {
-          DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_CHARACTER,"The string does not contain valid characters for this repertoire");
+          return null;
         }
+        charIndex++;
         charCount++;
       }
-      if ((charCount < getMinLength()))
+    }
+    else
+    if (value instanceof CharSequence)
+    {
+      CharSequence string = (CharSequence)value;
+      int charIndex = 0;
+      while (charIndex < string.length())
       {
-        DatatypeException.throwIt(DatatypeException.ERROR_STRING_ILLEGAL_LENGTH,"The string length does not match the datatype specification, expected "+getMinLength()+" characters, got "+charCount);
+        // Manually check for surrogate pairs
+        int ch = string.charAt(charIndex);
+        buffer.append((char)ch);
+
+        // Reconstruct a full UCS-4 codepoint
+        if ((ch & HIGH_SURROGATE)==HIGH_SURROGATE)
+        {
+          ch = (ch - HIGH_SURROGATE)*0x400;
+          charIndex++;
+          int ch1 = string.charAt(charIndex);
+          buffer.append((char)ch1);
+          ch = 0x10000+ch+(ch1-LOW_SURROGATE);
+        }
+        
+        if (charType.toValue(ch,conversionResult)==null)
+        {
+          return null;
+        }
+        charIndex++;
+        charCount++;
       }
-      if  (charCount > getMaxLength())
+    } else
+    if (value instanceof int[])
+    {
+      // Each int value is a unicode codepoint.
+      int[] chArr = (int[])value;
+      int charIndex = 0;
+      charCount = chArr.length;
+      for (int i=0; i < chArr.length; i++)
       {
-        DatatypeException.throwIt(DatatypeException.ERROR_STRING_TRUNCATION,"The string length does not match the datatype specification, expected "+getMaxLength()+" characters, got "+charCount);
-      }
-      validatePattern(string);
-      if (validateChoice(string)==false)
-      {
-        DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,"The string does not match the datatype specification");
+        int ch = chArr[i];
+        if (charType.toValue(ch,conversionResult)==null)
+        {
+          return null;
+        }
+        char[] result = CharacterSet.toChars(ch);
+        buffer.append(result);
       }
     } else
     {
       throw new IllegalArgumentException("Invalid object type - should be String instance");
     }
+    
+    String string = buffer.toString();
+    if (lengthHelper.validateLength(charCount)==false)
+    {
+      conversionResult.error = new DatatypeException(DatatypeException.ERROR_BOUNDS_RANGE,
+          "The sequence length does not match the datatype specification, " + lengthHelper.toString()
+          +", got "+charCount);
+      return null;
+    }
+    validatePattern(string);
+    if (validateChoice(string)==false)
+    {
+      conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_NO_SUBCLASS,"The string does not match the datatype specification");
+      return null;
+    }
+    return string;
   }
 
-
-  public void setMinLength(int value)
-  {
-    lengthHelper.setMinLength(value);
-  }
-
-  public void setMaxLength(int value)
-  {
-    lengthHelper.setMaxLength(value);
-  }
-
-  public int getMinLength()
-  {
-    return lengthHelper.getMinLength();
-  }
-
-  public int getMaxLength()
-  {
-    return lengthHelper.getMaxLength();
-  }
 
   public String getPattern()
   {
@@ -209,15 +242,9 @@ public abstract class StringType extends SequenceType implements EnumerationFace
    * @param value The value to check
    * @throws DatatypeException if the value is not allowed.
    */
-  public void validatePattern(String value) throws DatatypeException
+  public boolean validatePattern(CharSequence value)
   {
-    if ((pattern != null) && (pattern.length() > 0))
-    {
-/*                RE r = new RE(pattern);            // Create new pattern
-        if (r.match(value)=false)                // Match pattern
-          throw new NumberFormatException("The string does not match the datatype specification"); */
-    }
-    
+    return true;
   }
 
   public Object[] getChoices()
@@ -234,7 +261,6 @@ public abstract class StringType extends SequenceType implements EnumerationFace
   {
     int index;
     int maxLength = 0;
-    int minLength = 0;
     /* Set the minimum and maximum length with choices */
     for (index = 0; index < choices.length; index++)
     {
@@ -243,7 +269,7 @@ public abstract class StringType extends SequenceType implements EnumerationFace
         maxLength = choices[index].toString().length();
       }
     }
-    setMaxLength(maxLength);
+    lengthHelper.setLength(0, maxLength);
     enumHelper.setChoices(choices);
   }
 
@@ -262,29 +288,6 @@ public abstract class StringType extends SequenceType implements EnumerationFace
 
 
 
-  public Object getObjectType()
-  {
-    return STRING_INSTANCE;
-  }
-
-
-
-  public Object parse(String value) throws ParseException
-  {
-    try
-    {
-      validate(value);
-      value = normalizeWhitespaces(value,whitespace);
-      return value;
-    } catch (IllegalArgumentException e)
-    {
-      throw new ParseException("Error validating string.",0);
-    } catch (DatatypeException e)
-    {
-      throw new ParseException("Error validating string.",0);
-    }
-  }
-  
   public static String normalizeWhitespaces(String value, String type)
   {
     int whitespaceType = 0;
@@ -373,8 +376,16 @@ public abstract class StringType extends SequenceType implements EnumerationFace
     }
     return true;
   }
-  
-  
-  
+
+
+  /** Returns the character set associated 
+   *  with the character type. 
+   * 
+   */
+  public CharacterSet getCharacterSet()
+  {
+    return ((CharacterType)elementType.getType()).getCharacterSet();
+  }
+
 
 }

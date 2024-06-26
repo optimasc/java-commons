@@ -1,4 +1,4 @@
-package com.optimasc.datatypes;
+package com.optimasc.utils;
 
 /** Represents a set of methods to access and set 
  * user/developer added information which is not
