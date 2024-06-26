@@ -23,8 +23,6 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class RecordType extends AggregateType
 {
-    protected static final Object UNKNOWN_OBJECT = new Object();
-  
     public RecordType()
     {
         super(Datatype.STRUCT);
@@ -50,11 +48,6 @@ public class RecordType extends AggregateType
     public Object accept(TypeVisitor v, Object arg)
     {
         return v.visit(this,arg);
-    }
-    
-    public Object getObjectType()
-    {
-      return UNKNOWN_OBJECT;
     }
     
 }

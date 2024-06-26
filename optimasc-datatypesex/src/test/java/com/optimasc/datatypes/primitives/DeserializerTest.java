@@ -3,6 +3,7 @@ package com.optimasc.datatypes.primitives;
 import java.io.InputStream;
 import java.util.Hashtable;
 
+import com.optimasc.datatypes.defined.StringType;
 import com.optimasc.datatypes.derived.IntType;
 import com.optimasc.datatypes.io.XMLSchemaDeserializer;
 import com.optimasc.datatypes.manager.*;

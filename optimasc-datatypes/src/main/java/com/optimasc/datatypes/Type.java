@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.optimasc.datatypes.visitor.TypeVisitor;
+import com.optimasc.utils.UserConfiguration;
 
 /**
  * Represents the basic Type which conforms to OMG AMST Specification 1.0. All
@@ -19,8 +20,6 @@ public abstract class Type implements UserConfiguration
 
   protected String comment;
 
-  protected boolean isConst;
-
   /**
    * Indicates if this is an ordered value, that means to say that each value
    * has a predecessor or successor
@@ -29,7 +28,8 @@ public abstract class Type implements UserConfiguration
 
   /**
    * Returns the Java object type used to hold value data for this type for this
-   * implementation.
+   * implementation. If there is no java datatype representing this type,
+   * this shall return a <code>null</code> value.
    */
   public abstract Class getClassType();
 
@@ -75,8 +75,6 @@ public abstract class Type implements UserConfiguration
     return userData.put(key, data);
   }
 
-  /** Returns the comment associated with this datatype if any. */
-
   /**
    * Returns the comment associated with this datatype. The comment returned
    * should have been set by {@link #setComment(String)}.
@@ -98,12 +96,26 @@ public abstract class Type implements UserConfiguration
   /**
    * Return if this type's value space contains ordered values.
    * 
-   * @return true if this type has oredering, otherwise false.
+   * @return true if this type has ordering, otherwise false.
    */
   public boolean isOrdered()
   {
     return ordered;
   }
+  
+  /**
+   * Return if this type's value space are conceptually
+   * quantities (in some mathematical number system). 
+   * The default implementation returns <code>false</code>.
+   * 
+   * @return true if this type's value space represents
+   *  a number.
+   */
+   public boolean isNumeric()
+   {
+     return false;
+   }
+  
 
   /**
    * Generic implementation of equals that verifies basic facets for equalities.
@@ -170,12 +182,48 @@ public abstract class Type implements UserConfiguration
           return false;
         }
         CharacterSetEncodingFacet otherObject = (CharacterSetEncodingFacet) obj;
-        if (otherObject.getCharSetName().equals(thisObject.getCharSetName()) == false)
+        if (otherObject.getCharacterSet().equals(thisObject.getCharacterSet()) == false)
         {
           return false;
         }
       }
-
+      
+      if (this instanceof PrecisionFacet)
+      {
+        PrecisionFacet thisObject = (PrecisionFacet) this;
+        if ((obj instanceof PrecisionFacet) == false)
+        {
+          return false;
+        }
+        PrecisionFacet otherObject = (PrecisionFacet) obj;
+        if (otherObject.getScale()!=thisObject.getScale())
+        {
+          return false;
+        }
+        if (otherObject.getPrecision()!=thisObject.getPrecision())
+        {
+          return false;
+        }
+      }
+      
+      if (this instanceof DecimalRangeFacet)
+      {
+        DecimalRangeFacet thisObject = (DecimalRangeFacet) this;
+        if ((obj instanceof DecimalRangeFacet) == false)
+        {
+          return false;
+        }
+        DecimalRangeFacet otherObject = (DecimalRangeFacet) obj;
+        if (otherObject.getMinInclusive().equals(thisObject.getMinInclusive())==false)
+        {
+          return false;
+        }
+        if (otherObject.getMaxInclusive().equals(thisObject.getMaxInclusive())==false)
+        {
+          return false;
+        }
+      }
+        
       if (this instanceof EnumerationFacet)
       {
         EnumerationFacet thisObject = (EnumerationFacet) this;

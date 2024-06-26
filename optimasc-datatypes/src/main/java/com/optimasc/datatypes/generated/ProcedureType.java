@@ -16,7 +16,7 @@ import omg.org.astm.type.UnnamedTypeReference;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.aggregate.ClassType;
-import com.optimasc.datatypes.primitives.BinaryType;
+import com.optimasc.datatypes.defined.BinaryType;
 import com.optimasc.datatypes.primitives.VoidType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
@@ -113,12 +113,6 @@ public class ProcedureType extends Type
     this.returnType = returnType;
   }
 
-  public void validate(java.lang.Object integerValue) throws IllegalArgumentException,
-      DatatypeException
-  {
-
-  }
-
   public Class getClassType()
   {
     return null;
@@ -127,12 +121,6 @@ public class ProcedureType extends Type
   public Object accept(TypeVisitor v, Object arg)
   {
     return v.visit(this, arg);
-  }
-
-  public Object getObjectType()
-  {
-    // TODO Auto-generated method stub
-    return null;
   }
 
   public boolean equals(Object obj)
@@ -146,7 +134,7 @@ public class ProcedureType extends Type
       ProcedureType otherObj = (ProcedureType) obj;
       if ((returnType != null))
       {
-        if ((returnType.equals(otherObj)) == false)
+        if ((returnType.equals(otherObj.returnType)) == false)
         {
           return false;
         }

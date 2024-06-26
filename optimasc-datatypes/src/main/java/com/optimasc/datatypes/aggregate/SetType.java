@@ -11,10 +11,8 @@ import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.aggregate.ArrayType.Dimension;
-import com.optimasc.datatypes.derived.ByteType;
-import com.optimasc.datatypes.derived.LatinCharType;
-import com.optimasc.datatypes.derived.RangeType;
-import com.optimasc.datatypes.derived.UnsignedByteType;
+import com.optimasc.datatypes.defined.LatinCharType;
+import com.optimasc.datatypes.defined.UnsignedByteType;
 import com.optimasc.datatypes.primitives.BooleanType;
 import com.optimasc.datatypes.primitives.CharacterType;
 import com.optimasc.datatypes.primitives.EnumType;
@@ -29,8 +27,8 @@ import com.optimasc.lang.Duration;
  *    <ul>
  *     <li>{@link BooleanType}</li>
  *     <li>{@link LatinCharType}</li>
- *     <li>{@link ByteType}</li>
  *     <li>{@link UnsignedByteType}</li>
+ *     <li>{@link EnumType} that is within range</li>
  *     <li>A range of the above types</li>
  *    </ul>
  *    
@@ -49,8 +47,6 @@ import com.optimasc.lang.Duration;
 */
 public class SetType extends Datatype implements ConstructedSimple
 {
-  protected static final BitSet INSTANCE = new BitSet();
-  
   public static final SetType DEFAULT_INSTANCE = new SetType();
   public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
   
@@ -64,7 +60,7 @@ public class SetType extends Datatype implements ConstructedSimple
   }
   
   /** Constructs a set type based on 
-   *  a byte.  
+   *  an unsigned byte.  
    */
   public SetType()
   {
@@ -80,10 +76,20 @@ public class SetType extends Datatype implements ConstructedSimple
   
   protected boolean isAllowedType(Type value)
   {
-    if ((value instanceof ByteType) || (value instanceof UnsignedByteType) || (value instanceof LatinCharType) || (value instanceof EnumType) ||
+    if ((value instanceof UnsignedByteType) || (value instanceof LatinCharType) ||
         (value instanceof BooleanType))
     {
       return true;
+    }
+    // If the value of the enumeration is within the allowed range then its ok, otherwise its false.
+    if ((value instanceof EnumType))
+    {
+      EnumType enumType = (EnumType) value;
+      // Must fit witihn an usigned byte.
+      if ((enumType.getMaxInclusive().longValue() <= 255) && (enumType.getMinInclusive().longValue()>=0))
+      {
+        return true;
+      }
     }
     return false;
   }
@@ -95,27 +101,12 @@ public class SetType extends Datatype implements ConstructedSimple
       baseType = (TypeReference)value;
       return;
     } else
-    if (value.getType() instanceof RangeType)
     {
-      Type rangeElementType = ((RangeType)value.getType()).getBaseTypeReference().getType();
-      if (isAllowedType(rangeElementType))
-      {
-        baseType = (TypeReference)value;
-        return;
-      }
-    }
-    else
-    {
-      throw new IllegalArgumentException("Set base types must be of ByteType, UnsignedByteType, LatinCharacter, Enumeration or Range of these types");
+      throw new IllegalArgumentException("Set base types must be of UnsignedByteType, LatinCharacter, Enumeration with ordinal values that fit in a byte, or Range of these types");
     }
   }
 
   
-  public Object getObjectType()
-  {
-    return INSTANCE;
-  }
-
   public void validate(Object value) throws IllegalArgumentException, DatatypeException
   {
     checkClass(value);

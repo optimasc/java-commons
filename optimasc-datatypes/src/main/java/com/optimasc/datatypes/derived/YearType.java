@@ -18,11 +18,6 @@ public class YearType extends DateTimeType
     setResolution(RESOLUTION_YEAR);
   }
 
-  public Object parse(String value) throws ParseException
-  {
-    throw new IllegalArgumentException("Parse method is not implemented");
-  }
-  
   public static UnnamedTypeReference getDefaultTypeReference()
   {
     return DEFAULT_TYPE_REFERENCE;

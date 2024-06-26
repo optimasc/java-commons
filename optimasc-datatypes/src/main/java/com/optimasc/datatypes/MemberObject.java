@@ -1,5 +1,7 @@
 package com.optimasc.datatypes;
 
+import com.optimasc.utils.UserConfiguration;
+
 import omg.org.astm.type.TypeReference;
 
 /** Represents members of an aggregate type. This base
@@ -21,6 +23,9 @@ public interface MemberObject extends UserConfiguration
   /** Represents a reference to a type associated with this field. This
    *  value may be <code>null</code> depending on the aggregate type. */
   public TypeReference getDefinitionType();
+  /** Set a reference to a type associated with this field. This
+   *  value may be <code>null</code> depending on the aggregate type. */
+  public void setDefinitionType(TypeReference typeRef);
   /** Returns the visibility of this member object in relation
    *  to the containing type.
    */

@@ -30,6 +30,15 @@
   </developers>
   
   <contributors>
+    <contributor>
+      <name>Apache Harmony project</name>
+      <url>https://harmony.apache.org/</url>
+      <organization>Apache Harmony</organization>
+      <organizationUrl>https://harmony.apache.org</organizationUrl>
+      <roles>
+        <role>source code for surrogate pairs</role>
+      </roles>
+    </contributor>  
   </contributors>
   
   

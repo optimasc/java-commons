@@ -10,11 +10,18 @@ import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.PackedFacet;
 import com.optimasc.datatypes.Type;
+import com.optimasc.datatypes.primitives.BooleanType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
-/** This datatype represents the Array type that contains
- *  several data of the same type.
+/** Datatype that represents a sequence of elements of the same
+ *  datatype that can be referred to by an integer based index. Arrays
+ *  have lower and upper bounds and can be multi-dimensional.
  *  
+ *  This is equivalent to the following datatypes:
+ *  <ul>
+ *   <li></code>array</code> ISO/IEC 11404 General purpose datatype</li>
+ *  </ul>
+ *
  * @author Carl Eric Codere
  *
  */
@@ -33,6 +40,34 @@ public class ArrayType extends Datatype implements ConstructedSimple, PackedFace
       this.lowBound = lowerBound;
       this.highBound = higherBound;
     }
+
+    public boolean equals(Object obj)
+    {
+      /* null always not equal. */
+      if (obj == null)
+        return false;
+      /* Same reference returns true. */
+      if (obj == this)
+      {
+        return true;
+      }
+        if (!(obj instanceof Dimension))
+        {
+            return false;
+        }
+      Dimension otherObj = (Dimension)obj;
+      if (otherObj.lowBound != lowBound)
+      {
+        return false;
+      }
+      if (otherObj.highBound != highBound)
+      {
+        return false;
+      }
+      return true;
+    }
+    
+    
   }
   
   protected Dimension ranks[];
@@ -67,11 +102,23 @@ public class ArrayType extends Datatype implements ConstructedSimple, PackedFace
     {
         return ranks;
     }
+    
+    
+    public void setRanks(Dimension[] ranks)
+    {
+        this.ranks = ranks;
+    }
+    
 
-  /** Return the number of elements in the array */
+  /** Return the number of elements in the array. If the rank is 
+   *  is not defined, the value returned is -1. */
   protected int getElements()
   {
     int count = 0;
+    if (ranks == null)
+    {
+      return -1;
+    }
     for (int i=0; i < ranks.length; i++)
     {
       count = count + (ranks[i].highBound-ranks[i].lowBound+1);
@@ -174,7 +221,9 @@ public class ArrayType extends Datatype implements ConstructedSimple, PackedFace
       throw new IllegalArgumentException(
           "Invalid object type - should be an array");
     }
-    if (getElements()!=length)
+    
+    int elements = getElements();
+    if ((elements != -1) && (elements!=length))
     {
       DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,
           "The number of actual array elements is not expected value, got "+length+", expected "+getElements()+".");
@@ -228,12 +277,6 @@ public TypeReference getBaseTypeReference()
 public void setBaseTypeReference(TypeReference value)
 {
   dataType = value;
-}
-
-public Object getObjectType()
-{
-  // TODO Auto-generated method stub
-  return null;
 }
 
 public boolean isPacked()

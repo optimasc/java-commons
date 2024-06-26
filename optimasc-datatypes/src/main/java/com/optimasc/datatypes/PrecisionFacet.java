@@ -13,7 +13,7 @@ package com.optimasc.datatypes;
  * @author Carl Eric Codere
  *
  */
-public interface PrecisionFacet
+public interface PrecisionFacet extends Restriction
 {
   /** Return the precision in base 10 of this 
    *  number, which is the total number of digits.

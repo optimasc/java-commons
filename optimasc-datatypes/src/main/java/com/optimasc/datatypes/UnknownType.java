@@ -9,7 +9,7 @@ import java.text.ParseException;
 
 import omg.org.astm.type.UnnamedTypeReference;
 
-import com.optimasc.datatypes.derived.ByteType;
+import com.optimasc.datatypes.defined.ByteType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** This represents an unknown datatype that has not been resolved yet.
@@ -22,8 +22,6 @@ public class UnknownType extends Datatype
   public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
   
   
-   protected static final Object UNKNOWN_OBJECT = new Object();
-   
    public UnknownType()
    {
         super(Datatype.NULL,false);
@@ -64,11 +62,6 @@ public class UnknownType extends Datatype
             return false;
         }
         return true;
-    }
-
-    public Object getObjectType()
-    {
-      return UNKNOWN_OBJECT;
     }
 
     public Object parse(String value) throws ParseException

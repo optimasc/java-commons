@@ -7,11 +7,11 @@ import java.util.Calendar;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.defined.BinaryType;
+import com.optimasc.datatypes.defined.StringType;
 import com.optimasc.datatypes.derived.DateType;
-import com.optimasc.datatypes.primitives.BinaryType;
 import com.optimasc.datatypes.primitives.IntegralType;
 import com.optimasc.datatypes.primitives.RealType;
-import com.optimasc.datatypes.primitives.StringType;
 import com.optimasc.datatypes.primitives.TimeType;
 
 public class BaseIndexableDataset implements IndexableDataset

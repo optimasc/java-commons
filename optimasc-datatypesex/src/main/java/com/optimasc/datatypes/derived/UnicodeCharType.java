@@ -6,10 +6,13 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 
+import omg.org.astm.type.UnnamedTypeReference;
+
 import com.optimasc.datatypes.primitives.CharacterType;
 import com.optimasc.datatypes.visitor.TypeVisitorEx;
 import com.optimasc.datatypes.visitor.DefaultDatatypeVisitorEx;
 import com.optimasc.datatypes.visitor.TypeVisitor;
+import com.optimasc.lang.CharacterSet;
 
 /** Represents a Unicode character codepoint, where full
  *  Unicode planes are supported.
@@ -19,6 +22,9 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class UnicodeCharType extends CharacterType
 {
+  public static final UnicodeCharType DEFAULT_INSTANCE = new UnicodeCharType();
+  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
+  
   protected Charset charSet = null; 
   protected CharsetEncoder charsetEncoder = null;
   
@@ -27,7 +33,7 @@ public class UnicodeCharType extends CharacterType
   public UnicodeCharType()
   {
     super();
-    setCharSetName("ISO-10646-UCS-4");
+    setCharacterSet(CharacterSet.UNICODE);
   }
 
   public long getMinInclusive()
@@ -40,9 +46,8 @@ public class UnicodeCharType extends CharacterType
     return Character.MAX_CODE_POINT;
   }
 
-  public void setCharSetName(String charSetName)
+  public void setCharacterSet(String charSetName)
   {
-    this.charSetName = charSetName;
     Charset cs = Charset.forName(charSetName);
     charsetEncoder = cs.newEncoder();
     charsetEncoder.onMalformedInput(CodingErrorAction.REPORT);

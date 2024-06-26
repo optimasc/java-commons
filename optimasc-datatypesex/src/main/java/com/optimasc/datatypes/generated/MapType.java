@@ -26,7 +26,6 @@ public class MapType extends Datatype implements ConstructedSimple, Parseable
   protected Type valueDatatype;
   protected TypeReference keyDatatypeReference;
   protected Type keyDatatype;
-  protected static final LinkedHashMap INSTANCE_OBJECT = new LinkedHashMap();
   
   /** Default separator character to separate elements in the list. */
   protected static final String ENTRY_SEPARATOR_CHAR = ";";
@@ -59,12 +58,6 @@ public class MapType extends Datatype implements ConstructedSimple, Parseable
     return HashMap.class;
   }
 
-  @Override
-  public Object getObjectType()
-  {
-    return INSTANCE_OBJECT;
-  }
-
   /** Validates the values, which must be a {@link Map}. 
    * 
    */
@@ -89,7 +82,7 @@ public class MapType extends Datatype implements ConstructedSimple, Parseable
     }
   }
 
-  public Object parse(String value) throws ParseException
+  public Object parseObject(String value) throws ParseException
   {
     VisualMap<Object,Object> visualMap = new VisualMap<Object, Object>();
     StringTokenizer st = new StringTokenizer(value,entrySeparatorChar);
@@ -101,12 +94,12 @@ public class MapType extends Datatype implements ConstructedSimple, Parseable
         Object keyParsedValue = entry[0];
         if (keyDatatype instanceof Parseable)
         {
-          keyParsedValue =((Parseable)keyDatatype).parse(entry[0]);
+          keyParsedValue =((Parseable)keyDatatype).parseObject(entry[0]);
         }
         Object valueParsedValue = entry[1];
         if (valueDatatype instanceof Parseable)
         {
-          valueParsedValue = ((Parseable)valueDatatype).parse(entry[1]);
+          valueParsedValue = ((Parseable)valueDatatype).parseObject(entry[1]);
         }
         visualMap.put(keyParsedValue,valueParsedValue);
     }

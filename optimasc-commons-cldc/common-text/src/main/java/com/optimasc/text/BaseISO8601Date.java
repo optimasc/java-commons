@@ -189,6 +189,16 @@ public class BaseISO8601Date
   }
   
 
+  /** Parses a time value. The value of the time parsed is based 
+   *  on the extended format. That is to day:
+   *  
+   *  <code>"hh:mm:ss[.sss]?[TZD]?"</code> 
+   *  
+   * @param calendar
+   * @param timeString
+   * @return
+   * @throws IllegalArgumentException
+   */
   public static Calendar parseTime(Calendar calendar, String timeString)
       throws IllegalArgumentException
   {
@@ -241,14 +251,14 @@ public class BaseISO8601Date
       // Not mandatory now
       //
 
-      // Secondes
+      // Seconds
       if (!st.hasMoreTokens())
       {
         return calendar;
       }
       String tok = st.nextToken();
       if (tok.equals(":"))
-      { // secondes
+      { // seconds
         if (st.hasMoreTokens())
         {
           s = st.nextToken();
@@ -386,7 +396,9 @@ public class BaseISO8601Date
     }
     return calendar;
   }
-
+  
+  
+  
   /**
    * This parses a date in ISO 8601 Date format, and returns it as a calendar
    * value. The following format are currently supported for the DateTime

@@ -59,11 +59,6 @@ public abstract class ListType extends Datatype implements LengthFacet, Construc
     return Vector.class;
   }
 
-  public Object getObjectType()
-  {
-    return new Vector();
-  }
-
   public void validate(Object value) throws IllegalArgumentException, DatatypeException
   {
     int i;
@@ -95,7 +90,7 @@ public abstract class ListType extends Datatype implements LengthFacet, Construc
       Object o = itemValue;
       if (datatype instanceof Parseable)
       {
-         o = ((Parseable)datatype).parse(itemValue);
+         o = ((Parseable)datatype).parseObject(itemValue);
       }
       v.addElement(o);
     }

@@ -2,6 +2,7 @@ package com.optimasc.datatypes;
 
 import java.text.ParseException;
 
+import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Represents a generic datatype. This is the base class for all possible
@@ -17,7 +18,7 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  * 
  * @author Carl Eric Codere
  */
-public abstract class Datatype extends Type
+public abstract class Datatype extends Type implements Convertable
 {
   
   
@@ -78,22 +79,6 @@ public abstract class Datatype extends Type
     this.type = type;
   }
 
-  /**
-   * Returns the main instance of this object associated with this datatype.
-   * 
-   */
-  public abstract Object getObjectType();
-
-  /** Validates the value of this value represented as the specified
-   *  {@link #getObjectType()} value and throws an exception if it does
-   *  meet the facet requirements.   
-   * 
-   * @param value The value specified in the correct object instance.
-   * @throws IllegalArgumentException Thrown when the datatype
-   *  is not of the correct class type.
-   * @throws DatatypeException When the validation on facets and constraints fails.
-   */
-  public abstract void validate(java.lang.Object value) throws IllegalArgumentException, DatatypeException;
 
 
   /** Returns the name of this datatype. */
@@ -119,5 +104,4 @@ public abstract class Datatype extends Type
     this.name = name;
   }
   
-
 }

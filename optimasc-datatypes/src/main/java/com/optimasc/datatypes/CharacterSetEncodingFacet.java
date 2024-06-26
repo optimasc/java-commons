@@ -1,10 +1,10 @@
 package com.optimasc.datatypes;
 
+import com.optimasc.lang.CharacterSet;
+
 /** Represents a character set encoding repertoire. */
-public interface CharacterSetEncodingFacet
+public interface CharacterSetEncodingFacet extends Restriction
 {
-  /** Return the character set encoding. */
-  public String getCharSetName();
-  /** Sets the character set encoding. */
-  public void setCharSetName(String charSetName);
+  /** Return the character set repertoire. */
+  public CharacterSet getCharacterSet();
 }

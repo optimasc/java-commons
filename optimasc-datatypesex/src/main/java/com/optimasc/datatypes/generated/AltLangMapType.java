@@ -15,7 +15,7 @@ import com.optimasc.datatypes.utils.VisualMap;
 /** Represents a map type that contains a default value. This is mainly
  *  used to represent a Lang Alt map used by the XMP Specification.
  *  
- *  The {@link #parse(String)} method accepts different formats for
+ *  The {@link #parseObject(String)} method accepts different formats for
  *  the parsing. If there is only one value with no key separator
  *  then it will be correctly be parsed and will be considered
  *  the value with the x-default key. 
@@ -35,7 +35,7 @@ public class AltLangMapType extends MapType
   }
 
   @Override
-  public Object parse(String value) throws ParseException
+  public Object parseObject(String value) throws ParseException
   {
     VisualAltLangMap visualMap = new VisualAltLangMap();
     StringTokenizer st = new StringTokenizer(value,entrySeparatorChar);
@@ -51,15 +51,15 @@ public class AltLangMapType extends MapType
           String valueString = entry[1].toString();
           if (valueDatatype instanceof Parseable)
           {
-            valueString =  ((Parseable)valueDatatype).parse(entry[1]).toString();
+            valueString =  ((Parseable)valueDatatype).parseObject(entry[1]).toString();
           }
-          visualMap.put((Locale) ((LanguageType)keyDatatype).parse(entry[0]),valueString);
+          visualMap.put((Locale) ((LanguageType)keyDatatype).parseObject(entry[0]),valueString);
         } else
         {
           String valueString = entryString;;
           if (valueDatatype instanceof Parseable)
           {
-            valueString =  ((Parseable)valueDatatype).parse(valueString).toString();
+            valueString =  ((Parseable)valueDatatype).parseObject(valueString).toString();
           }
           
           visualMap.put(new Locale(X_DEFAULT),valueString);

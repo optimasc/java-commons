@@ -19,17 +19,20 @@ public class InterfaceType extends DerivableAggregateType
   public InterfaceType()
   {
     super();
+    _abstract = true;
   }
   
   
   public InterfaceType(NamedTypeReference parent)
   {
     super(parent);
+    _abstract = true;
   }
   
   public InterfaceType(NamedTypeReference parent, MemberObject[] members)
   {
     super(parent,members);
+    _abstract = true;
   }
   
   

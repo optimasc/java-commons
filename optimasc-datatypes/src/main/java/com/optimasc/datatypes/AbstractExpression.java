@@ -1,5 +1,7 @@
 package com.optimasc.datatypes;
 
+import omg.org.astm.type.TypeReference;
+
 import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.UnknownType;
 
@@ -12,20 +14,20 @@ public abstract class AbstractExpression
 { 
   protected static final Type UNKNOWN_TYPE = new UnknownType();
   
-  /** The defined type associated with this expression. */
-  protected Type expressionType;
+  /** The defined typeReference associated with this expression. */
+  protected TypeReference expressionType;
   
   /** Creates an instance of an expression that 
    *  represents the specified type.
    * 
-   * @param expressionTyp The type information
+   * @param expressionTypeRef The type reference information
    */
-  public AbstractExpression(Type expressionTyp)
+  public AbstractExpression(TypeReference expressionTypeRef)
   {
-    this.expressionType = expressionTyp;
+    this.expressionType = expressionTypeRef;
   }
   
-  public Type getExpressionType()
+  public TypeReference getExpressionType()
   {
     return expressionType;
   }

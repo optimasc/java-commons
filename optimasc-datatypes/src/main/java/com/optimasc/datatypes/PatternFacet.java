@@ -1,8 +1,8 @@
 package com.optimasc.datatypes;
 
 /** Represents a regular expression pattern
- *  facet to parse the value representation of 
- *  this datatype.
+ *  facet to limit the value space of a
+ *  string type. 
  * 
  * @author Carl Eric Codere
  *

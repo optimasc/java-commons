@@ -27,5 +27,23 @@ public class NameSpaceType extends Type
   {
     return v.visit(this, arg);
   }
+  
+  public boolean equals(Object obj)
+  {
+    /* null always not equal. */
+    if (obj == null)
+      return false;
+    /* Same reference returns true. */
+    if (obj == this)
+    {
+      return true;
+    }
+      if (!(obj instanceof NameSpaceType))
+      {
+          return false;
+      }
+      return true;
+  }
+
 
 }

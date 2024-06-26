@@ -50,20 +50,14 @@ public class ClosedChoiceType extends EnumType implements ConstructedSimple, Par
    return false;
   }
 
-  public Object getObjectType()
-  {
-    return choices;
-  }
-
-
-  public Object parse(String value) throws ParseException
+  public Object parseObject(String value) throws ParseException
   {
     try
     {
       validate(value);
       if (elementType instanceof Parseable)
       {
-        return ((Parseable)elementType).parse(value);
+        return ((Parseable)elementType).parseObject(value);
       }
       throw new UnsupportedOperationException("Unsupporting of element Type");
     } catch (IllegalArgumentException e)

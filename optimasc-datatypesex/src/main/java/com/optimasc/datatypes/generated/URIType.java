@@ -18,7 +18,6 @@ import com.optimasc.datatypes.visitor.TypeVisitorEx;
 
 public class URIType extends Datatype implements LengthFacet, EnumerationFacet, PatternFacet, Parseable
 {
-  protected static final String SAMPLE_URI = "http://www.example.com/";
   protected String pattern;
   protected EnumerationHelper enumHelper;
   protected LengthHelper lengthHelper;
@@ -78,17 +77,6 @@ public class URIType extends Datatype implements LengthFacet, EnumerationFacet, 
     return URI.class;
   }
 
-  @Override
-  public Object getObjectType()
-  {
-    try
-    {
-      return new URI(SAMPLE_URI);
-    } catch (URISyntaxException e)
-    {
-      return null;
-    }
-  }
 
   @Override
   public void validate(Object value) throws IllegalArgumentException, DatatypeException
@@ -133,7 +121,7 @@ public class URIType extends Datatype implements LengthFacet, EnumerationFacet, 
     }
   }
   
-  public Object parse(String value) throws ParseException
+  public Object parseObject(String value) throws ParseException
   {
     URI uri = null;
     try

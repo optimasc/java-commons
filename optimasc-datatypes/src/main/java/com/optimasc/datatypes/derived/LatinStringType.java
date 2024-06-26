@@ -2,7 +2,8 @@ package com.optimasc.datatypes.derived;
 
 import omg.org.astm.type.UnnamedTypeReference;
 
-import com.optimasc.datatypes.primitives.StringType;
+import com.optimasc.datatypes.defined.LatinCharType;
+import com.optimasc.datatypes.defined.StringType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Datatype that represents a character string datatype from the ISO-8859-1 character
@@ -32,7 +33,7 @@ public class LatinStringType extends StringType
   
   public LatinStringType()
   {
-      super(0,Integer.MAX_VALUE,LatinCharType.DEFAULT_TYPE_REFERENCE);
+      super(LatinCharType.DEFAULT_TYPE_REFERENCE);
   }
   
   public LatinStringType(int minLength, int maxLength)

@@ -1,10 +1,12 @@
 package com.optimasc.datatypes.primitives;
 
-import com.optimasc.datatypes.BoundedRangeFacet;
-import com.optimasc.datatypes.ConstructedSimple;
+import java.math.BigDecimal;
+
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.EnumerationFacet;
+import com.optimasc.datatypes.DecimalRangeFacet;
+import com.optimasc.datatypes.SubSet;
 import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
@@ -26,32 +28,35 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  * 
  * <ul>
  * <li>choices can be of {@link #EnumerationElement} where the
- * <code>value</code> field should represent an integral value which will
+ * <code>value</code> field should represent a {@link Number} object value which will
  * represent an index. The lowest value and highest values will provide range of
  * the enumeration.</li>
  * <li>choices can be of {@link Number} where the lowest value shall represent
- * the minimum range, and the higest value shall represent the highest range.</li>
+ * the minimum range, and the highest value shall represent the highest range.</li>
  * <li>Otherwise for other Object types, the lowest and highest range value
  * representation shall be the minimum index and highest index of the choices
  * array.</li>
  * </ul>
  * 
- * <p>Internally, values of this type are represented as <code>Object[]</code>.</p>
+ * <p>Internally, values of this type are represented as <code>Object[]</code> and
+ * the maximum supported ordinal value is up to {@link Integer#MAX_VALUE}</p>
  * 
  * @author Carl Eric Codère
  */
-public class EnumType extends PrimitiveType implements EnumerationFacet, BoundedRangeFacet
+public class EnumType extends PrimitiveType implements EnumerationFacet, DecimalRangeFacet
 {
+  public static final EnumType DEFAULT_INSTANCE = new EnumType();
+  
   /** Basic element type */
   protected Object[] choices;
 
   /** Possible representation of an enumeration element. */
-  public class EnumerationElement
+  public static class EnumerationElement
   {
     protected String name;
-    protected String value;
+    protected int value;
 
-    public EnumerationElement(String token, String value)
+    public EnumerationElement(String token, int value)
     {
       this.name = token;
       this.value = value;
@@ -67,12 +72,12 @@ public class EnumType extends PrimitiveType implements EnumerationFacet, Bounded
       this.name = name;
     }
 
-    public String getValue()
+    public int getValue()
     {
       return value;
     }
 
-    public void setValue(String value)
+    public void setValue(int value)
     {
       this.value = value;
     }
@@ -92,7 +97,7 @@ public class EnumType extends PrimitiveType implements EnumerationFacet, Bounded
       EnumerationElement otherObj = (EnumerationElement) obj;
       if (name.equals(otherObj.name)==false)
         return false;
-      if (value.equals(otherObj.value)==false)
+      if (value!=otherObj.value)
         return false;
       return true;
     }
@@ -104,6 +109,7 @@ public class EnumType extends PrimitiveType implements EnumerationFacet, Bounded
   public EnumType()
   {
     super(Datatype.OTHER, true);
+    this.choices = new Object[0];
   }
   
   public EnumType(Object[] choices)
@@ -159,17 +165,7 @@ public class EnumType extends PrimitiveType implements EnumerationFacet, Bounded
     return false;
   }
 
-  public void setMinInclusive(long value)
-  {
-    throw new IllegalArgumentException("Unsupported operation.");
-  }
-
-  public void setMaxInclusive(long value)
-  {
-    throw new IllegalArgumentException("Unsupported operation.");
-  }
-
-  public long getMinInclusive()
+  public BigDecimal getMinInclusive()
   {
     if ((choices != null) && (choices.length > 0) && (choices[0] != null))
     {
@@ -185,31 +181,31 @@ public class EnumType extends PrimitiveType implements EnumerationFacet, Bounded
             minValue = numberedItemValue;
           }
         }
-        return minValue;
+        return BigDecimal.valueOf(minValue);
       }
       else if (item instanceof EnumerationElement)
       {
         for (int i = 0; i < choices.length; i++)
         {
           EnumerationElement element = ((EnumerationElement) choices[i]);
-          long numberedItemValue = Long.parseLong(element.getValue());
+          long numberedItemValue = element.getValue();
           if (numberedItemValue < minValue)
           {
             minValue = numberedItemValue;
           }
         }
-        return minValue;
+        return BigDecimal.valueOf(minValue);
       }
       else
       {
         // Return minimum index of choices array 
-        return 0;
+        return BigDecimal.valueOf(0);
       }
     }
-    return 0;
+    return BigDecimal.valueOf(0);
   }
 
-  public long getMaxInclusive()
+  public BigDecimal getMaxInclusive()
   {
     if ((choices != null) && (choices.length > 0) && (choices[0] != null))
     {
@@ -225,30 +221,30 @@ public class EnumType extends PrimitiveType implements EnumerationFacet, Bounded
             maxValue = numberedItemValue;
           }
         }
-        return maxValue;
+        return BigDecimal.valueOf(maxValue);
       }
       else if (item instanceof EnumerationElement)
       {
         for (int i = 0; i < choices.length; i++)
         {
           EnumerationElement element = ((EnumerationElement) choices[i]);
-          long numberedItemValue = Long.parseLong(element.getValue());
+          long numberedItemValue = element.getValue();
           if (numberedItemValue > maxValue)
           {
             maxValue = numberedItemValue;
           }
         }
-        return maxValue;
+        return BigDecimal.valueOf(maxValue);
       }
       else
       {
         // Return maximum index of choices array 
-        return choices.length-1;
+        return BigDecimal.valueOf(choices.length-1);
       }
     }
     else
     {
-      return 0;
+      return BigDecimal.valueOf(0);
     }
   }
 
@@ -294,7 +290,18 @@ public class EnumType extends PrimitiveType implements EnumerationFacet, Bounded
         }
       }
       return -1;
-    }
+    } else
+    if (choices[0] instanceof Number)
+    {
+      for (int i = 0; i < choices.length; i++)
+      {
+        if (choices[i].toString().equals(symbol))
+        {
+          return i;
+        }
+      }
+      return -1;
+    } else
     if (choices[0] instanceof EnumerationElement)
     {
       for (int i = 0; i < choices.length; i++)
@@ -302,18 +309,38 @@ public class EnumType extends PrimitiveType implements EnumerationFacet, Bounded
         EnumerationElement enumElement = (EnumerationElement) choices[i];
         if (enumElement.getName().equals(symbol))
         {
-          return Integer.parseInt(enumElement.getValue());
+          return enumElement.getValue();
         }
       }
       return -1;
     }
     return -1;
   }
-
-  public Object getObjectType()
+  
+  public boolean isSubset(Type type)
   {
-    // TODO Auto-generated method stub
-    return null;
+    DecimalRangeFacet rangeType;
+    if (!(type instanceof DecimalRangeFacet))
+      return false;
+    rangeType = (DecimalRangeFacet) type;
+    if ((this.getMinInclusive().longValue() <= rangeType.getMinInclusive().longValue())
+        && (this.getMaxInclusive().longValue() >= rangeType.getMaxInclusive().longValue()))
+      return true;
+    return false;
+  }
+  
+  public boolean isRestriction(Type value)
+  {
+    if ((value instanceof SubSet))
+    {
+      return ((SubSet)value).isSubset(value); 
+    }
+    return false;
+  }
+
+  public boolean isBounded()
+  {
+    return true;
   }
 
 }

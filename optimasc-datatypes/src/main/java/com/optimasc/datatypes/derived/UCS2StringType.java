@@ -2,7 +2,7 @@ package com.optimasc.datatypes.derived;
 
 import omg.org.astm.type.UnnamedTypeReference;
 
-import com.optimasc.datatypes.primitives.StringType;
+import com.optimasc.datatypes.defined.StringType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Datatype that represents a character string datatype from the Unicode
@@ -34,7 +34,7 @@ public class UCS2StringType extends StringType
   
   public UCS2StringType()
   {
-      super(0,Integer.MAX_VALUE,UCS2CharType.DEFAULT_TYPE_REFERENCE);
+      super(UCS2CharType.DEFAULT_TYPE_REFERENCE);
   }
   
   public UCS2StringType(int minLength, int maxLength)

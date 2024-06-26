@@ -1,10 +1,13 @@
 package com.optimasc.datatypes.derived;
 
+import java.math.BigInteger;
 import java.text.ParseException;
 
 import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
+import com.optimasc.datatypes.defined.NonNegativeIntegerType;
 import com.optimasc.datatypes.primitives.IntegralType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
@@ -16,16 +19,12 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class UnsignedIntType extends NonNegativeIntegerType
 {
-  protected static final Integer INTEGER_INSTANCE = new Integer(0);
-  
   public static final UnsignedIntType DEFAULT_INSTANCE = new UnsignedIntType();
   public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
   
   public UnsignedIntType()
   {
-    super();
-    setMinInclusive(0);
-    setMaxInclusive(4294967295L);
+    super(BigInteger.valueOf(4294967295L));
   }
 
     public Object accept(TypeVisitor v, Object arg)
@@ -35,13 +34,30 @@ public class UnsignedIntType extends NonNegativeIntegerType
     
     public Class getClassType()
     {
-      return Integer.class;
-    }
-
-    public Object getObjectType()
-    {
-      
-      return INTEGER_INSTANCE;
+      return Long.class;
     }
     
+    
+    public Object toValue(Number ordinalValue, TypeCheckResult conversionResult)
+    {
+      BigInteger returnValue = (BigInteger) super.toValue(ordinalValue, conversionResult);
+      if (returnValue == null)
+      {
+        return null;
+      }
+      return new Long(returnValue.longValue());
+    }
+
+    
+    public Object toValue(long ordinalValue, TypeCheckResult conversionResult)
+    {
+      Object result = super.toValue(ordinalValue, conversionResult);
+      if (result == null)
+      {
+        return null;
+      }
+      return new Long(ordinalValue);
+    }  
+    
+
 }

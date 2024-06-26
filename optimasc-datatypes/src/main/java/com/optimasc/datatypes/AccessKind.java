@@ -15,7 +15,7 @@ import com.optimasc.datatypes.generated.FormalParameterType.ParameterType;
  * @author Carl Eric Codere
  *
  */
-public final class AccessKind
+public final class AccessKind implements Comparable
 {
   /** A public element is visible to all elements that can access the contents 
    *  of the namespace. 

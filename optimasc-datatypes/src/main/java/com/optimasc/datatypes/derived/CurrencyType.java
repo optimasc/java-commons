@@ -5,6 +5,7 @@ import omg.org.astm.type.UnnamedTypeReference;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.PrecisionFacet;
 import com.optimasc.lang.Currency;
+import com.optimasc.datatypes.primitives.BooleanType;
 import com.optimasc.datatypes.primitives.RealType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
@@ -29,9 +30,23 @@ public class CurrencyType extends RealType
     return Currency.class;
   }
 
-  public Object getObjectType()
+  public boolean equals(Object obj)
   {
-    return Currency.ZERO;
+    /* null always not equal. */
+    if (obj == null)
+      return false;
+    /* Same reference returns true. */
+    if (obj == this)
+    {
+      return true;
+    }
+      if (!(obj instanceof CurrencyType))
+      {
+          return false;
+      }
+    return super.equals(obj);
   }
+  
+  
 
 }

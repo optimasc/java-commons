@@ -13,16 +13,11 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.lang.GregorianDateTime;
 
 /** The date type represents a date in the proleptic Gregorian Calender.
- *  Internally the date type can be represented as the following binary
- *  values:
- *   year: signed 16-bit value
- *   month: signed 8-bit value (valid range 01-12)
- *   day: signed 8-bit value (valid range 01-31)
- *
+ * 
  *  This is equivalent to the following datatypes:
  *  <ul>
- *   <li>time(day, 10, 0) ISO/IEC 11404 General purpose datatype</li>
- *   <li>date XMLSchema built-in datatype</li>
+ *   <li><code>time(day, 10, 0)</codE> ISO/IEC 11404 General purpose datatype</li>
+ *   <li><code>date</code> XMLSchema built-in datatype</li>
  *  </ul>
  *  
  * @author Carl Eric Codere

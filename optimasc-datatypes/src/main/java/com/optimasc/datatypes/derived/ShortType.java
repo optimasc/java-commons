@@ -1,11 +1,13 @@
 package com.optimasc.datatypes.derived;
 
+import java.math.BigInteger;
 import java.text.ParseException;
 
 import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.primitives.IntegralType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
@@ -17,18 +19,13 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
 
 public class ShortType extends IntegralType
 {
-  protected static final Short SHORT_INSTANCE = new Short((short) 0);
-  
   public static final ShortType DEFAULT_INSTANCE = new ShortType();
   public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
 
   
   public ShortType()
   {
-    super();
-    setMinInclusive(Short.MIN_VALUE);
-    setMaxInclusive(Short.MAX_VALUE);
-    type = Datatype.SMALLINT;
+    super(Datatype.SMALLINT,Short.MIN_VALUE, Short.MAX_VALUE);
   }
 
     public Object accept(TypeVisitor v, Object arg)
@@ -40,27 +37,28 @@ public class ShortType extends IntegralType
     {
       return Short.class;
     }
-
-    public Object getObjectType()
-    {
-      return SHORT_INSTANCE;
-    }
     
-    public Object parse(String value) throws ParseException
+    
+    public Object toValue(Number ordinalValue, TypeCheckResult conversionResult)
     {
-      try
+      BigInteger returnValue = (BigInteger) super.toValue(ordinalValue, conversionResult);
+      if (returnValue == null)
       {
-        Long longValue = Long.valueOf(value);
-        validate(longValue);
-        return new Short(value);
-      } catch (NumberFormatException e)
-      {
-        throw new ParseException("Cannot parse string to integer type.", 0);
-      } catch (DatatypeException e)
-      {
-        throw new ParseException("Cannot parse string to integer type.", 0);
+        return null;
       }
+      return new Short(returnValue.shortValue());
     }
+
+    
+    public Object toValue(long ordinalValue, TypeCheckResult conversionResult)
+    {
+      Object result = super.toValue(ordinalValue, conversionResult);
+      if (result == null)
+      {
+        return null;
+      }
+      return new Short((short) ordinalValue);
+    }  
     
 
 }

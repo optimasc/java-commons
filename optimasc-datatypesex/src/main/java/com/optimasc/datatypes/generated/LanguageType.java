@@ -13,8 +13,6 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
 
 public class LanguageType extends Datatype implements EnumerationFacet, Parseable
 {
-  protected static final Locale LOCALE_INSTANCE = new Locale("en");
-
   protected EnumerationHelper enumHelper;
 
   public LanguageType()
@@ -29,16 +27,6 @@ public class LanguageType extends Datatype implements EnumerationFacet, Parseabl
     return Locale.class;
   }
 
-  @Override
-  public Object getObjectType()
-  {
-    Object[] enumeration = enumHelper.getChoices();
-    if (enumeration != null)
-    {
-      return enumeration;
-    }
-    return LOCALE_INSTANCE;
-  }
 
   @Override
   public void validate(Object value) throws IllegalArgumentException, DatatypeException
@@ -73,7 +61,7 @@ public class LanguageType extends Datatype implements EnumerationFacet, Parseabl
     return enumHelper.validateChoice(value);
   }
 
-  public Object parse(String value) throws ParseException
+  public Object parseObject(String value) throws ParseException
   {
     /* Check if the pattern is valid. */
     Pattern pattern = Pattern

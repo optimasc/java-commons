@@ -6,7 +6,6 @@
 package com.optimasc.datatypes.primitives;
 
 import com.optimasc.datatypes.Datatype;
-import com.optimasc.datatypes.DatatypeConverter;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Abstract base class representing a Primitive datatype as defined
@@ -20,5 +19,5 @@ public abstract class PrimitiveType extends Datatype {
    {
         super(type,ordered);
    }
-
+   
 }

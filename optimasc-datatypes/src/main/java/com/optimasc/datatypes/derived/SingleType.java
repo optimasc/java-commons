@@ -1,28 +1,26 @@
 package com.optimasc.datatypes.derived;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 
 import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.primitives.RealType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Represents an IEEE 754 32-bit floating point value */
 public class SingleType extends RealType
 {
-  protected static final Float FLOAT_INSTANCE = new Float(0);
-
   public static final SingleType DEFAULT_INSTANCE = new SingleType();
   public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
 
   
   public SingleType()
   {
-    super(7,-1);
-    setMinInclusive(Float.MIN_VALUE);
-    setMaxInclusive(Float.MAX_VALUE);
+    super(7,-1,new BigDecimal(Float.MIN_VALUE),new BigDecimal(Float.MAX_VALUE));
     type = Datatype.FLOAT;
   }
 
@@ -36,37 +34,25 @@ public class SingleType extends RealType
       return Float.class;
     }
 
-    public Object getObjectType()
+    public Object toValue(Number number, TypeCheckResult conversionResult)
     {
-      return FLOAT_INSTANCE;
+      BigDecimal returnValue = (BigDecimal) super.toValue(number, conversionResult);
+      if (returnValue == null)
+      {
+        return null;
+      }
+      return new Float(returnValue.floatValue());
     }
 
-    public Object parse(String value) throws ParseException
+    public Object toValue(long ordinalValue, TypeCheckResult conversionResult)
     {
-      Number objectValue;
-      /* Represented as a fractional value! */
-      if (value.indexOf("/")!=-1)
+      Object result = super.toValue(ordinalValue, conversionResult);
+      if (result == null)
       {
-        String numerator = value.substring(0,value.indexOf("/"));
-        String denominator = value.substring(value.indexOf("/")+1);
-        int intNumerator = Integer.parseInt(numerator);
-        int intDenominator = Integer.parseInt(denominator);
-        objectValue = new Float(intNumerator*1.0 / intDenominator*1.0);
-      } else
-      {
-        objectValue = new Float(value);
+        return null;
       }
-      try
-      {
-        validate(objectValue);
-        return objectValue;
-      } catch (IllegalArgumentException e)
-      {
-        throw new ParseException("Cannot parse double point value.",0);
-      } catch (DatatypeException e)
-      {
-        throw new ParseException("Cannot parse double point value.",0);
-      }
-    }
+      return new Float(ordinalValue);
+    }  
+    
     
 }

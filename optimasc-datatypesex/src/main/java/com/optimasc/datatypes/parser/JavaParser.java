@@ -6,9 +6,9 @@ import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeConverter;
 import com.optimasc.datatypes.EnumerationFacet;
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.defined.StringType;
 import com.optimasc.datatypes.primitives.BooleanType;
 import com.optimasc.datatypes.primitives.IntegralType;
-import com.optimasc.datatypes.primitives.StringType;
 
 public class JavaParser implements DatatypeParser
 {

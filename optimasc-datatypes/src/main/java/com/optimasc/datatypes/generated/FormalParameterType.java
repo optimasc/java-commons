@@ -9,8 +9,9 @@ import java.util.Map;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.UserConfiguration;
+import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.visitor.TypeVisitor;
+import com.optimasc.utils.UserConfiguration;
 
 import omg.org.astm.type.TypeReference;
 
@@ -166,18 +167,6 @@ public class FormalParameterType extends Datatype implements UserConfiguration
     this.parameterType = parameterType;
   }
 
-  public Object getObjectType()
-  {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  public void validate(Object value) throws IllegalArgumentException, DatatypeException
-  {
-    // TODO Auto-generated method stub
-    
-  }
-
   public Class getClassType()
   {
     // TODO Auto-generated method stub
@@ -187,6 +176,11 @@ public class FormalParameterType extends Datatype implements UserConfiguration
   public Object accept(TypeVisitor v, Object arg)
   {
     return v.visit(this,arg);
+  }
+
+  public Object toValue(Object value, TypeCheckResult conversionResult)
+  {
+    return null;
   }
 
 }

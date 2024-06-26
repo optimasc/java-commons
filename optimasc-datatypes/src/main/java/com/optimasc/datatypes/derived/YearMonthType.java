@@ -19,9 +19,4 @@ public class YearMonthType extends DateTimeType
     setResolution(RESOLUTION_MONTH);
   }
 
-  public Object parse(String value) throws ParseException
-  {
-    throw new IllegalArgumentException("Parse method is not implemented");
-  }
-
 }
