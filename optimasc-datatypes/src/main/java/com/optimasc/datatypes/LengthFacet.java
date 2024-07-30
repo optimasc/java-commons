@@ -6,7 +6,7 @@ package com.optimasc.datatypes;
  *  then the type represents a bounded value space and
  *  is {@link #isBounded()} returns <code>true</code>. 
  *  
- *  <p>The minimum length value is zero.</p>
+ *  <p>The minimum length value is zero. </p>
  *  
  *  This is equivalent to the following constraints:
  *  <ul>
@@ -17,15 +17,14 @@ package com.optimasc.datatypes;
  *  
  * @author Carl Eric Codère
  */
-public interface LengthFacet extends Restriction, BoundedFacet
+public interface LengthFacet
 {
-  /** Returns the minimum allowed elements. If the value
-   *  returned is {@link Integer#MIN_VALUE} then the minimum length 
-   *  is not defined.
+  /** Returns the minimum allowed elements. The default
+   *  value for minimum number of allowed elements is zero.
    */
   public int getMinLength();
   /** Returns the maximum allowed elements. If the value
-   *  returned is {@link Integer#MIN_VALUE} then the minimum length 
+   *  returned is {@link Integer#MIN_VALUE} then the maximum length 
    *  is not defined.
    */
   public int getMaxLength();

@@ -12,7 +12,6 @@
 
 	<modules>
 		<module>common-text</module>
-		<module>common-date</module>
 		<module>common-charsets</module>
 		<module>common-archive</module>
 		<module>common-io</module>

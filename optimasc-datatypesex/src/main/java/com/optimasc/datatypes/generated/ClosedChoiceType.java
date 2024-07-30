@@ -8,7 +8,7 @@ import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.Parseable;
 import com.optimasc.datatypes.Type;
-import com.optimasc.datatypes.primitives.EnumType;
+import com.optimasc.datatypes.primitives.EnumeratedType;
 
 /** Represents a choice between different elements all of
  *  the same datatype. It is required to have the value
@@ -17,7 +17,7 @@ import com.optimasc.datatypes.primitives.EnumType;
  * @author Carl Eric Codere
  *
  */
-public class ClosedChoiceType extends EnumType implements ConstructedSimple, Parseable
+public class ClosedChoiceType extends EnumeratedType implements ConstructedSimple, Parseable
 {
   protected TypeReference elementTypeReference;
   protected Type elementType;

@@ -20,10 +20,41 @@ import java.math.BigDecimal;
  * @author Carl Eric Codère
  */
 
-public interface DecimalRangeFacet extends BoundedFacet, Restriction, SubSet
+public interface DecimalRangeFacet extends BoundedFacet
 {
+  /** Returns the minimum inclusive value allowed for this
+   *  ordered value. If this value has not been set,
+   *  or if the type has not been configured to be ordered,
+   *  the return value will be <code>null</code>.
+   * 
+   * @return The minimum inclusive value allowed or null.
+   */
   public BigDecimal getMinInclusive();
+  /** Returns the maximum inclusive value allowed for this
+   *  ordered value. If this value has not been set,
+   *  or if the type has not been configured to be ordered,
+   *  the return value will be <code>null</code>.
+   * 
+   * @return The maximum inclusive value allowed or null.
+   */
   public BigDecimal getMaxInclusive();
+  /** Verifies that the specified ordered numeric 
+   *  value representation for this type is within
+   *  the allowed bounded value space. 
+   *  
+   * @param value The numeric value to verify
+   * @return <code>true</code> if the value
+   *  is within range otherwise <code>false</code>.
+   */
   public boolean validateRange(long value);
+  /** Verifies that the specified ordered numeric 
+   *  value representation for this type is within
+   *  the allowed bounded value space. This ignores
+   *  the value scales when doing the comparison.
+   *  
+   * @param value The numeric value to verify
+   * @return <code>true</code> if the value
+   *  is within range otherwise <code>false</code>.
+   */
   public boolean validateRange(BigDecimal value);
 }

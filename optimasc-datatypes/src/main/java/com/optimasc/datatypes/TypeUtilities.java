@@ -9,7 +9,7 @@ import omg.org.astm.type.TypeReference;
 import com.optimasc.datatypes.aggregate.ClassType;
 import com.optimasc.datatypes.aggregate.DerivableAggregateType;
 import com.optimasc.datatypes.defined.LatinCharType;
-import com.optimasc.datatypes.derived.UCS2CharType;
+import com.optimasc.datatypes.defined.UCS2CharType;
 import com.optimasc.datatypes.primitives.IntegralType;
 import com.optimasc.datatypes.primitives.RealType;
 import com.optimasc.lang.CharacterSet;
@@ -251,15 +251,9 @@ public boolean isPrimitiveNumeric(Type type)
  }
 
  /** Represents <code>Long.MIN_VALUE</code>-1. */
- public static final String LONG_MIN_EXCLUSIVE = "–9223372036854775809";
+ public static final String LONG_MIN_EXCLUSIVE = "-9223372036854775809";
  /** Represents <code>Long.MAX_VALUE</code>+1. */
  public static final String LONG_MAX_EXCLUSIVE = "9223372036854775808";
- 
- /** Represents <code>Integer.MIN_VALUE</code>-1. */
- public static final String INTEGER_MIN_EXCLUSIVE = "–9223372036854775809";
- /** Represents <code>Integer.MAX_VALUE</code>-1. */
- public static final String INTEGER_MAX_EXCLUSIVE = "9223372036854775808";
- 
  
  public static final BigInteger BIGINT_MIN_LONG = new BigInteger(LONG_MIN_EXCLUSIVE);
  public static final BigInteger BIGINT_MAX_LONG = new BigInteger(LONG_MAX_EXCLUSIVE);

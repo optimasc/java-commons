@@ -5,7 +5,11 @@
 
 package com.optimasc.datatypes.primitives;
 
+import java.math.BigDecimal;
+
 import com.optimasc.datatypes.Datatype;
+import com.optimasc.datatypes.DecimalRangeFacet;
+import com.optimasc.datatypes.Restriction;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Abstract base class representing a Primitive datatype as defined
@@ -13,11 +17,10 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  *
  * @author Carl Eric Codere
  */
-public abstract class PrimitiveType extends Datatype {
+public abstract class PrimitiveType extends Datatype implements Restriction {
 
-   public PrimitiveType(int type, boolean ordered)
+   public PrimitiveType(boolean ordered)
    {
-        super(type,ordered);
+        super(ordered);
    }
-   
 }

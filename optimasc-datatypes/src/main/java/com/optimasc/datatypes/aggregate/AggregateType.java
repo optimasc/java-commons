@@ -38,15 +38,15 @@ public abstract class AggregateType extends Datatype implements PackedFacet
    * 
    * @param typ
    */
-  public AggregateType(int typ)
+  public AggregateType()
   {
-    super(typ, false);
+    super(false);
     this.members = new ArrayList();
   }
 
-  public AggregateType(int typ, MemberObject[] members)
+  public AggregateType(MemberObject[] members)
   {
-    super(typ, false);
+    super(false);
     this.members = Arrays.asList(members);
   }
 

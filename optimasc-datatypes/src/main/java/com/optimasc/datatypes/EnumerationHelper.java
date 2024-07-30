@@ -1,55 +1,46 @@
 package com.optimasc.datatypes;
 
+import java.util.Arrays;
+
 public class EnumerationHelper implements EnumerationFacet
 {
-  protected Datatype datatype;
-  protected Object[] enumeration;
+  protected Class datatypeClass;
+  protected Object[] sortedEnumeration;
   
-  public EnumerationHelper(Datatype parent)
+  public EnumerationHelper(Class clz)
   {
     super();
-    datatype = parent;
+    datatypeClass = clz;
   }
   
   public Object[] getChoices()
   {
-    return enumeration;
+    return sortedEnumeration;
   }
 
-  public void setChoices(Object[] choices)
+  public void setChoices(Object choices[])
   {
-    Class clz = datatype.getClassType();
     for (int i = 0; i < choices.length; i++)
     {
-      if (clz.isInstance(choices[i]) == false)
+      if (datatypeClass.isInstance(choices[i]) == false)
       {
-        throw new IllegalArgumentException("Enumeration elements should be of type '"+ clz.getName()+"'");
+        throw new IllegalArgumentException("Enumeration elements should be of type '"+ datatypeClass.getName()+"'");
       }
     }
-    enumeration = choices;
+    sortedEnumeration = new Object[choices.length];
+    System.arraycopy(choices, 0, sortedEnumeration, 0, choices.length);
+    Arrays.sort(sortedEnumeration);    
   }
 
   public boolean validateChoice(Object value)
   {
-    if (enumeration != null)
+    // No restriction
+    if (sortedEnumeration == null)
     {
-      if (enumeration.length > 0)
-      {
-        int i;
-        for (i = 0; i < enumeration.length; i++)
-        {
-          Object s1 = enumeration[i];
-          if (s1 == null)
-            throw new IllegalArgumentException(
-                "Invalid object type - enumeration should contain non null objects");
-          if (s1.equals(value))
-          {
-            return true;
-          }
-        }
-      }
+      return true;
     }
+    if (Arrays.binarySearch(sortedEnumeration, value)<0)
+       return false;
     return true;
   }
-
 }

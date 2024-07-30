@@ -109,7 +109,7 @@ public class FormalParameterType extends Datatype implements UserConfiguration
 
   public FormalParameterType(TypeReference typ, ParameterType paramType)
   {
-    super(Datatype.OTHER,false);
+    super(false);
     this.type = typ;
     this.parameterType = paramType;
     userData = new HashMap();

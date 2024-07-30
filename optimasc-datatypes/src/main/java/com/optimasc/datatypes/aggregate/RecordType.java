@@ -16,7 +16,7 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  *  This is equivalent to the following datatypes:
  *  <ul>
  *   <li>SEQUENCE ASN.1 datatype</li>
- *   <li>sequence/record ISO/IEC 11404 General purpose datatype</li>
+ *   <li><code>record</code> ISO/IEC 11404 General purpose datatype</li>
  *  </ul>
  * 
  * @author Carl Eric Codere
@@ -25,12 +25,12 @@ public class RecordType extends AggregateType
 {
     public RecordType()
     {
-        super(Datatype.STRUCT);
+        super();
     }
     
     public RecordType(MemberObject[] fields)
     {
-        super(Datatype.STRUCT,fields);
+        super(fields);
     }
     
     
@@ -38,12 +38,6 @@ public class RecordType extends AggregateType
     {
         return null;
     }
-
-    public void validate(Object integerValue) throws IllegalArgumentException,
-            DatatypeException
-    {
-    }
-
 
     public Object accept(TypeVisitor v, Object arg)
     {

@@ -1,6 +1,5 @@
 package com.optimasc.utils;
 
-import com.optimasc.date.JulianDateTime;
 import com.optimasc.text.StringUtilities;
 
 import java.util.Calendar;
@@ -308,16 +307,6 @@ public class BaseTypeUtilities
       }
       return null;
     }
-    if (obj instanceof Double)
-    {
-      Double value = (Double) obj;
-      return JulianDateTime.decode(value.doubleValue());
-    }
-    if (obj instanceof Float)
-    {
-      Float value = (Float) obj;
-      return JulianDateTime.decode(value.floatValue());
-    }
     return null;
   }
 
@@ -373,11 +362,6 @@ public class BaseTypeUtilities
     {
       Float value = (Float) obj;
       return new Double(value.floatValue());
-    }
-    if (obj instanceof Calendar)
-    {
-      Calendar value = (Calendar) obj;
-      return new Double(JulianDateTime.encode(value));
     }
     return null;
   }

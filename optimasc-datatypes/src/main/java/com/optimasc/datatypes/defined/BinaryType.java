@@ -1,12 +1,15 @@
 package com.optimasc.datatypes.defined;
 
+import java.util.Comparator;
+
+import omg.org.astm.type.NamedTypeReference;
+import omg.org.astm.type.TypeReference;
 import omg.org.astm.type.UnnamedTypeReference;
 
-import com.optimasc.datatypes.Datatype;
-import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.aggregate.SequenceType;
+import com.optimasc.datatypes.primitives.CharacterType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
+import com.optimasc.lang.ByteArrayComparator;
 
 /**
  * Datatype that represents binary data. It includes a minLength
@@ -29,15 +32,20 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class BinaryType extends SequenceType 
 {
-  public static final BinaryType DEFAULT_INSTANCE = new BinaryType();
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
+  protected static BinaryType defaultTypeInstance;
+  protected static TypeReference defaultTypeReference;
+  
   
   protected static final String REGEX_PATTERN = "([0-9a-fA-F][0-9a-fA-F])+";
-
+  
+  /** The arrays of choices. */
+//  protected byte[] enumeration[];
+  protected static final Comparator comparator = new ByteArrayComparator();
+  
   
   public BinaryType()
   {
-    super(Datatype.BINARY,UnsignedByteType.DEFAULT_TYPE_REFERENCE);
+    super(UnsignedByteType.getInstance(), byte[].class);
   }
   
   /**
@@ -51,45 +59,12 @@ public class BinaryType extends SequenceType
    */
   public BinaryType(int minLength, int maxLength)
   {
-    super(Datatype.BINARY,minLength,maxLength,UnsignedByteType.DEFAULT_TYPE_REFERENCE);
+    super(minLength,maxLength,UnsignedByteType.getInstance(),byte[].class);
   }
   
-
-  
-  /** {@inheritDoc}
-   * 
-   *  <p>The input to this method is expected to be a byte
-   *  array, and the return value will be the byte array after
-   *  verifying the constraints associated with this datatype
-   *  definition.</p> 
-   *  
-   * 
-   */
-  public Object toValue(Object value, TypeCheckResult conversionResult)
+  public BinaryType(byte[] choices[])
   {
-    conversionResult.reset();
-    if (byte[].class==value.getClass())
-    {
-      // If no bounds defined, simply return the value
-      if (isBounded()==false)
-        return value;
-      
-      byte bArray[] = (byte[])value;
-      if (lengthHelper.validateLength(bArray.length)==false)
-      {
-        conversionResult.error = new DatatypeException(DatatypeException.ERROR_BOUNDS_RANGE,
-            "Length of byte array must be between, " + lengthHelper.toString()
-            +", got "+bArray.length);
-        return null;
-      }
-    }
-    conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Unsupported value of class '"+value.getClass().getName()+"'.");
-    return null;
-  }
-
-  public Class getClassType()
-  {
-    return byte[].class;
+    super(choices,UnsignedByteType.getInstance(),byte[].class);
   }
 
   public Object accept(TypeVisitor v, Object arg)
@@ -113,22 +88,11 @@ public class BinaryType extends SequenceType
     {
       return true;
     }
-
-    BinaryType binType;
     if (!(obj instanceof BinaryType))
     {
       return false;
     }
-    binType = (BinaryType) obj;
-    if (this.getMinLength() != binType.getMinLength())
-    {
-      return false;
-    }
-    if (this.getMaxLength() != binType.getMaxLength())
-    {
-      return false;
-    }
-    return true;
+    return super.equals(obj);
   }
   
   public static String toString(byte[] values)
@@ -140,6 +104,46 @@ public class BinaryType extends SequenceType
         buffer.append(Character.forDigit((values[i] & 0xF), 16));
     }
     return buffer.toString();
+  }
+
+  /** {@inheritDoc} 
+   * 
+   */
+  public Object[] getChoices()
+  {
+    return  enumeration;
+  }
+
+  /** {@inheritDoc} 
+   * 
+   */
+/*  public boolean validateChoice(byte[] value)
+  {
+    if (enumeration == null)
+      return true;
+    for (int i=0; i < enumeration.length; i++)
+    {
+      if (Arrays.equals(enumeration[i], value)==true)
+      {
+        return true;
+      }
+    }
+    return false;
+  }*/
+
+/*  protected boolean validateChoice(Object value)
+  {
+    return validateChoice((byte[])value);
+  }*/
+  
+  public static TypeReference getInstance()
+  {
+    if (defaultTypeInstance == null)
+    {
+      defaultTypeInstance = new BinaryType();
+      defaultTypeReference = new NamedTypeReference("octetstring" ,defaultTypeInstance);
+    }
+    return defaultTypeReference; 
   }
 
 

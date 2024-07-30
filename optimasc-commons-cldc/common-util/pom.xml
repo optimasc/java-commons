@@ -65,11 +65,6 @@
     </dependency>
     <dependency>
       <groupId>com.optimasc.commons</groupId>
-      <artifactId>optimasc-commons-date-cldc</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>com.optimasc.commons</groupId>
       <artifactId>optimasc-commons-io-cldc</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>

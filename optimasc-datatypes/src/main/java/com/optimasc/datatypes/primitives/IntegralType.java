@@ -7,18 +7,15 @@ package com.optimasc.datatypes.primitives;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.text.ParseException;
 
+import omg.org.astm.type.NamedTypeReference;
+import omg.org.astm.type.TypeReference;
 import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.DecimalRangeHelper;
-import com.optimasc.datatypes.DecimalEnumerationFacet;
-import com.optimasc.datatypes.PrecisionFacet;
-import com.optimasc.datatypes.DecimalRangeFacet;
-import com.optimasc.datatypes.SubSet;
-import com.optimasc.datatypes.Type;
+import com.optimasc.datatypes.TypeUtilities;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
@@ -32,68 +29,65 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  * <li><code>INTEGER</code> ASN.1 datatype</li>
  * <li><code>integer</code> ISO/IEC 11404 General purpose datatype</li>
  * <li><code>integer</code> XMLSchema built-in datatype</li>
- * 
  * </ul>
  * 
- * <p>Internally, values of this type are represented as {@link BigInteger}.</p>
+ * <p>Internally, values of this type are represented as {@link BigInteger}, but
+ * when converting from decimal types, the rounding mode is 
+ * <code>BigDecimal.ROUND_DOWN</code>.</p>
  * 
  * 
  * @author Carl Eric Codère
  */
 public class IntegralType extends DecimalType
 {
-  public static final IntegralType DEFAULT_INSTANCE = new IntegralType();
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
+  private static IntegralType defaultTypeInstance;
+  private static TypeReference defaultTypeReference;
   
   protected static final String REGEX_INTEGER_PATTERN = "-?[0-9]+";
   
 
+  /** Creates an unbounded integer type. */ 
   public IntegralType()
   {
-    super(Datatype.INTEGER,false);
+    super(0);
   }
   
-  protected IntegralType(int type, int minInclusive, int maxInclusive)
+  /** Creates a bounded integer type. */ 
+  public IntegralType(int minInclusive, int maxInclusive)
   {
-    super(type,false);
+    super(0);
     rangeHelper = new DecimalRangeHelper(BigDecimal.valueOf(minInclusive),
         BigDecimal.valueOf(maxInclusive));
   }
   
-  protected IntegralType(int type, BigInteger minInclusive, BigInteger maxInclusive)
+  /** Creates a bounded integer type. */ 
+  public IntegralType(BigInteger minInclusive, BigInteger maxInclusive)
   {
-    super(type,false);
-    rangeHelper = new DecimalRangeHelper(new BigDecimal(minInclusive),
-        new BigDecimal(maxInclusive),false);
+    super(0);
+    BigDecimal minValue = null;
+    BigDecimal maxValue = null;
+    if (minInclusive != null)
+      minValue = new BigDecimal(minInclusive);
+    if (maxInclusive != null)
+      maxValue = new BigDecimal(maxInclusive);
+    rangeHelper = new DecimalRangeHelper(minValue,
+        maxValue);
+  }
+  
+  /** Creates an integer numeric type with selected values allowed only (enumeration facet). */ 
+  public IntegralType(BigDecimal[] choices)
+  {
+    super(choices);
+  }
+  
+  /** Creates an integer numeric type with selected values allowed only (enumeration facet). */ 
+  public IntegralType(long[] choices)
+  {
+    super(choices);
   }
   
   
 
-
-  /**
-   * Depending on the range of the values determine the storage size of the
-   * integer.
-   */
-  public static int getStorageSize(long minInclusive, long maxInclusive)
-  {
-    if ((maxInclusive <= Byte.MAX_VALUE) && (minInclusive >= Byte.MIN_VALUE))
-    {
-      return 1;
-    }
-    if ((maxInclusive <= Short.MAX_VALUE) && (minInclusive >= Short.MIN_VALUE))
-    {
-      return 2;
-    }
-    if ((maxInclusive <= Integer.MAX_VALUE) && (minInclusive >= Integer.MIN_VALUE))
-    {
-      return 4;
-    }
-    if ((maxInclusive <= Long.MAX_VALUE) && (minInclusive >= Long.MIN_VALUE))
-    {
-      return 8;
-    }
-    return 0;
-  }
 
   public Class getClassType()
   {
@@ -103,29 +97,6 @@ public class IntegralType extends DecimalType
   public Object accept(TypeVisitor v, Object arg)
   {
     return v.visit(this, arg);
-  }
-
-  /**
-   * Compares this IntegerType to the specified object. The result is true if
-   * and only if the argument is not null and is a IntegerType object that has
-   * the same constraints (minInclusive, maxIncluseive) as this object
-   * 
-   */
-  public boolean equals(Object obj)
-  {
-    /* null always not equal. */
-    if (obj == null)
-      return false;
-    /* Same reference returns true. */
-    if (obj == this)
-    {
-      return true;
-    }
-    if (!(obj instanceof IntegralType))
-    {
-      return false;
-    }
-    return super.equals(obj);
   }
 
   /** Returns the scale of this number, this
@@ -148,7 +119,7 @@ public class IntegralType extends DecimalType
    *    value does not have a scale of zero.
    * 
    */
-  public void setChoices(BigDecimal[] choices)
+  protected void setChoices(BigDecimal[] choices)
   {
     for (int i=0; i < choices.length; i++)
     {
@@ -161,11 +132,16 @@ public class IntegralType extends DecimalType
   }
   
   
-  public Object toValue(Number ordinalValue, TypeCheckResult conversionResult)
+  protected Object toValueNumber(Number ordinalValue, TypeCheckResult conversionResult)
   {
-    BigDecimal returnValue = (BigDecimal) super.toValue(ordinalValue, conversionResult);
+    BigDecimal returnValue = (BigDecimal) super.toValueNumber(ordinalValue, conversionResult);
     if (returnValue == null)
     {
+      return null;
+    }
+    if (TypeUtilities.isExact(returnValue)==false)
+    {
+      conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_NUMERIC_OUT_OF_RANGE,"Number is outside of valide range");
       return null;
     }
     return returnValue.toBigInteger();
@@ -182,4 +158,14 @@ public class IntegralType extends DecimalType
   }  
   
 
+  public static TypeReference getInstance()
+  {
+    if (defaultTypeInstance == null)
+    {
+      defaultTypeInstance = new IntegralType();
+      defaultTypeReference = new NamedTypeReference("integer" ,defaultTypeInstance);
+    }
+    return defaultTypeReference; 
+  }
+  
 }

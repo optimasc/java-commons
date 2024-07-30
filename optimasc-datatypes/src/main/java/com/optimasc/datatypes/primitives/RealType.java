@@ -2,25 +2,18 @@ package com.optimasc.datatypes.primitives;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.text.ParseException;
 
+import omg.org.astm.type.NamedTypeReference;
+import omg.org.astm.type.TypeReference;
 import omg.org.astm.type.UnnamedTypeReference;
 
-import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.DecimalEnumerationFacet;
-import com.optimasc.datatypes.DecimalEnumerationHelper;
-import com.optimasc.datatypes.DecimalRangeHelper;
-import com.optimasc.datatypes.OrderedFacet;
-import com.optimasc.datatypes.PrecisionFacet;
-import com.optimasc.datatypes.DecimalRangeFacet;
-import com.optimasc.datatypes.SubSet;
-import com.optimasc.datatypes.Type;
+import com.optimasc.datatypes.TypeUtilities;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
-/**  Datatype that represents an approximation of a real number represented as  floating point value. 
- *   For performance reasons, derived real types should be used instead of this one.
+/**  Datatype that represents an approximation of a real number represented as floating point value. 
+ *   The value is specified as a scaled values with a base 2 radix, hence 2^-(scale).
  *  
  *  
  *  This is equivalent to the following datatypes:
@@ -31,60 +24,44 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  *   
  *  </ul>
  *  
- * <p>Internally, values of this type are represented as {@link BigDecimal}.</p>
+ * <p>Internally, values of this type are represented as {@link Double}.</p>
  *  
  *
  * @author Carl Eric Codere
  */
 public class RealType extends AbstractNumberType
 {
-  public static final RealType DEFAULT_INSTANCE = new RealType();
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
+  private static RealType defaultTypeInstance;
+  private static TypeReference defaultTypeReference;
   
     /** Creates a real type value with the specified 
      *  precision and scale.
      * 
-     * @param precision The total precision of the
-     *  value in digits.
      * @param scale The number of decimal digits.
      */
-    public RealType(int precision, int scale)
+    public RealType(int scale)
     {
-        super(Datatype.REAL,true);
+        super(scale);
     }
     
-    protected RealType(int precision, int scale, BigDecimal minValue, BigDecimal maxValue)
+    protected RealType(int scale, double minValue, double maxValue)
     {
-        super(Datatype.REAL,minValue,maxValue,true);
+        super(scale);
     }
     
     
-    /** Creates a real type value with no limit on precision
-     *  and value.
+    /** Creates a real type value which is equal to 
+     *  a double precision numeric value.
      * 
      */
     public RealType()
     {
-        super(Datatype.REAL,true);
+        super(53);
     }
     
-    /** Depending on the range of the values determine the storage size of the integer. */
-    public static int getStorageSize(double minInclusive, double maxInclusive)
-    {
-      if ((maxInclusive <= Float.MAX_VALUE) && (minInclusive >= Float.MIN_VALUE))
-      {
-          return 4;
-      }
-      if ((maxInclusive <= Double.MAX_VALUE) && (minInclusive >= Double.MIN_VALUE))
-      {
-          return 2;
-      }
-      return 0;
-    }
-
     public Class getClassType()
     {
-      return BigDecimal.class;
+      return Double.class;
     }
 
     public Object accept(TypeVisitor v, Object arg)
@@ -96,7 +73,7 @@ public class RealType extends AbstractNumberType
     /** Compares this RealType to the specified object. 
      *  The result is true if and only if the argument is not null 
      *  and is a RealType object that has the same constraints 
-     *  (minInclusive, maxIncluseive,scale,precision) as this object
+     *  (minInclusive, maxInclusive,scale) as this object
      * 
      */
     public boolean equals(Object obj)
@@ -116,6 +93,36 @@ public class RealType extends AbstractNumberType
         }
         realType = (RealType) obj;
         return super.equals(obj);
+    }
+    
+    protected Object toValueNumber(Number ordinalValue, TypeCheckResult conversionResult)
+    {
+      BigDecimal returnValue = (BigDecimal) super.toValueNumber(ordinalValue, conversionResult);
+      if (returnValue == null)
+      {
+        return null;
+      }
+      return new Double(returnValue.doubleValue());
+    }
+
+    public Object toValue(long ordinalValue, TypeCheckResult conversionResult)
+    {
+      Object result = super.toValue(ordinalValue, conversionResult);
+      if (result == null)
+      {
+        return null;
+      }
+      return new Double(ordinalValue);
+    }  
+    
+    public static TypeReference getInstance()
+    {
+      if (defaultTypeInstance == null)
+      {
+        defaultTypeInstance = new RealType();
+        defaultTypeReference = new NamedTypeReference("real" ,defaultTypeInstance);
+      }
+      return defaultTypeReference; 
     }
 
 }

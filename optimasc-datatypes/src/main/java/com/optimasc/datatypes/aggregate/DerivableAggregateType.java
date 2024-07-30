@@ -29,20 +29,20 @@ public abstract class DerivableAggregateType extends AggregateType
   
   public DerivableAggregateType(NamedTypeReference parent)
   {
-    super(Datatype.OTHER);
+    super();
     addDerivesFrom(parent);
   }
   
   public DerivableAggregateType(NamedTypeReference parent, MemberObject[] members)
   {
-    super(Datatype.OTHER,members);
+    super(members);
     addDerivesFrom(parent);
   }
   
   
   public DerivableAggregateType()
   {
-    super(Datatype.OTHER);
+    super();
     this.derivesFrom = new ArrayList();
   }
   

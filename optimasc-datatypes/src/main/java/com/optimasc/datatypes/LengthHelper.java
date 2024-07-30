@@ -13,17 +13,31 @@ public class LengthHelper implements LengthFacet
   {
     super();
     minLength = Integer.MIN_VALUE;
-    maxLength = Integer.MAX_VALUE;
+    maxLength = Integer.MIN_VALUE;
   }
+  
+  /** Constructs a length helper instance 
+   *  with no length bounds.
+   */
+  public LengthHelper(int minLength)
+  {
+    super();
+    if (minLength < 0)
+    {
+      throw new IllegalArgumentException("Length constraint must be a non-negative number but it was "+Integer.toString(minLength));
+    }
+    this.minLength = minLength;
+    maxLength = Integer.MIN_VALUE;
+  }  
 
   public void setLength(int minValue, int maxValue)
   {
-    if ((minValue < 0) && (minValue != Integer.MIN_VALUE))
+    if (minValue < 0)
     {
       throw new IllegalArgumentException("Length constraint must be a non-negative number but it was "+Integer.toString(minValue));
     }
     minLength = minValue;
-    if (maxValue < minValue)
+    if ((maxValue != Integer.MIN_VALUE) && (maxValue < minValue))
     {
       throw new IllegalArgumentException("Length constraint 'maxLength' is smaller in value then 'minLength'");
     }
@@ -40,18 +54,23 @@ public class LengthHelper implements LengthFacet
     return maxLength;
   }
 
-  public boolean isRestriction(Type value)
+  public boolean isRestrictionOf(LengthFacet value)
   {
     if (value instanceof LengthFacet==false)
     {
       throw new IllegalArgumentException("Types are not compatible");
     }
-    LengthFacet otherLength = (LengthFacet) value;
-    if (minLength > otherLength.getMinLength())
-    {
-      return true;
-    }
-    if (maxLength < otherLength.getMaxLength())
+    
+    int thisMinLength = (minLength < 0)? 0: minLength;
+    int otherMinLength = (value.getMinLength() < 0)? 0: value.getMinLength();
+    
+    int thisMaxLength = (maxLength < 0)? Integer.MAX_VALUE: maxLength;
+    int otherMaxLength = (value.getMaxLength() < 0)? Integer.MAX_VALUE: value.getMaxLength();
+    
+    int thisTotalLength = thisMaxLength - thisMinLength; 
+    int otherTotalLength = otherMaxLength - otherMinLength; 
+    
+    if (thisTotalLength < otherTotalLength)
     {
       return true;
     }
@@ -60,20 +79,16 @@ public class LengthHelper implements LengthFacet
 
   public boolean isBounded()
   {
-    return (minLength != Integer.MIN_VALUE) && (maxLength != Integer.MIN_VALUE);
+    return true;
   }
   
   public boolean validateLength(long length)
   {
-    if (isBounded()==false)
-    {
-      return true;
-    }
     if (length < minLength)
     {
       return false;
     }
-    if (length > maxLength)
+    if ((maxLength != Integer.MIN_VALUE) && (length > maxLength))
     {
       return false;
     }

@@ -3,8 +3,8 @@ package com.optimasc.datatypes.primitives;
 import java.io.InputStream;
 import java.util.Hashtable;
 
+import com.optimasc.datatypes.defined.IntType;
 import com.optimasc.datatypes.defined.StringType;
-import com.optimasc.datatypes.derived.IntType;
 import com.optimasc.datatypes.io.XMLSchemaDeserializer;
 import com.optimasc.datatypes.manager.*;
 
@@ -38,15 +38,15 @@ public class DeserializerTest extends TestCase
     IntegralType integerType = (IntegralType)o;
     IntType intType = (IntType) dataTypes.get("MyLimitedInteger");
     assertNotNull(intType);
-    assertEquals(0, intType.minInclusive);
-    assertEquals(12, intType.maxInclusive);
+    assertEquals(0, intType.getMinInclusive().intValue());
+    assertEquals(12, intType.getMaxInclusive().intValue());
 
     o = dataTypes.get("Text");
     assertNotNull(o);
     StringType stringType = (StringType)o;
     assertEquals(0, stringType.getMinLength());
     assertEquals(1024, stringType.getMaxLength());
-    assertEquals(null, stringType.getPattern());
+    assertEquals(null, stringType.getPatterns());
     assertEquals(null, stringType.getChoices());
 
     o = dataTypes.get("shortNormalizedString");
@@ -54,13 +54,13 @@ public class DeserializerTest extends TestCase
     stringType = (StringType)o;
     assertEquals(0, stringType.getMinLength());
     assertEquals(250, stringType.getMaxLength());
-    assertEquals(null, stringType.getPattern());
+    assertEquals(null, stringType.getPatterns());
     assertEquals(null, stringType.getChoices());
 
     o = dataTypes.get("DCMITYPE");
     assertNotNull(o);
     stringType = (StringType)o;
-    assertEquals(null, stringType.getPattern());
+    assertEquals(null, stringType.getPatterns());
     Object[] choices = stringType.getChoices();
     assertEquals(12, choices.length);
 
@@ -68,13 +68,13 @@ public class DeserializerTest extends TestCase
     o =  dataTypes.get("ratingLevel");
     assertNotNull(o);
     integerType = (IntegralType)o;
-    assertEquals(0, integerType.minInclusive);
-    assertEquals(100, integerType.maxInclusive);
+    assertEquals(0, integerType.getMinInclusive().intValue());
+    assertEquals(100, integerType.getMaxInclusive().intValue());
 
     o = dataTypes.get("LicenseType");
     assertNotNull(o);
     stringType = (StringType)o;
-    assertEquals(null, stringType.getPattern());
+    assertEquals(null, stringType.getPatterns());
     choices = stringType.getChoices();
     assertEquals(7, choices.length);
 
@@ -86,8 +86,8 @@ public class DeserializerTest extends TestCase
     o = dataTypes.get("LanguageTag");
     assertNotNull(o);
     stringType = (StringType)o;
-    assertEquals(0, integerType.minInclusive);
-    assertEquals(LANGUAGE_TAG_PATTERN, stringType.getPattern());
+    assertEquals(0, integerType.getMinInclusive().intValue());
+    assertEquals(LANGUAGE_TAG_PATTERN, stringType.getPatterns());
     choices = stringType.getChoices();
     assertEquals(8, stringType.getChoices().length);
   }

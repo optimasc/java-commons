@@ -5,21 +5,14 @@
 
 package com.optimasc.datatypes.generated;
 
-import java.text.ParseException;
-
 import omg.org.astm.type.TypeReference;
 import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Datatype;
-import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
-import com.optimasc.datatypes.defined.BinaryType;
-import com.optimasc.datatypes.primitives.IntegralType;
 import com.optimasc.datatypes.primitives.VoidType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
-import com.optimasc.lang.GregorianDatetimeCalendar;
 
 /** Datatype that represents a means to reference another datatype
  *  located in memory. This implementation assumes that the pointer
@@ -48,13 +41,13 @@ public class PointerType extends Datatype implements ConstructedSimple
     */
    public PointerType()
    {
-        super(Datatype.REF,true);
-        setBaseTypeReference(VoidType.DEFAULT_TYPE_REFERENCE);
+        super(true);
+        setBaseTypeReference(VoidType.getInstance());
    }
    
    public PointerType(TypeReference pointerTo)
    {
-        super(Datatype.REF,true);
+        super(true);
         setBaseTypeReference(pointerTo);
    }
 
@@ -96,11 +89,4 @@ public class PointerType extends Datatype implements ConstructedSimple
       return super.equals(obj);
     }
 
-    public Object toValue(Object value, TypeCheckResult conversionResult)
-    {
-      return null;
-    }
-
-    
-    
 }

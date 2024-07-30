@@ -3,14 +3,18 @@ package com.optimasc.datatypes.primitives;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import omg.org.astm.type.NamedTypeReference;
+import omg.org.astm.type.TypeReference;
+
+import com.optimasc.datatypes.BoundedFacet;
 import com.optimasc.datatypes.CharacterSetEncodingFacet;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.OrderedFacet;
-import com.optimasc.datatypes.SubSet;
 import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.TypeUtilities;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.lang.CharacterSet;
 
 /** Abstract datatype that represents a character. 
@@ -21,13 +25,16 @@ import com.optimasc.lang.CharacterSet;
  *  </ul>
  * 
  *  <p>Contrary to ISO/IEC 11404, this type is considered ordered and a character
- *  set specification can be associated with it. </p>
+ *  set specification can be associated with it and is bounded.</p>
  *  
- * <p>Internally, values of this type are represented as {@link Character} objects.</p>
+ * <p>Internally, values of this type are represented as {@link Integer} objects.</p>
  *  
  */
-public abstract class CharacterType extends PrimitiveType implements CharacterSetEncodingFacet,OrderedFacet
+public class CharacterType extends PrimitiveType implements CharacterSetEncodingFacet,OrderedFacet,BoundedFacet
 {
+  private static CharacterType defaultTypeInstance;
+  private static TypeReference defaultTypeReference;
+  
   
   /** Character Set Repertoire list  */
   protected CharacterSet characterSet;
@@ -35,22 +42,34 @@ public abstract class CharacterType extends PrimitiveType implements CharacterSe
   protected static final BigDecimal ZERO = BigDecimal.valueOf(0);
   protected static final BigDecimal UCS4_MAX = BigDecimal.valueOf(0x10FFFFL);
   
-  protected CharacterType(CharacterSet characterSet)
+
+  /** Creates a default instance of the specified
+   *  character type with the character set that contains 
+   *  the Unicode Basic Multilanguage Plane (BMP).
+   * 
+   */
+  public CharacterType()
   {
-    super(Datatype.CHAR,true);
+    super(true);
+    this.characterSet = CharacterSet.BMP;
+  }  
+  
+  public CharacterType(CharacterSet characterSet)
+  {
+    super(true);
     this.characterSet = characterSet;
   }
   
-  protected CharacterType(CharacterSet characterSet, boolean ordered)
+  public CharacterType(CharacterSet characterSet, boolean ordered)
   {
-    super(Datatype.CHAR,ordered);
+    super(ordered);
     this.characterSet = characterSet;
   }
   
   
   public Class getClassType()
   {
-    return Character.class;
+    return Integer.class;
   }
 
   /** Verifies if this character set names is
@@ -70,16 +89,16 @@ public abstract class CharacterType extends PrimitiveType implements CharacterSe
    */
   public CharacterSet getCommonCharacterSet(CharacterSet charSet)
   {
-    if (charSet.equals(charSet))
+    if (characterSet.equals(charSet))
     {
       return charSet;
     }
-    if (characterSet.isSubSet(charSet))
+    if (characterSet.isRestrictionOf(charSet))
     {
-      return charSet;
+      return characterSet;
     }
     
-    if (charSet.isSubSet(characterSet))
+    if (charSet.isRestrictionOf(characterSet))
     {
       return charSet;
     }
@@ -124,9 +143,8 @@ public abstract class CharacterType extends PrimitiveType implements CharacterSe
    *  <p></p>
    * 
    */
-  public Object toValue(Number ordinalValue, TypeCheckResult conversionResult)
+  protected Object toValueNumber(Number ordinalValue, TypeCheckResult conversionResult)
   {
-    conversionResult.reset();
     long intValue;
     
     // Throw and exception when value is not ordered.
@@ -141,7 +159,7 @@ public abstract class CharacterType extends PrimitiveType implements CharacterSe
       BigDecimal bigDecimal = (BigDecimal)ordinalValue;
       if (TypeUtilities.isLongValueExact(bigDecimal)==false)
       {
-        conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_CHARACTER_NOT_REPERTOIRE,"Character is not a natural number or is beyong that can be represented.");
+        conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Character is not a natural number.");
         return null;
       }
       intValue = bigDecimal.longValue();
@@ -165,19 +183,20 @@ public abstract class CharacterType extends PrimitiveType implements CharacterSe
       conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_CHARACTER_NOT_REPERTOIRE,"Character is beyond the range of the Unicode character repertoire.");
       return null;
     }
-    return new Character((char)intValue);
+    return new Integer((int)intValue);
   }
   
   
 
   public Object toValue(long ordinalValue, TypeCheckResult conversionResult)
   {
+    conversionResult.reset();
     if (characterSet.isValid(ordinalValue)==false)
     {
       conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_CHARACTER_NOT_REPERTOIRE,"Character is beyond the range of the Unicode character repertoire.");
       return null;
     }
-    return new Character((char)ordinalValue);
+    return new Integer((int)ordinalValue);
   }
 
   /** {@inheritDoc}
@@ -189,41 +208,77 @@ public abstract class CharacterType extends PrimitiveType implements CharacterSe
    */
   public Object toValue(Object value, TypeCheckResult conversionResult)
   {
+    conversionResult.reset();
     if (Character.class.isInstance(value))
     {
-      conversionResult.reset();
-      return value;
+      long v = ((Character)value).charValue();
+      return toValue(v,conversionResult);
     }
     if (Number.class.isInstance(value))
     {
-      return toValue((Number)value,conversionResult);
+      return toValueNumber((Number)value,conversionResult);
     }
     conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Unsupported value of class '"+value.getClass().getName()+"'.");
     return null;
   }
-
-  public CharacterSet getRepertoireList()
-  {
-    return characterSet;
-  }
-  
-  
 
   public CharacterSet getCharacterSet()
   {
     return characterSet;
   }
 
-  public boolean isRestriction(Type value)
+  public boolean isRestrictionOf(Datatype value)
   {
-    if (!(value instanceof SubSet))
-      return false;
-    return ((SubSet)value).isSubset(value);
+    if ((value instanceof CharacterType)==false)
+    {
+      throw new IllegalArgumentException("Expecting parameter of type '"+value.getClass().getName()+"'.");
+    }
+    return characterSet.isRestrictionOf(((CharacterType)value).characterSet);
   }
 
   public boolean isBounded()
   {
     return true;
   }
+
+  public Object accept(TypeVisitor v, Object arg)
+  {
+    return v.visit(this, arg);
+  }
+
+  public BigDecimal getMinInclusive()
+  {
+    return BigDecimal.valueOf(characterSet.getMinInclusive());
+  }
+
+  public BigDecimal getMaxInclusive()
+  {
+    return BigDecimal.valueOf(characterSet.getMaxInclusive());
+  }
+
+  public boolean validateRange(long value)
+  {
+    if (ordered==false)
+      return false;
+    return characterSet.isValid(value);
+  }
+
+  public boolean validateRange(BigDecimal value)
+  {
+    if (ordered==false)
+      return false;
+    return characterSet.isValid(value.longValue());
+  }
+  
+  public static TypeReference getInstance()
+  {
+    if (defaultTypeInstance == null)
+    {
+      defaultTypeInstance = new CharacterType();
+      defaultTypeReference = new NamedTypeReference("character" ,defaultTypeInstance);
+    }
+    return defaultTypeReference; 
+  }
+
 
 }

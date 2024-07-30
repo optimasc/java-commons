@@ -35,7 +35,7 @@ public class DatatypeException extends Exception
   public static final String ERROR_DATA_DIVIDE_ZERO = "22012";
   /** SQL-2003: Numeric: Numeric value is out of range */
   public static final String ERROR_DATA_NUMERIC_OUT_OF_RANGE = "22003";
-  /** SQL-2003: General: Types are not compatible */
+  /** SQL-2003: General: Types are not compatible. */
   public static final String ERROR_DATA_TYPE_MISMATCH = "2200G";
   /** SQL-2003: Duration/Interval: Duration is outside supported range.
    *  Contrary to the SQL-2003 standard which can also raise this issue
@@ -46,9 +46,11 @@ public class DatatypeException extends Exception
   
 
   
-  // All others are proprietary
+  // All others are proprietary and based on the last 2 digits of Delphi XE
+  // Error codes
+  
+  
   public static final String ERROR_OPERATOR_NOT_APPLICABLE_TO_OPERAND = "22515";
-  public static final String ERROR_INCOMPATIBLE_TYPES = "22508";
   public static final String ERROR_BOUNDS_RANGE = "22511";
   public static final String ERROR_CONST_EXPRESSION_EXPECTED = "22526";
   public static final String ERROR_INVAID_TYPECAST = "22589";
@@ -60,43 +62,6 @@ public class DatatypeException extends Exception
   public static final String ERROR_EXPRESSION_MUST_BE_BOOLEAN = "22512";
   public static final String ERROR_EXPRESSION_MUST_BE_INTEGER = "22513";
   
-  
-  /** Code is set when value does not match data type
-   *  specification. This is the catch all generic error.
-   */
-  public static final int ERROR_ILLEGAL_VALUE  = 0x22000;
-  
-  /** Code is set when character is not allowed in this
-   *  cahracter set.
-   */
-  public static final int ERROR_ILLEGAL_CHARACTER  = 0x22021;
-  
-  /** Code is set when the numeric value is out of range.
-   */
-  public static final int ERROR_NUMERIC_OUT_OF_RANGE  = 0x22003;
-  /** Code is set when the string is not of correct length.
-   */
-  public static final int ERROR_STRING_ILLEGAL_LENGTH  = 0x22026;
-  /** Code is set when the string will be truncated because
-   *  its length is bigger than allowed length.
-   */
-  public static final int ERROR_STRING_TRUNCATION  = 0x22001;
-  
-  /** Code is set when a datetime is not within range.
-   */
-  public static final int ERROR_ILLEGAL_DATETIME  = 0x22007;
-  
-  
-  
-  /** Exception is thrown when adding a value or a symbol that
-   *  is already present and duplicates are not allowed.
-   */
-  public static final int DUPLICATES_NOT_ALLOWED  = 1;
-  
-  private static final String value2str[]  = 
-  {
-    "Illegal value for this datatype."
-  };
   
   public DatatypeException(String code, String s)
   {

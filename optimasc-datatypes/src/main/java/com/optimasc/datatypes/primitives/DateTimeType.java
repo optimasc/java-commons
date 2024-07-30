@@ -1,20 +1,25 @@
 package com.optimasc.datatypes.primitives;
 
-import java.util.Arrays;
+import java.math.BigDecimal;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
-import com.optimasc.datatypes.AccessKind;
+import omg.org.astm.type.NamedTypeReference;
+import omg.org.astm.type.TypeReference;
+import omg.org.astm.type.UnnamedTypeReference;
+
+import com.optimasc.datatypes.BoundedFacet;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.OrderedFacet;
-import com.optimasc.datatypes.TimezoneFacet;
+import com.optimasc.datatypes.DateTimeEnumerationFacet;
+import com.optimasc.datatypes.DateTimeEnumerationHelper;
+import com.optimasc.datatypes.DecimalRangeFacet;
+import com.optimasc.datatypes.TimeFacet;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.visitor.TypeVisitor;
-import com.optimasc.date.DateConverter;
-import com.optimasc.date.DateConverter.DateTime;
+import com.optimasc.date.DateTime;
+import com.optimasc.date.DateTimeComparator;
 import com.optimasc.lang.GregorianDatetimeCalendar;
 
 /**
@@ -41,8 +46,13 @@ import com.optimasc.lang.GregorianDatetimeCalendar;
  * 
  * @author Carl Eric Codère
  */
-public class DateTimeType extends PrimitiveType implements OrderedFacet, TimezoneFacet
+public class DateTimeType extends PrimitiveType implements BoundedFacet, TimeFacet, DateTimeEnumerationFacet
 {
+ 
+  private static DateTimeType defaultTypeInstance;
+  private static TypeReference defaultTypeReference;
+  
+  
   protected static final String REGEX_PATTERN = "([0-9][0-9][0-9][0-9])(?:(?:-(0[1-9]|1[0-2])(?:-([12]\\d|0[1-9]|3[01]))?)?(?:T(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(?:[\\.,](\\d+))?([zZ]|([\\+-])([01]\\d|2[0-3]):?([0-5]\\d)?)?)?)";
   protected static final String PATTERN_YEAR = "([0-9][0-9][0-9][0-9])";
   protected static final String PATTERN_MONTH = "(0[1-9]|1[0-2])";
@@ -62,54 +72,135 @@ public class DateTimeType extends PrimitiveType implements OrderedFacet, Timezon
   // +14 hours converted to milliseconds.
   protected static final int TIMEZONE_OFFSET_MAX = +50400000;
 
-  /** Resolution is up to the year level. */
-  public static final int RESOLUTION_YEAR = Calendar.YEAR;
-  /** Resolution is up to the year-month level. */
-  public static final int RESOLUTION_MONTH = Calendar.MONTH;
-  /** Resolution is up to the year-month-day level. */
-  public static final int RESOLUTION_DAY = Calendar.DAY_OF_MONTH;
-  /** Resolution is up to the year-month-day-hour level. */
-  public static final int RESOLUTION_HOUR = Calendar.HOUR_OF_DAY;
-  /** Resolution is up to the year-month-day-hour-minute level. */
-  public static final int RESOLUTION_MINUTE = Calendar.MINUTE;
-  /** Resolution is up to the year-month-day-hour-minute-second level. */
-  public static final int RESOLUTION_SECOND = Calendar.SECOND;
-  /** Resolution is up to the year-month-day-hour-minute-second-ms level. */
-  public static final int RESOLUTION_MILLISECOND = Calendar.MILLISECOND;
+  /** The accuracy of this date/time */
+  protected int accuracy;
+  /** Is this a local time or is this a date-time with a timezone */
+  protected boolean localTime;
+  protected DateTimeEnumerationHelper enumHelper;
+  protected Calendar minInclusive;
+  protected Calendar maxInclusive;
+  protected DateTimeComparator comparator;
 
-  /** Resolution is undefined */
-  public static final int RESOLUTION_UNDEFINED = -1;
-  /** The resolution of this date/time */
-  protected int resolution;
-  /** Does the time part contain timezone information */
-  protected boolean hasTimezone;
-
-  protected DateTimeType(int type)
-  {
-    super(type, true);
-  }
 
   /**
-   * Creates a standard date time type with an unknown resolution
-   * and support for timezone information.
+   * Creates a standard date time type with an accuracy
+   * to the second using local time and unlimited
+   * encoded range.
+   * 
+   *  <p>This is equivalent to the <code>DATE-TIME</code>
+   *  ASN.1 datatype (ITU-T X.680 later editions).</p>
    * 
    */
   public DateTimeType()
   {
-    super(Datatype.TIMESTAMP, true);
-    setResolution(RESOLUTION_UNDEFINED);
-    hasTimezone = true;
+    this(DateTime.TimeAccuracy.SECOND, true,null);
+  }
+  
+  /** Creates a date time type with the specified 
+   *  accuracy and unlimited encoded range.
+   * 
+   * @param accuracy [in] The accuracy of this 
+   *   date and time value.
+   * @param localTime [in] true if this is a local time,
+   *   hence with no timezone.
+   */
+  public DateTimeType(int accuracy, boolean localTime)
+  {
+    this(accuracy,localTime,null);
+  }
+  
+  /** Creates a date time type with the specified 
+   *  accuracy, restricted selecting option. The
+   *  bounds of allowed values will be equal to
+   *  the lowest selecting and option value respectively.
+   * 
+   * @param accuracy [in] The accuracy of this 
+   *   date and time value.
+   * @param localTime [in] true if this is a local time,
+   *   hence with no timezone.
+   * @param choices [in] Selection restriction, only these
+   *  allowed values shall be considered valid.  
+   */
+  public DateTimeType(int accuracy, boolean localTime, Calendar[] choices)
+  {
+    super(true);
+    validateAccuracy(accuracy);
+    this.accuracy = accuracy;
+    this.localTime = localTime;
+    this.comparator= new DateTimeComparator(accuracy,localTime);
+    this.enumHelper = new DateTimeEnumerationHelper(GregorianCalendar.class,comparator);
+    if (choices != null)
+    {
+      enumHelper.setChoices(choices);
+    }
+    Calendar sortedEnumeration[] = enumHelper.getChoices();
+    if (sortedEnumeration != null)
+    {
+      minInclusive = sortedEnumeration[0];
+      maxInclusive = sortedEnumeration[sortedEnumeration.length-1];
+    }
+  }
+  
+  /** Creates a date time type with the specified 
+   *  accuracy, and bounded range.
+   * 
+   * @param accuracy [in] The accuracy of this 
+   *   date and time value.
+   * @param localTime [in] true if this is a local time,
+   *   hence with no timezone.
+   * @param minInclusive [in] The minimum calendar value 
+   *   allowed.
+   * @param maxInclusive [in] The maximum calendar value 
+   *   allowed.
+   * @throws IllegalArgumentException if <code>minInclusive</code>
+   *   is value pointing after <code>maxInclusive</code>.  
+   */
+  public DateTimeType(int accuracy, boolean localTime, Calendar minInclusive, Calendar maxInclusive)
+  {
+    super(true);
+    validateAccuracy(accuracy);
+    this.accuracy = accuracy;
+    this.localTime = localTime;
+    this.comparator= new DateTimeComparator(accuracy,localTime);
+    this.enumHelper = new DateTimeEnumerationHelper(GregorianCalendar.class,comparator);
+    this.minInclusive = minInclusive;
+    this.maxInclusive = maxInclusive;
+    if ((minInclusive != null) && (maxInclusive != null))
+    {
+      if (comparator.compare(maxInclusive, minInclusive)==-1)
+      {
+        throw new IllegalArgumentException("'maxInclusive' points to a point in time before 'minInclusive'");
+      }
+    }
+  }
+  
+  /** Verifies the validity of the accuracy for this time type.
+   * 
+   * @param acc [in] The accuracy for this time type.
+   * @throws IllegalArgumentException Thrown if the
+   *   accuracy is not supported for this time type.
+   */
+  protected void validateAccuracy(int acc)
+  {
+    switch (acc)
+    {
+      case DateTime.TimeAccuracy.YEAR:
+      case DateTime.TimeAccuracy.DAY:
+      case DateTime.TimeAccuracy.MILLISECOND:
+      case DateTime.TimeAccuracy.SECOND:
+      case DateTime.TimeAccuracy.MINUTE:
+        break;
+      default:
+      throw new IllegalArgumentException("Unsupported accuracy for this datetime type.");
+    }
   }
   
   
-  public int getResolution()
+  
+  
+  public int getAccuracy()
   {
-    return resolution;
-  }
-
-  public void setResolution(int resolution)
-  {
-    this.resolution = resolution;
+    return accuracy;
   }
 
   public Class getClassType()
@@ -117,6 +208,15 @@ public class DateTimeType extends PrimitiveType implements OrderedFacet, Timezon
     return GregorianDatetimeCalendar.class;
   }
 
+  /** A date time specification is equal to another date time  
+   *  specification if the following conditions are met:
+   *  
+   *  <ul>
+   *   <li>The resolution of both date-time are equal</li>
+   *   <li>Both require timezone information or represent local date and time</li>
+   *  </ul>
+   *  
+   */
   public boolean equals(Object obj)
   {
     /* null always not equal. */
@@ -134,10 +234,37 @@ public class DateTimeType extends PrimitiveType implements OrderedFacet, Timezon
       return false;
     }
     datetimeType = (DateTimeType) obj;
-    if (this.getResolution() != datetimeType.getResolution())
+    if (this.getAccuracy() != datetimeType.getAccuracy())
     {
       return false;
     }
+    if (this.isLocalTime() != datetimeType.isLocalTime())
+    {
+      return false;
+    }
+    
+    if ((datetimeType.enumHelper==null) && (enumHelper!=null))
+    {
+      return false;
+    }
+    
+    if ((datetimeType.enumHelper!=null) && (enumHelper==null))
+    {
+      return false;
+    }
+    
+    // No enumeration constraint for both, then its true
+    if ((datetimeType.enumHelper==null) && (enumHelper==null))
+    {
+      return true;
+    }
+    
+    
+    if (datetimeType.enumHelper.equals(enumHelper)==false)
+    {
+      return false;
+    }
+    
     return true;
   }
 
@@ -163,104 +290,240 @@ public class DateTimeType extends PrimitiveType implements OrderedFacet, Timezon
   public Object toValue(Object value, TypeCheckResult conversionResult)
   {
     conversionResult.reset();
-    if (value instanceof DateConverter.DateTime)
+    
+    // pass through to next step
+    if (value instanceof java.util.Date)
     {
-      // If the time component is required, and its not present,
-      // we throw an error.
-      if (resolution >= RESOLUTION_HOUR)
+      java.util.Date d = (Date) value;
+      Calendar cal = new GregorianDatetimeCalendar();
+      if (localTime==false)
       {
-         DateTime dateTime = (DateTime) value;
-         !!
-         if (resolution >= RESOLUTION_YEAR)
-         
+        cal.setTimeZone(DateTime.ZULU);
+      }
+      // The value from date is always in UTC
+      cal.setTimeInMillis(d.getTime());
+      value = cal;
+    }
+    
+    if (value instanceof DateTime)
+    {
+      DateTime dt = (DateTime) value;
+      Calendar cal = dt.toCalendar();
+      if (localTime==false)
+      {
+        cal.setTimeZone(DateTime.ZULU);
+      }
+      value = cal;
+    }
+    
+    
+    if (value instanceof GregorianCalendar)
+    {
+      Calendar inputCalendar = (Calendar) value;
+      Calendar cal = new GregorianDatetimeCalendar();
+      if (localTime == false)
+      {
+         cal.setTimeZone(DateTime.ZULU);
+         inputCalendar = DateTime.normalize(inputCalendar);
+      }
+      // Only set the correct fields depending on the accuracy value
+      cal.set(Calendar.ERA, inputCalendar.get(Calendar.ERA));
+      cal.set(Calendar.YEAR, inputCalendar.get(Calendar.YEAR));
+      
+      if (accuracy == DateTime.TimeAccuracy.DAY)
+      {
+        cal.set(Calendar.MONTH, inputCalendar.get(Calendar.MONTH));
+        cal.set(Calendar.DAY_OF_MONTH, inputCalendar.get(Calendar.DAY_OF_MONTH));
+      }
+      if (accuracy == DateTime.TimeAccuracy.MINUTE)
+      {
+        cal.set(Calendar.MONTH, inputCalendar.get(Calendar.MONTH));
+        cal.set(Calendar.DAY_OF_MONTH, inputCalendar.get(Calendar.DAY_OF_MONTH));
+        cal.set(Calendar.HOUR_OF_DAY, inputCalendar.get(Calendar.HOUR_OF_DAY));
+        cal.set(Calendar.MINUTE, inputCalendar.get(Calendar.MINUTE));
+      }
+      if (accuracy == DateTime.TimeAccuracy.SECOND)
+      {
+        cal.set(Calendar.MONTH, inputCalendar.get(Calendar.MONTH));
+        cal.set(Calendar.DAY_OF_MONTH, inputCalendar.get(Calendar.DAY_OF_MONTH));
+        cal.set(Calendar.HOUR_OF_DAY, inputCalendar.get(Calendar.HOUR_OF_DAY));
+        cal.set(Calendar.MINUTE, inputCalendar.get(Calendar.MINUTE));
+        cal.set(Calendar.SECOND, inputCalendar.get(Calendar.SECOND));
+      }
+      if (accuracy == DateTime.TimeAccuracy.SECOND)
+      {
+        cal.set(Calendar.MONTH, inputCalendar.get(Calendar.MONTH));
+        cal.set(Calendar.DAY_OF_MONTH, inputCalendar.get(Calendar.DAY_OF_MONTH));
+        cal.set(Calendar.HOUR_OF_DAY, inputCalendar.get(Calendar.HOUR_OF_DAY));
+        cal.set(Calendar.MINUTE, inputCalendar.get(Calendar.MINUTE));
+        cal.set(Calendar.SECOND, inputCalendar.get(Calendar.SECOND));
+      }
+      if (accuracy == DateTime.TimeAccuracy.MILLISECOND)
+      {
+        cal.set(Calendar.MONTH, inputCalendar.get(Calendar.MONTH));
+        cal.set(Calendar.DAY_OF_MONTH, inputCalendar.get(Calendar.DAY_OF_MONTH));
+        cal.set(Calendar.HOUR_OF_DAY, inputCalendar.get(Calendar.HOUR_OF_DAY));
+        cal.set(Calendar.MINUTE, inputCalendar.get(Calendar.MINUTE));
+        cal.set(Calendar.SECOND, inputCalendar.get(Calendar.SECOND));
+        cal.set(Calendar.MILLISECOND, inputCalendar.get(Calendar.MILLISECOND));
+      }      
+      if (validateChoice(cal)==false)
+      {
+        conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Value is not one of the values allowed by enumeration.");
+        return null;
+      }
+      if (validateRange(cal)==false)
+      {
+        conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Value is not one of the values allowed by enumeration.");
+        return null;
+      }
+      return cal;
+    }
+    conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Unsupported value of class '"+value.getClass().getName()+"'.");
+    return null;
+  }
+  
+  public boolean isLocalTime()
+  {
+    return localTime;
+  }
+
+  /** {@inheritDoc}
+   * 
+   *  <p>Specifically, this object will be 
+   *  considered a restriction, in the following
+   *  cases:</p>
+   *  
+   *  <ul>
+   *   <li>The accuracy of this object is less than
+   *     the one passed in parameter</li>
+   *  <li>This object has some selecting choices,
+   *   and the one specified has none.</li>
+   *  <li>This object has some selecting choices,
+   *   and the number of selection choices is more 
+   *   than the one specified by parameter.</li>
+   * </ul>  
+   * 
+   */
+  public boolean isRestrictionOf(Datatype value)
+  {
+      if ((value instanceof DateTimeType)==false)
+      {
+        throw new IllegalArgumentException("Expecting parameter of type '"+value.getClass().getName()+"'.");
+      }
+      DateTimeType otherTimeType = (DateTimeType) value;
+      if (accuracy < otherTimeType.accuracy)
+      {
+        return true;
       }
       
-    }
-    if (value instanceof GregorianDatetimeCalendar)
+      Object[] choices = enumHelper.getChoices();
+      Object[] otherChoices = otherTimeType.getChoices();
+      if ((choices!=null) && (otherChoices==null))
+      {
+        return true;
+      }
+      
+      if ((choices==null) && (otherChoices!=null))
+      {
+        return false;
+      }
+      
+      
+      if ((otherChoices!=null) && (otherChoices.length < choices.length))
+      {
+        return true;
+      }
+      
+      // Other type of restriction based on range
+      
+      Calendar minOtherValue = otherTimeType.getMinInclusive();
+      Calendar maxOtherValue = otherTimeType.getMaxInclusive();
+
+      // No bounds at all - no restrictions in both ranges
+      if ((otherTimeType.isBounded()==false) && (isBounded()==false))
+      {
+        return false;
+      }
+
+      // This value has one bound, and other no bound.
+      if ((otherTimeType.isBounded()==false) && (isBounded()==true))
+      {
+        return true;
+      }
+      
+      // Bounded in this object and the one specified
+      
+      
+      
+      long rangeValue = Long.MAX_VALUE;
+      long otherRangeValue = Long.MAX_VALUE;
+      
+      if ((minInclusive != null) && (maxInclusive!=null))
+      {
+        rangeValue = maxInclusive.getTimeInMillis()-minInclusive.getTimeInMillis();
+      }
+      if ((minOtherValue != null) && (maxOtherValue!=null))
+      {
+        otherRangeValue = maxOtherValue.getTimeInMillis()-minOtherValue.getTimeInMillis();
+      }
+          
+      if (rangeValue < otherRangeValue)
+        return true;
+      
+      
+      return false;
+      
+  }
+
+  public Calendar[] getChoices()
+  {
+    return enumHelper.getChoices();
+  }
+
+  public boolean validateChoice(Calendar value)
+  {
+    return enumHelper.validateChoice(value);
+  }
+  
+  
+  public Calendar getMinInclusive()
+  {
+    return minInclusive;
+  }
+
+  public Calendar getMaxInclusive()
+  {
+    return maxInclusive;
+  }
+
+  public boolean validateRange(Calendar value)
+  {
+    if ((minInclusive != null) && (comparator.compare(value, minInclusive)==-1))
     {
-      GregorianDatetimeCalendar cal;
-      int resolution = getResolution();
-      /* Check the precision of the data. */
-      cal = (GregorianDatetimeCalendar) value;
-
-      if (resolution >= RESOLUTION_SECOND)
-      {
-        if (cal.isUserSet(Calendar.SECOND) == false)
-        {
-          conversionResult.error = new DatatypeException(
-              DatatypeException.ERROR_DATA_DATETIME_OVERFLOW, "Second field is invalid.");
-          return null;
-        }
-      }
-
-      if (resolution >= RESOLUTION_MINUTE)
-      {
-        if (cal.isUserSet(Calendar.MINUTE) == false)
-        {
-          conversionResult.error = new DatatypeException(
-              DatatypeException.ERROR_DATA_DATETIME_OVERFLOW, "Minute field is invalid.");
-          return null;
-        }
-      }
-
-      if (resolution >= RESOLUTION_HOUR)
-      {
-        if (cal.isUserSet(Calendar.HOUR_OF_DAY) == false)
-        {
-          conversionResult.error = new DatatypeException(
-              DatatypeException.ERROR_DATA_DATETIME_OVERFLOW, "Hour field is invalid.");
-          return null;
-        }
-      }
-
-      if (resolution >= RESOLUTION_DAY)
-      {
-        if (cal.isUserSet(Calendar.DAY_OF_MONTH) == false)
-        {
-          conversionResult.error = new DatatypeException(
-              DatatypeException.ERROR_DATA_DATETIME_OVERFLOW, "Day field is invalid.");
-          return null;
-        }
-      }
-
-      if (resolution >= RESOLUTION_MONTH)
-      {
-        if (cal.isUserSet(Calendar.MONTH) == false)
-        {
-          conversionResult.error = new DatatypeException(
-              DatatypeException.ERROR_DATA_DATETIME_OVERFLOW, "Month field is invalid.");
-          return null;
-        }
-      }
-
-      if (resolution >= RESOLUTION_YEAR)
-      {
-        if (cal.isUserSet(Calendar.MONTH) == false)
-        {
-          conversionResult.error = new DatatypeException(
-              DatatypeException.ERROR_DATA_DATETIME_OVERFLOW, "Year field is invalid.");
-          return null;
-        }
-      }
+      return false;
     }
-    return null;
+    if ((maxInclusive != null) &&  (comparator.compare(value,maxInclusive)==1))
+    {
+      return false;
+    }
+    return true;
   }
-
-  public Object toValue(Number ordinalValue, TypeCheckResult conversionResult)
+  
+  public boolean isBounded()
   {
-    // TODO Auto-generated method stub
-    return null;
+    return (minInclusive != null) || (maxInclusive != null);
   }
-
-  public Object toValue(long ordinalValue, TypeCheckResult conversionResult)
+  
+  
+  public static TypeReference getInstance()
   {
-    // TODO Auto-generated method stub
-    return null;
+    if (defaultTypeInstance == null)
+    {
+      defaultTypeInstance = new DateTimeType();
+      defaultTypeReference = new NamedTypeReference("time(second)" ,defaultTypeInstance);
+    }
+    return defaultTypeReference; 
   }
-
-  public boolean hasTimezone()
-  {
-    return hasTimezone;
-  }
-
+  
 }

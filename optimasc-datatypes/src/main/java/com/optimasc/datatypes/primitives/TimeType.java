@@ -1,21 +1,34 @@
 package com.optimasc.datatypes.primitives;
 
+import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import omg.org.astm.type.NamedTypeReference;
+import omg.org.astm.type.TypeReference;
 import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.DateTimeEnumerationFacet;
+import com.optimasc.datatypes.DateTimeEnumerationHelper;
+import com.optimasc.datatypes.DecimalRangeHelper;
+import com.optimasc.datatypes.EnumerationFacet;
+import com.optimasc.datatypes.EnumerationHelper;
 import com.optimasc.datatypes.OrderedFacet;
+import com.optimasc.datatypes.Restriction;
 import com.optimasc.datatypes.TimeUnitFacet;
-import com.optimasc.datatypes.TimezoneFacet;
+import com.optimasc.datatypes.TimeFacet;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
+import com.optimasc.datatypes.defined.UnsignedByteType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.date.DateConverter;
 import com.optimasc.date.DateTime;
+import com.optimasc.date.DateTimeFormat;
 import com.optimasc.date.DateTime.Time;
+import com.optimasc.date.DateTimeFormat.TimeUnit;
+import com.optimasc.date.TimeComparator;
 import com.optimasc.lang.GregorianDatetimeCalendar;
 
 /** Datatype that represents an instant of time that recurs every day. 
@@ -24,14 +37,13 @@ import com.optimasc.lang.GregorianDatetimeCalendar;
  *  
  *  This is equivalent to the following datatypes:
  *  <ul>
- *   <li><code>TIME-OF-DAY</code> ASN.1 datatype</li>
  *   <li><code>time</code> XMLSchema built-in datatype</li>
  *   <li><code>TIME</code> in SQL2003</li>
  *  </ul>
  *  
  *  <p>A time of day also has a unit base, such as seconds or 
  *  milliseconds, and it can be either be a 'local time' where the
- *  timezone is unknown. </p>
+ *  timezone is completely ignored even if set.</p>
  *  
  * <p>Internally, values of this type are represented as 
  * {@link GregorianDatetimeCalendar} objects or as an integer value
@@ -41,10 +53,11 @@ import com.optimasc.lang.GregorianDatetimeCalendar;
  * @author Carl Eric Codere
  *
  */
-public class TimeType extends Datatype implements TimeUnitFacet, TimezoneFacet, OrderedFacet
+public class TimeType extends PrimitiveType implements TimeFacet, OrderedFacet, DateTimeEnumerationFacet
 {
-  public static final Datatype DEFAULT_INSTANCE = new TimeType();
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
+  private static TimeType defaultTypeInstance;
+  private static TypeReference defaultTypeReference;
+  
   
   /* TIME : (0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])([\.,]\d+)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)? */
   protected static final String REGEX_PATTERN = "(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(?:[\\.,](\\d+))?([zZ]|([\\+-])([01]\\d|2[0-3]):?([0-5]\\d)?)?";
@@ -64,10 +77,21 @@ public class TimeType extends Datatype implements TimeUnitFacet, TimezoneFacet, 
    *  and the time is 23:59:60. It includes the 
    *  leap second value.
    */
-  public static int MAX_VALUE_SECONDS = 24*60*61;
+  public static int MAX_VALUE_SECONDS = (24*60*60)+1-1;
+  
+
+  /** Maximum value for when the resolution is minutes
+   *  and the time is 00:00:00 
+   */
+  public static int MIN_VALUE_MINUTES = 0;
+  
+  /** Maximum value for when the resolution is minutes
+   *  and the time is 23:59. 
+   */
+  public static int MAX_VALUE_MINUTES = (24*60)-1;
   
   
-  
+
   /** Minimum value for when the resolution is in milliseconds
    *  and the time is 00:00:00.0000.
    */
@@ -79,33 +103,60 @@ public class TimeType extends Datatype implements TimeUnitFacet, TimezoneFacet, 
    */
   public static int MAX_VALUE_MILLISECONDS = MAX_VALUE_SECONDS*1000;
   
+  /** The Class instance representing the value of this type. */ 
+  public static final Class TYPE = GregorianDatetimeCalendar.class;
   
+  protected int accuracy;
+  protected boolean localTime;
+  protected DateTimeEnumerationHelper enumHelper;
+  protected DecimalRangeHelper rangeHelper;
   
-  protected int timeUnit;
-  protected boolean hasTimezone;
+  protected static final DecimalRangeHelper milliRangeHelper = new DecimalRangeHelper(BigDecimal.valueOf(MIN_VALUE_MILLISECONDS),
+      BigDecimal.valueOf(MAX_VALUE_MILLISECONDS));
+  
+  protected static final DecimalRangeHelper secondRangeHelper = new DecimalRangeHelper(BigDecimal.valueOf(MIN_VALUE_SECONDS),
+      BigDecimal.valueOf(MAX_VALUE_SECONDS));
+  
+  protected static final DecimalRangeHelper minuteRangeHelper =  new DecimalRangeHelper(BigDecimal.valueOf(MIN_VALUE_MINUTES),
+      BigDecimal.valueOf(MAX_VALUE_MINUTES));
+
+  
   
 
-  /** Creates a time type with a resolution of 
-   *  a millisecond and which contains timezone
-   *  information.
+  /** Creates a time type with an accuracy of 
+   *  a second and which contains no timezone information.
+   *  
+   *  <p>This is equivalent to the <code>TIME-OF-DAY</code>
+   *  ASN.1 datatype (ITU-T X.680 later editions).</p>
+   *  
    */
   public TimeType()
   {
-    super(Datatype.TIME,true);
-    timeUnit = TimeUnitFacet.UNIT_MILLISECOND;
-    hasTimezone = true;
+    this(DateTime.TimeAccuracy.SECOND, true);
   }
   
-  public TimeType(int resolution, boolean hasTimeZone)
+  public TimeType(int accuracy, boolean localTime)
   {
-    super(Datatype.TIME,true);
-    timeUnit = resolution;
-    hasTimezone = hasTimeZone;
+    this(accuracy,localTime,null);
   }
+  
+  public TimeType(int accuracy, boolean localTime, Calendar[] choices)
+  {
+    super(true);
+    validateAccuracy(accuracy);
+    this.accuracy = accuracy;
+    this.localTime = localTime;
+    this.enumHelper = new DateTimeEnumerationHelper(GregorianCalendar.class,new TimeComparator(accuracy,localTime));
+    if (choices != null)
+    {
+      enumHelper.setChoices(choices);
+    }
+  }
+  
 
   public Class getClassType()
   {
-    return GregorianDatetimeCalendar.class;
+    return TYPE;
   }
 
     public Object accept(TypeVisitor v, Object arg)
@@ -135,14 +186,36 @@ public class TimeType extends Datatype implements TimeUnitFacet, TimezoneFacet, 
             return false;
         }
         TimeType otherObject = (TimeType) obj;
-        if (otherObject.timeUnit != timeUnit)
+        if (otherObject.accuracy != accuracy)
         {
           return false;
         }
-        if (otherObject.hasTimezone != hasTimezone)
+        if (otherObject.localTime != localTime)
         {
           return false;
         }
+        if ((otherObject.enumHelper==null) && (enumHelper!=null))
+        {
+          return false;
+        }
+        
+        if ((otherObject.enumHelper!=null) && (enumHelper==null))
+        {
+          return false;
+        }
+        
+        // No enumeration constraint for both, then its true
+        if ((otherObject.enumHelper==null) && (enumHelper==null))
+        {
+          return true;
+        }
+        
+        
+        if (otherObject.enumHelper.equals(enumHelper)==false)
+        {
+          return false;
+        }
+        
         return true;
     }
 
@@ -184,6 +257,11 @@ public class TimeType extends Datatype implements TimeUnitFacet, TimezoneFacet, 
       {
         java.util.Date d = (Date) value;
         Calendar cal = new GregorianDatetimeCalendar();
+        if (localTime==false)
+        {
+          cal.setTimeZone(DateTime.ZULU);
+        }
+        // The value from date is always in UTC
         cal.setTimeInMillis(d.getTime());
         value = cal;
       }
@@ -191,79 +269,113 @@ public class TimeType extends Datatype implements TimeUnitFacet, TimezoneFacet, 
       if (value instanceof GregorianCalendar)
       {
         Calendar inputCalendar = (Calendar) value;
-        if (hasTimezone == true)
+        Calendar cal = new GregorianDatetimeCalendar();
+        if (localTime == false)
         {
+           cal.setTimeZone(DateTime.ZULU);
            inputCalendar = DateTime.normalize(inputCalendar);
         }
-        Calendar cal = new GregorianDatetimeCalendar();
+        // Only set the correct fields depending on the accuracy value
         cal.set(Calendar.HOUR_OF_DAY, inputCalendar.get(Calendar.HOUR_OF_DAY));
         cal.set(Calendar.MINUTE, inputCalendar.get(Calendar.MINUTE));
-        cal.set(Calendar.SECOND, inputCalendar.get(Calendar.SECOND));
-        if (timeUnit == TimeUnitFacet.UNIT_MILLISECOND)
+        if (accuracy == DateTime.TimeAccuracy.SECOND)
         {
+          cal.set(Calendar.SECOND, inputCalendar.get(Calendar.SECOND));
+        }
+        if (accuracy == DateTime.TimeAccuracy.MILLISECOND)
+        {
+          cal.set(Calendar.SECOND, inputCalendar.get(Calendar.SECOND));
           cal.set(Calendar.MILLISECOND, inputCalendar.get(Calendar.MILLISECOND));
         }
-        return cal;
-      }
-      if (value instanceof Number)
-      {
-        return toValue((Number)value,conversionResult);
-      }
-      if (value instanceof Time)
-      {
-        Time t = (Time) value;
-        Calendar cal = new GregorianDatetimeCalendar();
-        
-        if ((t.localTime==true) && (hasTimezone == true))
+        if (validateChoice(cal)==false)
         {
-          !!!
-        }
-        
-        cal.set(Calendar.HOUR_OF_DAY, t.hour);
-        cal.set(Calendar.MINUTE, t.minute);
-        cal.set(Calendar.SECOND, t.second);
-        if (timeUnit == TimeUnitFacet.UNIT_MILLISECOND)
-        {
-          cal.set(Calendar.MILLISECOND, t.millisecond);
+          conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Value is not one of the values allowed by enumeration.");
+          return null;
         }
         return cal;
       }
       
+      if (value instanceof Number)
+      {
+        return toValue(((Number)value).longValue(),conversionResult);
+      }
+      
+      if (value instanceof Time)
+      {
+        Time t = (Time) value;
+        Calendar cal = new GregorianDatetimeCalendar();
+        if ((localTime==false) && (t.localTime==false))
+        {
+          cal.setTimeZone(DateTime.ZULU);
+        } else
+        if ((localTime==true) && (t.localTime==true))
+        {
+          
+        } else
+        {
+          conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"localTime for type and value are not compatible.");
+          return null;
+        }
+        
+        cal.set(Calendar.HOUR_OF_DAY, t.hour);
+        cal.set(Calendar.MINUTE, t.minute);
+        if (accuracy == DateTime.TimeAccuracy.SECOND)
+        {
+          cal.set(Calendar.SECOND, t.second);
+        }
+        if (accuracy == DateTime.TimeAccuracy.MILLISECOND)
+        {
+          cal.set(Calendar.SECOND, t.second);
+          cal.set(Calendar.MILLISECOND, t.millisecond);
+        }
+        if (validateChoice(cal)==false)
+        {
+          conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Value is not one of the values allowed by enumeration.");
+          return null;
+        }
+        return cal;
+      }
+      
+      conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Unsupported value of class '"+value.getClass().getName()+"'.");
       return null;
     }
 
-    public int getTimeUnit()
+    public int getAccuracy()
     {
-      return timeUnit;
+      return accuracy;
     }
 
-    public boolean hasTimezone()
+    public boolean isLocalTime()
     {
-      return hasTimezone;
+      return localTime;
     }
 
-    /** {@inheritDoc} 
-     * 
-     * <p>Converts the number value representing either seconds or 
-     *  milliseconds elapsed since midnight to a 
-     *  {@link com.optimasc.lang.GregorianDatetimeCalendar} object.</p>
-     *  
-     *  <p>If the value is outside the bounds allowed for the time,
-     *  it returns a <code>null</code> value. </p>
-     *  
+
+    /** Tries to convert the numeric value representing the number of units, as 
+     *  specified by this type's accuracy, of time elapsed since midnight to
+     *  a <code>GregoriandCalendar</code> representation.  
      */
-    public Object toValue(Number ordinalValue, TypeCheckResult conversionResult)
-    {
-      return toValue(ordinalValue.longValue(),conversionResult);
-    }
-
     public Object toValue(long ordinalValue, TypeCheckResult conversionResult)
     {
       conversionResult.reset();
       Time timeResult = null;
-      if (timeUnit == UNIT_SECOND)
+      if (accuracy == DateTime.TimeAccuracy.MINUTE)
       {
-        if ((ordinalValue < MIN_VALUE_SECONDS) || (ordinalValue > MAX_VALUE_SECONDS))
+        if (validateRange(ordinalValue)==false)
+        {
+          conversionResult.error = new DatatypeException(
+              DatatypeException.ERROR_DATA_DATETIME_OVERFLOW,
+              "The numeric value does not represent a valid number "
+              + "of minutes elapsed since midnight.");
+          return null;
+        }
+        // Convert the value in seconds to milliseconds, and then get the time
+        // components.
+        timeResult = DateTime.Time.toTime((int)(ordinalValue*60*1000), localTime);
+      } else
+      if (accuracy == DateTime.TimeAccuracy.SECOND)
+      {
+        if (validateRange(ordinalValue)==false)
         {
           conversionResult.error = new DatatypeException(
               DatatypeException.ERROR_DATA_DATETIME_OVERFLOW,
@@ -273,11 +385,11 @@ public class TimeType extends Datatype implements TimeUnitFacet, TimezoneFacet, 
         }
         // Convert the value in seconds to milliseconds, and then get the time
         // components.
-        timeResult = DateTime.Time.toTime((int)(ordinalValue*1000), hasTimezone==false);
-      }
-      if (timeUnit == UNIT_MILLISECOND)
+        timeResult = DateTime.Time.toTime((int)(ordinalValue*1000), localTime);
+      } else
+      if (accuracy == DateTime.TimeAccuracy.MILLISECOND)
       {
-        if ((ordinalValue < MIN_VALUE_MILLISECONDS) || (ordinalValue > MAX_VALUE_MILLISECONDS))
+        if (validateRange(ordinalValue)==false)
         {
           conversionResult.error = new DatatypeException(
               DatatypeException.ERROR_DATA_DATETIME_OVERFLOW,
@@ -285,11 +397,12 @@ public class TimeType extends Datatype implements TimeUnitFacet, TimezoneFacet, 
               + "of milliseconds elapsed since midnight.");
           return null;
         }
-        timeResult = DateTime.Time.toTime((int)ordinalValue, hasTimezone==false);
+        timeResult = DateTime.Time.toTime((int)ordinalValue, localTime);
       }
+        
       
       Calendar cal;
-      if (hasTimezone == true)
+      if (localTime == false)
       {
          cal = new GregorianDatetimeCalendar();
          cal.setTimeZone(GregorianDatetimeCalendar.ZULU);
@@ -301,10 +414,135 @@ public class TimeType extends Datatype implements TimeUnitFacet, TimezoneFacet, 
       cal.set(Calendar.HOUR_OF_DAY, timeResult.hour);
       cal.set(Calendar.MINUTE, timeResult.minute);
       cal.set(Calendar.SECOND, timeResult.second);
-      if (timeUnit == TimeUnitFacet.UNIT_MILLISECOND)
+      if (accuracy == DateTime.TimeAccuracy.MILLISECOND)
       {
         cal.set(Calendar.MILLISECOND, timeResult.millisecond);
       }
+      if (validateChoice(cal)==false)
+      {
+        conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"The value is not within the list of allowed value as defined by"
+            + "the enumration.");
+        return null;
+      }
       return cal;
-   }  
+   }
+    
+   /** Verifies the validity of the accuracy for this time type.
+    * 
+    * @param acc [in] The accuracy for this time type.
+    * @throws IllegalArgumentException Thrown if the
+    *   accuracy is not supported for this time type.
+    */
+   protected void validateAccuracy(int acc)
+   {
+     switch (acc)
+     {
+       case DateTime.TimeAccuracy.MILLISECOND:
+         rangeHelper = milliRangeHelper;
+         break;
+       case DateTime.TimeAccuracy.SECOND:
+         rangeHelper = secondRangeHelper;
+         break;
+       case DateTime.TimeAccuracy.MINUTE:
+         rangeHelper = minuteRangeHelper;
+         break;
+       default:
+       throw new IllegalArgumentException("Unsupported accuracy for this time type.");
+     }
+   }
+
+  public Calendar[] getChoices()
+  {
+    return enumHelper.getChoices();
+  }
+
+  public boolean validateChoice(Calendar value)
+  {
+    return enumHelper.validateChoice(value);
+  }
+
+  /** {@inheritDoc}
+   * 
+   *  <p>Specifically, this object will be 
+   *  considered a restriction, in the following
+   *  cases:</p>
+   *  
+   *  <ul>
+   *   <li>The accuracy of this object is less than
+   *     the one passed in parameter</li>
+   *  <li>This object has some selecting choices,
+   *   and the one specified has none.</li>
+   *  <li>This object has some selecting choices,
+   *   and the number of selection choices is more 
+   *   than the one specified by parameter.</li>
+   * </ul>  
+   * 
+   */
+  public boolean isRestrictionOf(Datatype value)
+  {
+    if ((value instanceof TimeType)==false)
+    {
+      throw new IllegalArgumentException("Expecting parameter of type '"+value.getClass().getName()+"'.");
+    }
+    TimeType otherTimeType = (TimeType) value;
+    if (accuracy < otherTimeType.accuracy)
+    {
+      return true;
+    }
+    
+    Object[] choices = enumHelper.getChoices();
+    Object[] otherChoices = otherTimeType.getChoices();
+    if ((choices!=null) && (otherChoices==null))
+    {
+      return true;
+    }
+    
+    if ((choices==null) && (otherChoices!=null))
+    {
+      return false;
+    }
+    
+    
+    if ((otherChoices!=null) && (otherChoices.length < choices.length))
+    {
+      return true;
+    }
+    return false;
+  }
+
+  public BigDecimal getMinInclusive()
+  {
+    return rangeHelper.getMinInclusive();
+  }
+
+  public BigDecimal getMaxInclusive()
+  {
+    return rangeHelper.getMaxInclusive();
+  }
+
+  public boolean validateRange(long value)
+  {
+    return rangeHelper.validateRange(value);
+  }
+
+  public boolean validateRange(BigDecimal value)
+  {
+    return rangeHelper.validateRange(value);
+  }
+
+  public boolean isBounded()
+  {
+    return true;
+  }
+  
+  public static TypeReference getInstance()
+  {
+    if (defaultTypeInstance == null)
+    {
+      defaultTypeInstance = new TimeType();
+      defaultTypeReference = new UnnamedTypeReference(defaultTypeInstance);
+    }
+    return defaultTypeReference; 
+  }
+
 }

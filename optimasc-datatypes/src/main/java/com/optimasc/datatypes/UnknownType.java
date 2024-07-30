@@ -24,7 +24,7 @@ public class UnknownType extends Datatype
   
    public UnknownType()
    {
-        super(Datatype.NULL,false);
+        super(false);
    }
 
     public Object accept(TypeVisitor v, Object arg)
@@ -57,10 +57,6 @@ public class UnknownType extends Datatype
             return false;
         }
         anonType = (UnknownType)obj;
-        if (this.name.equals(anonType.getName())==false)
-        {
-            return false;
-        }
         return true;
     }
 

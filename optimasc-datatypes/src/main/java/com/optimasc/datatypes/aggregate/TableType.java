@@ -24,12 +24,12 @@ public class TableType extends AggregateType
 
   public TableType()
   {
-    super(Datatype.OTHER);
+    super();
   }
   
-  public TableType(MemberObject[] members)
+  public TableType(MemberObject[] columns)
   {
-    super(Datatype.OTHER,members);
+    super(columns);
   }
   
 

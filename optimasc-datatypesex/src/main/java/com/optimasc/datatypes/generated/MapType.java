@@ -15,7 +15,7 @@ import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.Parseable;
 import com.optimasc.datatypes.Type;
-import com.optimasc.datatypes.derived.UCS2StringType;
+import com.optimasc.datatypes.defined.UCS2StringType;
 import com.optimasc.datatypes.utils.VisualMap;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 

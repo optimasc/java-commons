@@ -8,10 +8,13 @@ package com.optimasc.datatypes.primitives;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import omg.org.astm.type.NamedTypeReference;
+import omg.org.astm.type.TypeReference;
 import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.DecimalRangeHelper;
 import com.optimasc.datatypes.OrderedFacet;
 import com.optimasc.datatypes.TypeUtilities;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
@@ -40,12 +43,12 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
    *  where the type is <em>not</em> considered ordered.
    * 
    */
-  public static final BooleanType DEFAULT_INSTANCE = new BooleanType(false);
+  private static BooleanType defaultTypeInstance;
   /** Type reference instance which is fully compatible with XMLSchema and  ISO/IEC 11404,
    *  where the type is <em>not</em> considered ordered.
    * 
    */
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
+  private static TypeReference defaultTypeReference;
   
   /** Boolean type definition, where the boolean value is considered an 
    *  ordered value.
@@ -58,6 +61,8 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
    */
   public static final UnnamedTypeReference DEFAULT_ORDERED_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_ORDERED_INSTANCE);
   
+  protected DecimalRangeHelper rangeHelper;
+  
     /** Constructs a new boolean type definition  
      * 
      * @param ordered [in] Indicates if this datatype
@@ -65,7 +70,8 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
      */
     protected BooleanType(boolean ordered)
     {
-        super(Datatype.BOOLEAN,ordered);
+        super(ordered);
+        rangeHelper = new DecimalRangeHelper(BigDecimal.valueOf(0),BigDecimal.valueOf(1));
     }
     
     
@@ -75,20 +81,10 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
      */
     public BooleanType()
     {
-        super(Datatype.BOOLEAN,false);
+        this(false);
     }
     
     
-    /** Validates if the Boolean object is compatible with the defined datatype.
-     *
-     * @param value The object to check must be a Boolean object.
-     * @throws IllegalArgumentException Throws this exception it is an invalid Object  type.
-     */
-    public void validate(java.lang.Object value) throws IllegalArgumentException, DatatypeException
-    {
-      checkClass(value);
-    }
-
     public Class getClassType()
     {
       return Boolean.class;
@@ -106,14 +102,9 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
      */
     public boolean equals(Object obj)
     {
-      /* null always not equal. */
-      if (obj == null)
+      boolean b = super.equals(obj);
+      if (b==false)
         return false;
-      /* Same reference returns true. */
-      if (obj == this)
-      {
-        return true;
-      }
         if (!(obj instanceof BooleanType))
         {
             return false;
@@ -122,7 +113,7 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
     }
 
 
-    /** {@inheritDoc}
+    /** 
      * 
      *  <p>This specific implementation will return <code>null</code> if 
      *  the boolean type is not defined as being ordered. If the boolean
@@ -131,7 +122,7 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
      *  </p>
      * 
      */
-    public Object toValue(Number ordinalValue, TypeCheckResult conversionResult)
+    protected Object toValueNumber(Number ordinalValue, TypeCheckResult conversionResult)
     {
       conversionResult.reset();
       
@@ -205,17 +196,88 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
      */
     public Object toValue(Object value, TypeCheckResult conversionResult)
     {
+      conversionResult.reset();
       if (Boolean.class.isInstance(value))
       {
-        conversionResult.reset();
         return value;
       }
       if (Number.class.isInstance(value))
       {
-        return toValue((Number)value,conversionResult);
+        return toValueNumber((Number)value,conversionResult);
       }
       conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Unsupported value of class '"+value.getClass().getName()+"'.");
       return null;
     }
 
+
+    /** Always returns <code>false</code> */
+    public boolean isRestrictionOf(Datatype value)
+    {
+      if ((value instanceof BooleanType)==false)
+      {
+        throw new IllegalArgumentException("Expecting parameter of type '"+value.getClass().getName()+"'.");
+      }
+      return false;
+    }
+
+
+    public BigDecimal getMinInclusive()
+    {
+      if (ordered ==false)
+      {
+        return null; 
+      }
+      return rangeHelper.getMinInclusive();
+    }
+
+
+    public BigDecimal getMaxInclusive()
+    {
+      if (ordered ==false)
+      {
+        return null; 
+      }
+      return rangeHelper.getMaxInclusive();
+    }
+
+
+    public boolean validateRange(long value)
+    {
+      // Throw and exception when value is not ordered.
+      if (ordered ==false)
+      {
+        return false; 
+      }
+      return rangeHelper.validateRange(value);
+    }
+
+
+    public boolean validateRange(BigDecimal value)
+    {
+      // Throw and exception when value is not ordered.
+      if (ordered ==false)
+      {
+        return false; 
+      }
+      return rangeHelper.validateRange(value);
+    }
+
+
+    public boolean isBounded()
+    {
+      if (ordered ==false)
+        return false;
+      return true;
+    }
+    
+    public static TypeReference getInstance()
+    {
+      if (defaultTypeInstance == null)
+      {
+        defaultTypeInstance = new BooleanType(false);
+        defaultTypeReference = new NamedTypeReference("boolean" ,defaultTypeInstance);
+      }
+      return defaultTypeReference; 
+    }
+    
 }

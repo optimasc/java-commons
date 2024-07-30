@@ -34,13 +34,13 @@ public class ReferenceType extends Datatype implements ConstructedSimple
    */
   public ReferenceType()
   {
-       super(Datatype.REF,false);
-       setBaseTypeReference(VoidType.DEFAULT_TYPE_REFERENCE);
+       super(false);
+       setBaseTypeReference(VoidType.getInstance());
   }
   
   public ReferenceType(TypeReference pointsTo)
   {
-       super(Datatype.REF,false);
+       super(false);
        setBaseTypeReference(pointsTo);
   }
 
@@ -81,10 +81,5 @@ public class ReferenceType extends Datatype implements ConstructedSimple
     return super.equals(obj);
   }
 
-  public Object toValue(Object value, TypeCheckResult conversionResult)
-  {
-    return null;
-  }
-  
 
 }

@@ -1,28 +1,31 @@
 package com.optimasc.datatypes.defined;
 
+import java.util.Arrays;
+
 import omg.org.astm.type.TypeReference;
+import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.CharacterSetEncodingFacet;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.EnumerationFacet;
-import com.optimasc.datatypes.EnumerationHelper;
 import com.optimasc.datatypes.PatternFacet;
+import com.optimasc.datatypes.PatternHelper;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.aggregate.SequenceType;
 import com.optimasc.datatypes.primitives.CharacterType;
 import com.optimasc.lang.CharacterSet;
 import com.optimasc.text.StringUtilities;
+import com.optimasc.util.Pattern;
 
 
 /** Datatype that represents a character string datatype. The actual encoding 
  *  of the string depends on the {@code characterType} property. By default, 
- *  it supports UCS-2 character encoding, even though UTF-16 support 
- *  is checked in the validation routine.
+ *  it supports ASCII character encoding..
  * 
  *  This is equivalent to the following datatypes:
  *  <ul>
- *   <li><code>BMPString</code> or <code>VisibleString</code> (depending on CharacterType) ASN.1 datatype</li>
+ *   <li><code>BMPString</code>, <code>IA5String</code>, <code>UniversalString</code> or <code>VisibleString</code> (depending on CharacterType) ASN.1 datatype</li>
  *   <li><code>characterstring</code> ISO/IEC 11404 General purpose datatype</li>
  *   <li><code>string</code> XMLSchema built-in datatype</li>
  *   <li><code>CHARACTER</code>,<code>CHARACTER VARYING</code>,<code>CHARACTER LARGE OBJECT</code>,
@@ -30,14 +33,27 @@ import com.optimasc.text.StringUtilities;
  *     in SQL2003</li>
  *  </ul>
  *  
+ *  <p>The default implementation when the character type is not specified is equivalent to</p>
+ *  <ul>
+ *   <li><code>IA5String(Size(1))</code> ASN.1 datatype</li>
+ *   <li><code>character(1.3.6.1.4.1.1466.115.121.1.26)</code> ISO/IEC 11404 General purpose datatype</li>
+ *   <li><code>CHARACTER(1) CHARACTER SET ISO8BIT</code> in SQL2003</li>
+ *  </ul>
+ *  </ul>
+ *  
  *  <p>By default, the allowed minimum length of the string type is 0 characters, and the default maximum length
  *  is {@code Integer#MAX_VALUE}, {@code pattern} and {@code choices} are set to null.</p>
  *  
- *  <p>Internally, values of this type are represented as {@link String}.</p>
+ *  <p>Internally, values of this type are represented as a <code>String</code> object.</p>
+ *  
+ *  <p>This class also permits to return a string with whitespace normalisation, which can
+ *  be configured by calling {@link #setWhitespace(String)}. By default the setting is
+ *  set to {@link #WHITESPACE_PRESERVE}.
+ *  </p>
  *
  * @author Carl Eric Codère
  */
-public abstract class StringType extends SequenceType implements CharacterSetEncodingFacet,EnumerationFacet, PatternFacet
+public class StringType extends SequenceType implements CharacterSetEncodingFacet,EnumerationFacet, PatternFacet
 {
   /** No normalization is done, the value is not changed */
   public static final String WHITESPACE_PRESERVE = "preserve";
@@ -57,13 +73,22 @@ public abstract class StringType extends SequenceType implements CharacterSetEnc
   protected static final int HIGH_SURROGATE = 0xD800;
   protected static final int LOW_SURROGATE = 0xDC00;
   
-  protected String pattern;
-  
+
+  protected PatternHelper patternHelper;
   protected String whitespace;
 
-  protected EnumerationHelper enumHelper;
-  
-  
+  /** Creates a default string type definition. The default string type
+   *  definition supports the full US-ASCII character set, including
+   *  control characters.
+   * 
+   */
+  public StringType()
+  {
+    this(0,Integer.MIN_VALUE,new UnnamedTypeReference(new CharacterType(CharacterSet.ASCII)));
+    whitespace = WHITESPACE_PRESERVE;
+    patternHelper = new PatternHelper();
+  }
+
   /** Creates a string type definition. This routine verifies the
    *  minLength and maxLength characters, if they are equal created
    *  a {@link Datatype#CHAR} type, otherwise it creates a 
@@ -76,18 +101,14 @@ public abstract class StringType extends SequenceType implements CharacterSetEnc
    */
   public StringType(int minLength, int maxLength, TypeReference charType)
   {
-    super(Datatype.VARCHAR,minLength,maxLength,charType);
+    super(minLength,maxLength,charType, String.class);
     if ((charType.getType() instanceof CharacterType)==false)
     {
        throw new IllegalArgumentException("The type reference should point to '"+charType.getType().getClass().getName()+"'"
             + " but points to '"+charType.getType().getClass().getName()+"'.");   
     }
+    patternHelper = new PatternHelper();
     whitespace = WHITESPACE_PRESERVE;
-    enumHelper = new EnumerationHelper(this);
-    if (minLength == maxLength)
-    {
-      this.type = Datatype.CHAR;
-    }
   }
   
   /** Creates a string type definition with no length bounds. 
@@ -98,22 +119,63 @@ public abstract class StringType extends SequenceType implements CharacterSetEnc
    */
   public StringType(TypeReference charType)
   {
-    super(Datatype.CLOB,charType);
+    super(charType, String.class);
     if ((charType.getType() instanceof CharacterType)==false)
     {
        throw new IllegalArgumentException("The type reference should point to '"+charType.getType().getClass().getName()+"'"
             + " but points to '"+charType.getType().getClass().getName()+"'.");   
     }
+    patternHelper = new PatternHelper();
     whitespace = WHITESPACE_PRESERVE;
-    enumHelper = new EnumerationHelper(this);
   }
   
-
-  public Class getClassType()
+  /** Creates a string that must have values equal
+   *  to one the specified selection values. The
+   *  minimum length and maximum length is automatically
+   *  calculated from the selection values.
+   *
+   * @param choices [in] A list of allowed values, where
+   *  the choices elements must be of type <code>resultType</code>.
+   * @param baseType [in] The base type of the sequence.
+   * @throws IllegalArgumentException If the actual value 
+   *  of choices elements is not of the correct java object
+   *  type or if they do not meet the constraints of <code>baseType</code>.
+   */
+  public StringType(Object choices[], TypeReference baseType)
   {
-     return String.class;
+    super(choices,baseType,String.class);
+    if ((baseType.getType() instanceof CharacterType)==false)
+    {
+       throw new IllegalArgumentException("The type reference should point to '"+baseType.getType().getClass().getName()+"'"
+            + " but points to '"+baseType.getType().getClass().getName()+"'.");   
+    }
+    patternHelper = new PatternHelper();
+    whitespace = WHITESPACE_PRESERVE;
   }
 
+  /** Creates a string that must match the pattern
+   *  of one the specified selection values. The
+   *  minimum length and maximum length is automatically
+   *  calculated from the selection values.
+   *
+   * @param patterns [in] A list of allowed values on
+   *  a string representation.
+   * @param baseType [in] The base type of the sequence.
+   * @throws IllegalArgumentException If the actual value 
+   *  of choices elements is not of the correct java object
+   *  type or if they do not meet the constraints of <code>baseType</code>.
+   */
+  public StringType(Pattern patterns[], TypeReference baseType)
+  {
+    super(baseType,String.class);
+    if ((baseType.getType() instanceof CharacterType)==false)
+    {
+       throw new IllegalArgumentException("The type reference should point to '"+baseType.getType().getClass().getName()+"'"
+            + " but points to '"+baseType.getType().getClass().getName()+"'.");   
+    }
+    whitespace = WHITESPACE_PRESERVE;
+    patternHelper = new PatternHelper(patterns);
+  }  
 
   /** {@inheritDoc}
    * 
@@ -209,7 +271,8 @@ public abstract class StringType extends SequenceType implements CharacterSetEnc
       }
     } else
     {
-      throw new IllegalArgumentException("Invalid object type - should be String instance");
+      conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Unsupported value of class '"+value.getClass().getName()+"'.");
+      return null;
     }
     
     String string = buffer.toString();
@@ -220,19 +283,24 @@ public abstract class StringType extends SequenceType implements CharacterSetEnc
           +", got "+charCount);
       return null;
     }
-    validatePattern(string);
-    if (validateChoice(string)==false)
+    if (validatePatterns(string)==false)
     {
-      conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_NO_SUBCLASS,"The string does not match the datatype specification");
+      conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"The string does not match the datatype specification");
       return null;
     }
+    if (validateChoice(string)==false)
+    {
+      conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"The string does not match the datatype specification");
+      return null;
+    }
+    string =normalizeWhitespaces(string,whitespace);
     return string;
   }
 
 
-  public String getPattern()
+  public Pattern[] getPatterns()
   {
-    return pattern;
+    return patternHelper.getPatterns();
   }
 
   
@@ -242,49 +310,10 @@ public abstract class StringType extends SequenceType implements CharacterSetEnc
    * @param value The value to check
    * @throws DatatypeException if the value is not allowed.
    */
-  public boolean validatePattern(CharSequence value)
+  public boolean validatePatterns(CharSequence value)
   {
-    return true;
+    return patternHelper.validatePatterns(value);
   }
-
-  public Object[] getChoices()
-  {
-    return enumHelper.getChoices();
-  }
-
-  /** This can be used to set the allowed string values as a list. The array
-   *  should contain String objects that represent allowed values for this
-   *  datatype. To clear the choice simply set the value to null.
-   *
-   */
-  public void setChoices(Object[] choices)
-  {
-    int index;
-    int maxLength = 0;
-    /* Set the minimum and maximum length with choices */
-    for (index = 0; index < choices.length; index++)
-    {
-      if (choices[index].toString().length() > maxLength)
-      {
-        maxLength = choices[index].toString().length();
-      }
-    }
-    lengthHelper.setLength(0, maxLength);
-    enumHelper.setChoices(choices);
-  }
-
-  public boolean validateChoice(Object value)
-  {
-    return enumHelper.validateChoice(value);
-  }
-
-
-  public void setPattern(String value)
-  {
-    pattern = value;
-  }
-
-
 
 
 
@@ -339,38 +368,16 @@ public abstract class StringType extends SequenceType implements CharacterSetEnc
 
   public boolean equals(Object obj)
   {
-    /* null always not equal. */
-    if (obj == null)
-      return false;
-    /* Same reference returns true. */
-    if (obj == this)
-    {
-      return true;
-    }
-    StringType stringType;
-    if (!(obj instanceof StringType))
-    {
-      return false;
-    }
-    stringType = (StringType) obj;
-    if (this.getMinLength() != stringType.getMinLength())
-    {
-      return false;
-    }
-    if (this.getMaxLength() != stringType.getMaxLength())
-    {
-      return false;
-    }
-    if (this.getBaseTypeReference().equals(stringType.getBaseTypeReference())==false)
-    {
-      return false;
-    }
+    boolean b = super.equals(obj);
+    if (b==false)
+      return b;
+    StringType stringType = (StringType) obj;
     if (this.getWhitespace().equals(stringType.getWhitespace())==false)
     {
       return false;
     }
-    String pattern = getPattern();
-    if ((pattern!=null) && (pattern.equals(stringType.getPattern())==false))
+    Pattern patterns[] = getPatterns();
+    if (Arrays.equals(patterns,stringType.getPatterns())==false)
     {
       return false;
     }

@@ -1,7 +1,10 @@
 package com.optimasc.datatypes.derived;
 
+import com.optimasc.datatypes.defined.UCS2CharType;
 import com.optimasc.datatypes.generated.StringTypeEx;
+
 import omg.org.astm.type.TypeReference;
+
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.datatypes.visitor.TypeVisitorEx;
 

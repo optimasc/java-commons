@@ -7,15 +7,17 @@ import omg.org.astm.type.TypeReference;
 import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.ConstructedSimple;
+import com.optimasc.datatypes.Convertable;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.aggregate.ArrayType.Dimension;
+import com.optimasc.datatypes.defined.ASCIICharType;
 import com.optimasc.datatypes.defined.LatinCharType;
 import com.optimasc.datatypes.defined.UnsignedByteType;
 import com.optimasc.datatypes.primitives.BooleanType;
 import com.optimasc.datatypes.primitives.CharacterType;
-import com.optimasc.datatypes.primitives.EnumType;
+import com.optimasc.datatypes.primitives.EnumeratedType;
 import com.optimasc.datatypes.primitives.IntegralType;
 import com.optimasc.datatypes.primitives.PrimitiveType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
@@ -28,7 +30,7 @@ import com.optimasc.lang.Duration;
  *     <li>{@link BooleanType}</li>
  *     <li>{@link LatinCharType}</li>
  *     <li>{@link UnsignedByteType}</li>
- *     <li>{@link EnumType} that is within range</li>
+ *     <li>{@link EnumeratedType} that is within range</li>
  *     <li>A range of the above types</li>
  *    </ul>
  *    
@@ -55,7 +57,7 @@ public class SetType extends Datatype implements ConstructedSimple
   
   public SetType(TypeReference baseType)
   {
-    super(Datatype.OTHER,false);
+    super(false);
     setBaseTypeReference(baseType);
   }
   
@@ -64,8 +66,8 @@ public class SetType extends Datatype implements ConstructedSimple
    */
   public SetType()
   {
-    super(Datatype.OTHER,false);
-    setBaseTypeReference(UnsignedByteType.DEFAULT_TYPE_REFERENCE);
+    super(false);
+    setBaseTypeReference(UnsignedByteType.getInstance());
   }
   
   
@@ -76,15 +78,15 @@ public class SetType extends Datatype implements ConstructedSimple
   
   protected boolean isAllowedType(Type value)
   {
-    if ((value instanceof UnsignedByteType) || (value instanceof LatinCharType) ||
+    if ((value instanceof UnsignedByteType) || (value instanceof LatinCharType) || (value instanceof ASCIICharType) ||
         (value instanceof BooleanType))
     {
       return true;
     }
     // If the value of the enumeration is within the allowed range then its ok, otherwise its false.
-    if ((value instanceof EnumType))
+    if ((value instanceof EnumeratedType))
     {
-      EnumType enumType = (EnumType) value;
+      EnumeratedType enumType = (EnumeratedType) value;
       // Must fit witihn an usigned byte.
       if ((enumType.getMaxInclusive().longValue() <= 255) && (enumType.getMinInclusive().longValue()>=0))
       {
@@ -94,7 +96,7 @@ public class SetType extends Datatype implements ConstructedSimple
     return false;
   }
 
-  public void setBaseTypeReference(TypeReference value)
+  protected void setBaseTypeReference(TypeReference value)
   {
     if (isAllowedType(value.getType()))
     {
@@ -107,11 +109,6 @@ public class SetType extends Datatype implements ConstructedSimple
   }
 
   
-  public void validate(Object value) throws IllegalArgumentException, DatatypeException
-  {
-    checkClass(value);
-  }
-
   public Class getClassType()
   {
     return BitSet.class;

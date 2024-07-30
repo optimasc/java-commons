@@ -32,18 +32,7 @@ public class UnicodeCharType extends CharacterType
 
   public UnicodeCharType()
   {
-    super();
-    setCharacterSet(CharacterSet.UNICODE);
-  }
-
-  public long getMinInclusive()
-  {
-    return Character.MIN_CODE_POINT;
-  }
-
-  public long getMaxInclusive()
-  {
-    return Character.MAX_CODE_POINT;
+    super(CharacterSet.UNICODE);
   }
 
   public void setCharacterSet(String charSetName)
@@ -54,29 +43,6 @@ public class UnicodeCharType extends CharacterType
     charsetEncoder.onUnmappableCharacter(CodingErrorAction.REPORT);
   }
   
-  /** Checks if this character is valid for this repertoire.
-   * 
-   * @param codePoint The character to validate represented as an UCS-4 character.
-   * @return true if this character is valid or not.
-   */
-  @Override
-  public boolean isValidCharacter(int codePoint)
-  {
-    try
-    {
-    CharBuffer cb = CharBuffer.allocate(1);
-    char[] chars = Character.toChars(codePoint);
-    for (int i = 0; i < chars.length; i++)
-    {
-      cb.append(chars[i]);
-    }
-    charsetEncoder.encode(cb);
-    } catch (CharacterCodingException e)
-    {
-      return false;
-    }
-    return true;
-  }
 
   @Override
   public Object accept(TypeVisitor v, Object arg)

@@ -6,7 +6,7 @@ import omg.org.astm.type.TypeReference;
 
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.defined.StringType;
-import com.optimasc.datatypes.derived.UCS2CharType;
+import com.optimasc.datatypes.defined.UCS2CharType;
 import com.optimasc.datatypes.primitives.CharacterType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.datatypes.visitor.TypeVisitorEx;

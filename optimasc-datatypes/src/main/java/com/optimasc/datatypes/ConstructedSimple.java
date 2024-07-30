@@ -12,5 +12,4 @@ import omg.org.astm.type.TypeReference;
 public interface ConstructedSimple
 {
   public TypeReference getBaseTypeReference();
-  public void setBaseTypeReference(TypeReference value);
 }

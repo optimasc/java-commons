@@ -1,9 +1,12 @@
 package com.optimasc.datatypes;
 
+import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.optimasc.datatypes.visitor.TypeVisitor;
+import com.optimasc.util.Pattern;
 import com.optimasc.utils.UserConfiguration;
 
 /**
@@ -44,7 +47,7 @@ public abstract class Type implements UserConfiguration
     this.ordered = ordered;
     this.userData = new HashMap();
   }
-
+  
   /**
    * Accept method for visitor support.
    * 
@@ -124,10 +127,29 @@ public abstract class Type implements UserConfiguration
    */
   public boolean equals(Object obj)
   {
+    /* null always not equal. */
+    if (obj == null)
+      return false;
+    /* Same reference returns true. */
     if (obj == this)
+    {
       return true;
+    }
     if (obj instanceof Type)
     {
+      Type otherType = (Type) obj;
+      if (isOrdered()!=otherType.isOrdered())
+      {
+        return false;
+      }
+      if (isNumeric()!=otherType.isNumeric())
+      {
+        return false;
+      }
+      
+      
+      
+      
       if (this instanceof ConstructedSimple)
       {
         ConstructedSimple thisObject = (ConstructedSimple) this;
@@ -168,9 +190,21 @@ public abstract class Type implements UserConfiguration
           return false;
         }
         PatternFacet otherObject = (PatternFacet) obj;
-        if (otherObject.getPattern().equals(thisObject.getPattern()) == false)
+        
+        Pattern thesePatterns[] = thisObject.getPatterns();
+        Pattern otherPatterns[] = otherObject.getPatterns();
+        if ((thesePatterns == null) && (otherPatterns != null))
         {
           return false;
+        }
+        if ((thesePatterns != null) && (otherPatterns == null))
+        {
+          return false;
+        }
+        if ((thesePatterns != null) && (otherPatterns != null))
+        {
+          if (Arrays.equals(thesePatterns, otherPatterns)==false)
+             return false;
         }
       }
 
@@ -188,23 +222,6 @@ public abstract class Type implements UserConfiguration
         }
       }
       
-      if (this instanceof PrecisionFacet)
-      {
-        PrecisionFacet thisObject = (PrecisionFacet) this;
-        if ((obj instanceof PrecisionFacet) == false)
-        {
-          return false;
-        }
-        PrecisionFacet otherObject = (PrecisionFacet) obj;
-        if (otherObject.getScale()!=thisObject.getScale())
-        {
-          return false;
-        }
-        if (otherObject.getPrecision()!=thisObject.getPrecision())
-        {
-          return false;
-        }
-      }
       
       if (this instanceof DecimalRangeFacet)
       {
@@ -214,14 +231,26 @@ public abstract class Type implements UserConfiguration
           return false;
         }
         DecimalRangeFacet otherObject = (DecimalRangeFacet) obj;
-        if (otherObject.getMinInclusive().equals(thisObject.getMinInclusive())==false)
+        
+        DecimalRangeFacet other = (DecimalRangeFacet) obj;
+        BigDecimal maxInclusive = thisObject.getMaxInclusive();
+        BigDecimal minInclusive = thisObject.getMinInclusive();
+        if (maxInclusive == null)
         {
-          return false;
+          if (other.getMaxInclusive() != null)
+            return false;
         }
-        if (otherObject.getMaxInclusive().equals(thisObject.getMaxInclusive())==false)
+        // We check that the scales are equal here!
+        else if (!maxInclusive.equals(other.getMaxInclusive()))
+          return false;
+        if (minInclusive == null)
         {
-          return false;
+          if (other.getMinInclusive() != null)
+            return false;
         }
+        // We check that the scales are equal here!
+        else if (!minInclusive.equals(other.getMinInclusive()))
+          return false;
       }
         
       if (this instanceof EnumerationFacet)

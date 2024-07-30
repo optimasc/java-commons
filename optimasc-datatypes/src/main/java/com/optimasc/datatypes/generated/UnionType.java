@@ -21,12 +21,12 @@ public class UnionType extends AggregateType
 {
   public UnionType()
   {
-    super(Datatype.OTHER);
+    super();
   }
   
   public UnionType(MemberObject[] fields)
   {
-    super(Datatype.OTHER,fields);
+    super(fields);
   }
   
 

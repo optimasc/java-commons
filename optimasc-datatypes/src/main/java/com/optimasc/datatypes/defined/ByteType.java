@@ -23,51 +23,23 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  *  </ul>
  *  
  *  <p>Internally, values of this type are represented as a 
- *  <code>Byte</code> object.</p>
+ *  <code>Integer</code> object.</p>
  *
  * @author Carl Eric Codère
  */
-public class ByteType extends IntegralType
+public class ByteType extends ShortType
 {
   public static final ByteType DEFAULT_INSTANCE = new ByteType();
   public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
   
   public ByteType()
   {
-    super(Datatype.TINYINT, Byte.MIN_VALUE, Byte.MAX_VALUE);
+    super(Byte.MIN_VALUE, Byte.MAX_VALUE);
   }
 
     public Object accept(TypeVisitor v, Object arg)
     {
         return v.visit(this,arg);
     }
-
-    public Class getClassType()
-    {
-      return Byte.class;
-    }
-    
-    
-    public Object toValue(Number ordinalValue, TypeCheckResult conversionResult)
-    {
-      BigInteger returnValue = (BigInteger) super.toValue(ordinalValue, conversionResult);
-      if (returnValue == null)
-      {
-        return null;
-      }
-      return new Byte(returnValue.byteValue());
-    }
-
-    
-    public Object toValue(long ordinalValue, TypeCheckResult conversionResult)
-    {
-      Object result = super.toValue(ordinalValue, conversionResult);
-      if (result == null)
-      {
-        return null;
-      }
-      return new Byte((byte) ordinalValue);
-    }  
-    
 
 }

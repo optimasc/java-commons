@@ -21,6 +21,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import omg.org.astm.type.NamedTypeReference;
+import omg.org.astm.type.TypeReference;
 import omg.org.astm.type.UnnamedTypeReference;
 
 import org.w3c.dom.Document;
@@ -39,30 +41,25 @@ import com.optimasc.datatypes.aggregate.SequenceListType;
 import com.optimasc.datatypes.aggregate.SequenceType;
 import com.optimasc.datatypes.defined.BinaryType;
 import com.optimasc.datatypes.defined.ByteType;
+import com.optimasc.datatypes.defined.DateType;
 import com.optimasc.datatypes.defined.DoubleType;
+import com.optimasc.datatypes.defined.IntType;
 import com.optimasc.datatypes.defined.LongType;
 import com.optimasc.datatypes.defined.NonNegativeIntegerType;
+import com.optimasc.datatypes.defined.ShortType;
+import com.optimasc.datatypes.defined.SingleType;
 import com.optimasc.datatypes.defined.StringType;
+import com.optimasc.datatypes.defined.TimestampType;
 import com.optimasc.datatypes.defined.UnsignedByteType;
-import com.optimasc.datatypes.derived.DateType;
-import com.optimasc.datatypes.derived.IntType;
-import com.optimasc.datatypes.derived.NegativeIntegerType;
-import com.optimasc.datatypes.derived.NonPositiveIntegerType;
+import com.optimasc.datatypes.defined.UnsignedIntType;
+import com.optimasc.datatypes.defined.UnsignedShortType;
+import com.optimasc.datatypes.defined.YearType;
 import com.optimasc.datatypes.derived.NormalizedStringType;
-import com.optimasc.datatypes.derived.PositiveIntegerType;
-import com.optimasc.datatypes.derived.ShortType;
-import com.optimasc.datatypes.derived.SingleType;
-import com.optimasc.datatypes.derived.TimestampType;
 import com.optimasc.datatypes.derived.TokenType;
-import com.optimasc.datatypes.derived.UnsignedIntType;
-import com.optimasc.datatypes.derived.UnsignedShortType;
-import com.optimasc.datatypes.derived.YearMonthType;
-import com.optimasc.datatypes.derived.YearType;
 import com.optimasc.datatypes.generated.AltLangMapType;
 import com.optimasc.datatypes.generated.LanguageType;
 import com.optimasc.datatypes.generated.MapType;
 import com.optimasc.datatypes.generated.StringTypeEx;
-import com.optimasc.datatypes.generated.URIType;
 import com.optimasc.datatypes.generated.UnionType;
 import com.optimasc.datatypes.manager.DefaultTypeSymbolTable;
 import com.optimasc.datatypes.manager.SymbolTable;
@@ -70,6 +67,7 @@ import com.optimasc.datatypes.manager.TypeSymbolTable;
 import com.optimasc.datatypes.primitives.BooleanType;
 import com.optimasc.datatypes.primitives.IntegralType;
 import com.optimasc.datatypes.primitives.RealType;
+import com.optimasc.datatypes.primitives.URIType;
 import com.sapient.BeanUtil;
 
 /** Converts XMLSchema specifications to created datatypes.
@@ -195,17 +193,13 @@ public class XMLSchemaDeserializer implements Deserializer
       new FacetData("gMonth", FACET_GMONTH, null),
       new FacetData("gMonthDay", FACET_GMONTHDAY, null),
       new FacetData("gYear", FACET_GYEAR, YearType.class),
-      new FacetData("gYearMonth", FACET_GYEARMONTH, YearMonthType.class),
       new FacetData("hexBinary", FACET_STRINGS, BinaryType.class),
       new FacetData("int", FACET_DECIMAL, IntType.class),
       new FacetData("integer", FACET_DECIMAL, IntegralType.class),
       new FacetData("language", FACET_STRINGS, LanguageType.class),
       new FacetData("long", FACET_DECIMAL, LongType.class),
-      new FacetData("negativeInteger", FACET_DECIMAL, NegativeIntegerType.class),
       new FacetData("nonNegativeInteger", FACET_DECIMAL, NonNegativeIntegerType.class),
-      new FacetData("nonPositiveInteger", FACET_DECIMAL, NonPositiveIntegerType.class),
       new FacetData("normalizedString", FACET_STRINGS, NormalizedStringType.class),
-      new FacetData("positiveInteger", FACET_DECIMAL, PositiveIntegerType.class),
       new FacetData("short", FACET_DECIMAL, ShortType.class),
       new FacetData("string", FACET_STRINGS, StringTypeEx.class),
       new FacetData("time", FACET_TIME, null),
@@ -301,9 +295,9 @@ public class XMLSchemaDeserializer implements Deserializer
    * @param element The root element of the simple type.
    * @param nameRequired true if the simpleType name must be
    *   specified, otherwise, false.
-   * @return Datatype specification
+   * @return Type Reference information
    */
-  protected Datatype parseSimpleType(TypeSymbolTable symbolTable, Element element, String xsdPrefix, boolean nameRequired)
+  protected TypeReference parseSimpleType(TypeSymbolTable symbolTable, Element element, String xsdPrefix, boolean nameRequired)
   {
     String typeDocumentation;
     Datatype listType;
@@ -338,13 +332,12 @@ public class XMLSchemaDeserializer implements Deserializer
       UnionType unionType = new UnionType();
       for (int i = 0; i < simpleTypeList.size(); i++)
       {
-        Datatype datatype = parseSimpleType(symbolTable,(Element) simpleTypeList.get(i),xsdPrefix,false);
+//        Datatype datatype = parseSimpleType(symbolTable,(Element) simpleTypeList.get(i),xsdPrefix,false);
       // TODO: To complete here
       //  unionType.addVariantType(datatype);
       }
       unionType.setComment(typeDocumentation);
-      unionType.setName(dataTypeName);
-      return unionType;
+      return new NamedTypeReference(dataTypeName,unionType);
     }
     
     
@@ -363,39 +356,36 @@ public class XMLSchemaDeserializer implements Deserializer
       {
         throw new IllegalArgumentException("'itemType' must not be null");
       }
-      /* Check if we have the type of list definition -- DEX extension */
-      String listOrdering = listElement.getAttributeNS(DEX_RDF_NAMESPACE,"listType");
-      if ((listOrdering==null) || (listOrdering.equals(RDF_ARRAY)))
-      {
-        listType = new BagType();
-      } else
-      if ((listOrdering.equals(RDF_ARRAY_ORDERED)))
-      {
-        listType = new SequenceListType();
-      } else
-      if ((listOrdering.equals(RDF_ALT_ARRAY)))
-      {
-        listType = new MapType(); 
-      } else
-      if ((listOrdering.equals(RDF_ALT_LANG_ARRAY)))
-      {
-          listType = new AltLangMapType(); 
-      } else
-      {
-        throw new IllegalArgumentException("'listType' value is invalid");
-      }
-      Type listElementDatatype = symbolTable.get(listItemType);
+      
+      TypeReference listElementDatatype = symbolTable.get(listItemType);
       if (listElementDatatype == null)
       {
         throw new IllegalArgumentException("Datatype '"+listItemType+"' is not defined.");
       }
-      if (listType instanceof ConstructedSimple)
+      
+      /* Check if we have the type of list definition -- DEX extension */
+      String listOrdering = listElement.getAttributeNS(DEX_RDF_NAMESPACE,"listType");
+      if ((listOrdering==null) || (listOrdering.equals(RDF_ARRAY)))
       {
-        ((ConstructedSimple)listType).setBaseTypeReference(new UnnamedTypeReference(listElementDatatype));
+        listType = new BagType(listElementDatatype,listElementDatatype.getType().getClassType());
+      } else
+      if ((listOrdering.equals(RDF_ARRAY_ORDERED)))
+      {
+        listType = new SequenceType(listElementDatatype,listElementDatatype.getType().getClassType());
+      } else
+      if ((listOrdering.equals(RDF_ALT_ARRAY)))
+      {
+        listType = new MapType(listElementDatatype); 
+      } else
+      if ((listOrdering.equals(RDF_ALT_LANG_ARRAY)))
+      {
+          listType = new AltLangMapType(listElementDatatype); 
+      } else
+      {
+        throw new IllegalArgumentException("'listType' value is invalid");
       }
       listType.setComment(typeDocumentation);
-      listType.setName(dataTypeName);
-      return listType;
+      return new NamedTypeReference(dataTypeName,listType);
     }
     
     
@@ -489,8 +479,7 @@ public class XMLSchemaDeserializer implements Deserializer
         }
         if (datatype != null)
         {
-          datatype.setName(facetInfo.baseType);
-          symbolTable.put(new QName(XSD_NAMESPACE,facetInfo.baseType,xsdPrefix),datatype);
+          symbolTable.put(new QName(XSD_NAMESPACE,facetInfo.baseType,xsdPrefix),new NamedTypeReference(facetInfo.baseType, datatype));
         }
       }
     }
@@ -536,10 +525,14 @@ public class XMLSchemaDeserializer implements Deserializer
 
       for (int i = 0; i < simpleTypeList.size(); i++)
       {
-        Datatype datatype = parseSimpleType(symbolTable,(Element) simpleTypeList.get(i),xsdPrefix,true);
-        if (datatype.getName()!=null)
+        TypeReference typeRef = parseSimpleType(symbolTable,(Element) simpleTypeList.get(i),xsdPrefix,true);
+        if (typeRef instanceof NamedTypeReference)
         {
-          symbolTable.put(new QName(datatype.getName()), datatype);
+          NamedTypeReference namedType = (NamedTypeReference) typeRef;
+          if (namedType.getTypeName()!=null)
+          {
+            symbolTable.put(new QName(namedType.getTypeName()), typeRef);
+          }
         }
       }
     } catch (ParserConfigurationException e)

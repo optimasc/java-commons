@@ -37,7 +37,7 @@ public class LongType extends IntegralType
   
   public LongType()
   {
-    super(Datatype.BIGINT,BigInteger.valueOf(Long.MIN_VALUE),BigInteger.valueOf(Long.MAX_VALUE));
+    super(BigInteger.valueOf(Long.MIN_VALUE),BigInteger.valueOf(Long.MAX_VALUE));
   }
 
     public Object accept(TypeVisitor v, Object arg)
@@ -50,9 +50,9 @@ public class LongType extends IntegralType
       return Long.class;
     }
     
-    public Object toValue(Number ordinalValue, TypeCheckResult conversionResult)
+    protected Object toValueNumber(Number ordinalValue, TypeCheckResult conversionResult)
     {
-      BigInteger returnValue = (BigInteger) super.toValue(ordinalValue, conversionResult);
+      BigInteger returnValue = (BigInteger) super.toValueNumber(ordinalValue, conversionResult);
       if (returnValue == null)
       {
         return null;

@@ -1,0 +1,248 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Datatype library</title>
+</head>
+
+<body>
+
+<h1>Introduction</h1>
+
+<p>This datatype library permits to manage properties of data types, as well as to create data types., where a datatype is defined as 
+a set of distinct values, characterized by properties of those values, and by operations on those values [1].</p>
+
+<p>The datatypes are characterized by different properties which are similar across schemas and languages.</p>
+
+
+<h2>Basic datatype properties</h2>
+
+<h3>Bounded</h3>
+
+<p>A datatype is bounded when it has a lower and upper bound.</p>
+
+<h3>Ordered</h3>
+
+<p>A datatype is ordered, when a value of that datatype can be ordered in comparison to other values of that datatype. For example, for integers, the value 1 is smaller than the value 10. </p>
+
+<h2>Primitive Datatypes</h2>
+<p>&nbsp;</p>
+
+<table width="80%" border="1" cellpadding="0">
+  <tr>
+    <th width="28%" scope="col">Description</th>
+    <th width="13%" scope="col">ASN.1 type</th>
+    <th width="35%" scope="col">W3C XML Schema 1.1 built in datatype</th>
+    <th width="24%" scope="col"><p>ISO/IEC 11404 datatype</p></th>
+  </tr>
+  <tr>
+    <td>A sequence of bits.</td>
+    <td>BIT STRING</td>
+    <td>&nbsp;</td>
+    <td>bitstring</td>
+  </tr>
+  <tr>
+    <td>Values associated with boolean algebra, where two states are possible, false and true.</td>
+    <td>BOOLEAN</td>
+    <td>boolean</td>
+    <td>boolean</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>CHOICE</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>ENUMERATED</td>
+    <td>&nbsp;</td>
+    <td>enumerated</td>
+  </tr>
+  <tr>
+    <td>Mathematical datatype comprising the exact integral values.</td>
+    <td>INTEGER</td>
+    <td>integer</td>
+    <td>integer</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>NULL</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td>A sequence of natural number elements.</td>
+    <td>OBJECT IDENTIFIER</td>
+    <td>&nbsp;</td>
+    <td>objectidentifier</td>
+  </tr>
+  <tr>
+    <td>A sequence of octet values.</td>
+    <td>OCTET STRING</td>
+    <td>hexBinary, base64Binary</td>
+    <td>octetstring</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>REAL</td>
+    <td>decimal</td>
+    <td>scaled</td>
+  </tr>
+  <tr>
+    <td>A sequence of characters from a specific character set.</td>
+    <td>Restricted Character String types</td>
+    <td>string</td>
+    <td>characterstring</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>SEQUENCE</td>
+    <td>&nbsp;</td>
+    <td>record</td>
+  </tr>
+  <tr>
+    <td>Ordered values of a specific datatype. This is similar to an unbounded array in general programming languages.</td>
+    <td>SEQUENCE OF</td>
+    <td>list</td>
+    <td>sequence</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>SET</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td>Values of a specific datatype. This is similar to an unbounded array in general programming languages where the order is not important..</td>
+    <td>SET OF</td>
+    <td>&nbsp;</td>
+    <td>bag</td>
+  </tr>
+  <tr>
+    <td>Values representing a specific date and time with optional timezone information required.</td>
+    <td>GeneralizedTime</td>
+    <td>dateTime</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td>Value representative a value of 0 or 1</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>bit</td>
+  </tr>
+  <tr>
+    <td>Values representing a specific date and time with explicit timezone information required.</td>
+    <td>&nbsp;</td>
+    <td>dateTimeStamp</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>DURATION</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>yearMonthDuration</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>dayTimeDuration</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td>Represents a specific instance of date (year-month-day).</td>
+    <td>DATE</td>
+    <td>date(explicitTimezone=prohibited)</td>
+    <td>time(day)</td>
+  </tr>
+  <tr>
+    <td>Represents a specific instance of date and time without timezone information.</td>
+    <td>DATE-TIME</td>
+    <td>datetime(explicitTimezone=prohibited)</td>
+    <td>time(second)</td>
+  </tr>
+  <tr>
+    <td>The value space of time is the space of time of day value in 24-hour local format.<br /></td>
+    <td>TIME-OF-DAY</td>
+    <td>time(explicitTimezone=prohibited)</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>INTEGER(0..255)</td>
+    <td>unsignedByte</td>
+    <td>octet</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>INTEGER(0..MAX)</td>
+    <td>nonNegativeInteger</td>
+    <td>naturalnumbeer</td>
+  </tr>
+</table>
+
+
+<h2>Datatype constraints</h2>
+
+<p>Constraints are defined impose limits on the different values allowed for different datatypes.. The most important cand common constraints defined by the different schema and type languages are defined below:</p>
+
+<table width="80%" border="1" cellpadding="0">
+  <tr>
+    <th scope="col">Description</th>
+    <th scope="col">ASN.1 Constraint name</th>
+    <th scope="col">W3C XML Schema constraint name(s)</th>
+    <th scope="col">ISO/IEC 11404 Subtypes [1]</th>
+  </tr>
+  <tr>
+    <td>Specifies the bounds on the number of elements.</td>
+    <td>Size</td>
+    <td>minLength, maxLength</td>
+    <td>Size</td>
+  </tr>
+  <tr>
+    <td>Provides permitted lower and upper bounds to an ordered on values of the specified type.</td>
+    <td>Value Range</td>
+    <td>minInclusive, maxInclusive</td>
+    <td>Range</td>
+  </tr>
+  <tr>
+    <td>Enumeration of the allowed values for the specified type.</td>
+    <td>Single value</td>
+    <td>enumeration</td>
+    <td>Selecting</td>
+  </tr>
+  <tr>
+    <td>Constrain  the lexical space of character strings values to those that match a specific pattern.</td>
+    <td>Pattern</td>
+    <td>pattern</td>
+    <td>&nbsp;</td>
+  </tr>
+</table>
+
+<p>It is to note that most of these constraints are also available in SQL-92 using the <code>CHECK</code> operator.</p>
+<p>&nbsp;</p>
+<h1>Usage and limits</h1>
+
+<h2>Supported constraints</h2>
+
+
+
+
+<p>&nbsp;</p>
+<h1>Bibliography</h1>
+
+<dl>
+ <dt>[1]</dt>
+ <dd>INTERNATIONAL ORGANIZATION FOR STANDARDIZATION. ISO/IEC 11404: Information technology — General-Purpose Datatypes (GPD). n.p. : ISO/IEC, 2007.</dd>
+ <dt>[2]</dt>
+ <dd>WORLD WIDE WEB CONSORTIUM. XML Schema Part 2: Datatypes Second Edition [online]. n.p. : W3C, 2004 [cited 2024]. Available from:  <https://www.w3.org/TR/xmlschema-2/>.</dd>
+</dl>
+
+</body>
+</html>

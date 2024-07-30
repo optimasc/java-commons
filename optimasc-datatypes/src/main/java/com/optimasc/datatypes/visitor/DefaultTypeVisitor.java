@@ -16,30 +16,33 @@ import com.optimasc.datatypes.aggregate.ArrayType;
 import com.optimasc.datatypes.aggregate.ClassType;
 import com.optimasc.datatypes.aggregate.InterfaceType;
 import com.optimasc.datatypes.aggregate.RecordType;
+import com.optimasc.datatypes.aggregate.SequenceType;
 import com.optimasc.datatypes.aggregate.SetType;
 import com.optimasc.datatypes.aggregate.TableType;
 import com.optimasc.datatypes.defined.ASCIICharType;
 import com.optimasc.datatypes.defined.BinaryType;
 import com.optimasc.datatypes.defined.ByteType;
+import com.optimasc.datatypes.defined.CurrencyType;
+import com.optimasc.datatypes.defined.DateType;
 import com.optimasc.datatypes.defined.DoubleType;
+import com.optimasc.datatypes.defined.IntType;
 import com.optimasc.datatypes.defined.LatinCharType;
+import com.optimasc.datatypes.defined.LatinStringType;
 import com.optimasc.datatypes.defined.LongType;
 import com.optimasc.datatypes.defined.ObjectIdentifierType;
+import com.optimasc.datatypes.defined.ShortType;
+import com.optimasc.datatypes.defined.SingleType;
 import com.optimasc.datatypes.defined.StringType;
+import com.optimasc.datatypes.defined.TimestampType;
+import com.optimasc.datatypes.defined.UCS2CharType;
+import com.optimasc.datatypes.defined.UCS2StringType;
 import com.optimasc.datatypes.defined.UnsignedByteType;
-import com.optimasc.datatypes.derived.CurrencyType;
-import com.optimasc.datatypes.derived.DateType;
-import com.optimasc.datatypes.derived.IntType;
-import com.optimasc.datatypes.derived.LatinStringType;
-import com.optimasc.datatypes.derived.ShortType;
-import com.optimasc.datatypes.derived.SingleType;
-import com.optimasc.datatypes.derived.TimestampType;
-import com.optimasc.datatypes.derived.UCS2CharType;
-import com.optimasc.datatypes.derived.UCS2StringType;
-import com.optimasc.datatypes.derived.UnsignedIntType;
-import com.optimasc.datatypes.derived.UnsignedShortType;
-import com.optimasc.datatypes.derived.VisibleCharType;
+import com.optimasc.datatypes.defined.UnsignedIntType;
+import com.optimasc.datatypes.defined.UnsignedShortType;
+import com.optimasc.datatypes.defined.VisibleCharType;
+import com.optimasc.datatypes.generated.ExceptionType;
 import com.optimasc.datatypes.generated.FormalParameterType;
+import com.optimasc.datatypes.generated.NameSpaceType;
 import com.optimasc.datatypes.generated.PointerType;
 import com.optimasc.datatypes.generated.ProcedureType;
 import com.optimasc.datatypes.generated.ReferenceType;
@@ -49,13 +52,12 @@ import com.optimasc.datatypes.primitives.CharacterType;
 import com.optimasc.datatypes.primitives.DateTimeType;
 import com.optimasc.datatypes.primitives.DecimalType;
 import com.optimasc.datatypes.primitives.DurationType;
-import com.optimasc.datatypes.primitives.EnumType;
-import com.optimasc.datatypes.primitives.ExceptionType;
+import com.optimasc.datatypes.primitives.EnumeratedType;
 import com.optimasc.datatypes.primitives.IntegralType;
-import com.optimasc.datatypes.primitives.NameSpaceType;
 import com.optimasc.datatypes.primitives.PrimitiveType;
 import com.optimasc.datatypes.primitives.RealType;
 import com.optimasc.datatypes.primitives.TimeType;
+import com.optimasc.datatypes.primitives.URIType;
 import com.optimasc.datatypes.primitives.VoidType;
 
 /** Default type visitor that goes through all type elements
@@ -125,7 +127,7 @@ public class DefaultTypeVisitor implements TypeVisitor {
     }
     
 
-    public Object visit(EnumType n, Object arg)
+    public Object visit(EnumeratedType n, Object arg)
     {
        return n;
     }
@@ -197,6 +199,13 @@ public class DefaultTypeVisitor implements TypeVisitor {
       }
       return n;
     }
+    
+    
+    public Object visit(SequenceType n, Object arg)
+    {
+      return n;
+    }
+    
 
     public Object visit(TimeType n, Object arg)
     {
@@ -291,13 +300,11 @@ public class DefaultTypeVisitor implements TypeVisitor {
 
     public Object visit(LatinStringType n, Object arg)
     {
-      n.setBaseTypeReference((TypeReference) n.getBaseTypeReference().accept(this, arg));
       return n;
     }
     
     public Object visit(UCS2StringType n, Object arg)
     {
-      n.setBaseTypeReference((TypeReference) n.getBaseTypeReference().accept(this, arg));
       return n;
     }
     
@@ -326,7 +333,6 @@ public class DefaultTypeVisitor implements TypeVisitor {
 
     public Object visit(SetType n, Object arg)
     {
-      n.setBaseTypeReference((TypeReference) n.getBaseTypeReference().accept(this, arg));
       return n;
     }
     
@@ -350,6 +356,21 @@ public class DefaultTypeVisitor implements TypeVisitor {
     public Object visit(FormalParameterType n, Object arg)
     {
       n.setTypeReference((TypeReference) n.getTypeReference().accept(this, arg));
+      return n;
+    }
+
+    public Object visit(CharacterType n, Object arg)
+    {
+      return n;
+    }
+
+    public Object visit(DateTimeType n, Object arg)
+    {
+      return n;
+    }
+
+    public Object visit(URIType n, Object arg)
+    {
       return n;
     }
 

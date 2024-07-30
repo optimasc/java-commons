@@ -37,8 +37,7 @@ public class DoubleType extends RealType
   
     public DoubleType()
     {
-      super(15,-1,new BigDecimal(Double.MIN_VALUE),new BigDecimal(Double.MAX_VALUE));
-      type = Datatype.DOUBLE;
+      super(53);
     }
 
     public Object accept(TypeVisitor v, Object arg)
@@ -51,9 +50,9 @@ public class DoubleType extends RealType
       return Double.class;
     }
 
-    public Object toValue(Number number, TypeCheckResult conversionResult)
+    protected Object toValueNumber(Number number, TypeCheckResult conversionResult)
     {
-      BigDecimal returnValue = (BigDecimal) super.toValue(number, conversionResult);
+      BigDecimal returnValue = (BigDecimal) super.toValueNumber(number, conversionResult);
       if (returnValue == null)
       {
         return null;

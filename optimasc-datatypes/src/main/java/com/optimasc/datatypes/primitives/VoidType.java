@@ -1,14 +1,29 @@
 package com.optimasc.datatypes.primitives;
 
+import omg.org.astm.type.NamedTypeReference;
+import omg.org.astm.type.TypeReference;
 import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.visitor.TypeVisitor;
+import com.optimasc.lang.GregorianDatetimeCalendar;
 
+/** Datatype that represents an object that is syntactically
+ *  required but which carries no information.
+ *  
+ * This is equivalent to the following datatypes:
+ * <ul>
+ * <li><code>void</code> ISO/IEC 11404 General purpose datatype</li>
+ * </ul>
+ *  
+ * 
+ * @author Carl Eric Codere
+ *
+ */
 public class VoidType extends Type
 {
-  public static final VoidType DEFAULT_INSTANCE = new VoidType();
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
+  private static VoidType defaultTypeInstance;
+  private static TypeReference defaultTypeReference;
 
   
   public VoidType()
@@ -43,5 +58,16 @@ public class VoidType extends Type
       }
       return true;
   }
+  
+  public static TypeReference getInstance()
+  {
+    if (defaultTypeInstance == null)
+    {
+      defaultTypeInstance = new VoidType();
+      defaultTypeReference = new NamedTypeReference("void",defaultTypeInstance);
+    }
+    return defaultTypeReference; 
+  }
+  
 
 }

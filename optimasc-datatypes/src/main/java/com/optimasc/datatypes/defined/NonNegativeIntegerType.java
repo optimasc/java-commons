@@ -2,13 +2,15 @@ package com.optimasc.datatypes.defined;
 
 import java.math.BigInteger;
 
+import omg.org.astm.type.NamedTypeReference;
+import omg.org.astm.type.TypeReference;
 import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.primitives.IntegralType;
 
-/** Represents a specific defined 
- *  datatype that is a natural number (a non-negative value).
+/** Represents a specific defined datatype that is a natural number 
+ *  (a non-negative value).
  * 
  *  This is equivalent to the following datatypes:
  *  <ul>
@@ -18,32 +20,43 @@ import com.optimasc.datatypes.primitives.IntegralType;
  *  </ul>
  *  
  *  <p>Internally, values of this type are represented as a 
- *  <code>BigDecimal</code> object.</p>
+ *  <code>BigInteger</code> object.</p>
  *
  * @author Carl Eric Codère
  */
 public class NonNegativeIntegerType extends IntegralType
 {
-  protected static final String REGEX_NONNEGATIVE_PATTERN = "[0-9]+";
+  private static NonNegativeIntegerType defaultTypeInstance;
+  private static TypeReference defaultTypeReference;
   
- public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(new NonNegativeIntegerType());
+  
+  protected static final String REGEX_NONNEGATIVE_PATTERN = "[0-9]+";
 
   
   public NonNegativeIntegerType()
   {
-    super(Datatype.INTEGER,BigInteger.ZERO,null);
+    super(BigInteger.ZERO,null);
   }
   
   
   protected NonNegativeIntegerType(int maxInclusive)
   {
-    super(Datatype.INTEGER,BigInteger.ZERO,BigInteger.valueOf(maxInclusive));
+    super(BigInteger.ZERO,BigInteger.valueOf(maxInclusive));
   }
   
   protected NonNegativeIntegerType(BigInteger maxInclusive)
   {
-    super(Datatype.INTEGER,BigInteger.ZERO,maxInclusive);
+    super(BigInteger.ZERO,maxInclusive);
   }
   
+  public static TypeReference getInstance()
+  {
+    if (defaultTypeInstance == null)
+    {
+      defaultTypeInstance = new NonNegativeIntegerType();
+      defaultTypeReference = new NamedTypeReference("naturalnumber" ,defaultTypeInstance);
+    }
+    return defaultTypeReference; 
+  }
   
 }

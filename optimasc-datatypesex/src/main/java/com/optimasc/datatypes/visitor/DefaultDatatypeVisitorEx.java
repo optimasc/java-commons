@@ -8,7 +8,7 @@ import com.optimasc.datatypes.derived.NormalizedStringType;
 import com.optimasc.datatypes.derived.TokenType;
 import com.optimasc.datatypes.derived.UnicodeCharType;
 import com.optimasc.datatypes.generated.StringTypeEx;
-import com.optimasc.datatypes.generated.URIType;
+import com.optimasc.datatypes.primitives.URIType;
 
 public class DefaultDatatypeVisitorEx extends DefaultTypeVisitor implements TypeVisitorEx
 {

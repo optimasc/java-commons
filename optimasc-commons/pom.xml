@@ -12,6 +12,7 @@
 
     <modules>
         <module>common-io</module>
+        <module>common-date</module>
         <module>common-lang</module>
         <module>common-text</module>
     </modules>  

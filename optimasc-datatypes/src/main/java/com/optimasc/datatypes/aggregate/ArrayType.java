@@ -6,10 +6,12 @@ import java.util.Arrays;
 import omg.org.astm.type.TypeReference;
 
 import com.optimasc.datatypes.ConstructedSimple;
+import com.optimasc.datatypes.Convertable;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.PackedFacet;
 import com.optimasc.datatypes.Type;
+import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.primitives.BooleanType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
@@ -25,7 +27,7 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  * @author Carl Eric Codere
  *
  */
-public class ArrayType extends Datatype implements ConstructedSimple, PackedFacet
+public class ArrayType extends Datatype implements ConstructedSimple, PackedFacet, Convertable
 {
   
   
@@ -78,7 +80,7 @@ public class ArrayType extends Datatype implements ConstructedSimple, PackedFace
 
   public ArrayType()
   {
-    super(Datatype.ARRAY,false);
+    super(false);
   }
 
   /** Array definition of base type and specified
@@ -93,7 +95,7 @@ public class ArrayType extends Datatype implements ConstructedSimple, PackedFace
    */
   public ArrayType(Dimension[] ranks, TypeReference type)
   {
-    super(Datatype.ARRAY,false);
+    super(false);
     this.dataType = type;
     this.ranks = ranks;
   }
@@ -170,65 +172,6 @@ public class ArrayType extends Datatype implements ConstructedSimple, PackedFace
     }
   }
 
-  public void validate(Object valueArray) throws IllegalArgumentException,
-      DatatypeException
-  {
-    int length=0;
-    
-    if (valueArray.getClass().isArray()==true)
-    {
-      Class clz = valueArray.getClass();
-      // Primitive datatypes
-      if (clz==long[].class)
-      {
-        length= ((long[])valueArray).length;
-      } else
-      if ((clz==int[].class))
-      {
-        length= ((int[])valueArray).length;
-      } else
-      if (clz==short[].class)
-      {
-        length= ((short[])valueArray).length;
-      } else
-      if (clz==byte[].class)
-      {
-        length= ((byte[])valueArray).length;
-      } else
-      if (clz==double[].class)
-        {
-        length= ((double[])valueArray).length;
-        }
-      else
-        if (clz==float[].class)
-        {
-        length= ((float[])valueArray).length;
-        }
-      else
-      if (clz==boolean[].class)
-      {
-        length= ((boolean[])valueArray).length;
-      } else
-        if (clz==char[].class)
-        {
-        length= ((char[])valueArray).length;
-      } else
-      {
-          length =  ((Object[])valueArray).length;        
-      }
-    } else
-    {
-      throw new IllegalArgumentException(
-          "Invalid object type - should be an array");
-    }
-    
-    int elements = getElements();
-    if ((elements != -1) && (elements!=length))
-    {
-      DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,
-          "The number of actual array elements is not expected value, got "+length+", expected "+getElements()+".");
-    }
-  }
 
     public Object accept(TypeVisitor v, Object arg)
     {
@@ -258,17 +201,6 @@ public boolean equals(Object obj)
   return super.equals(obj);
 }
 
-public boolean isSubset(Object obj)
-{
-  return false;
-}
-
-
-public boolean isSuperset(Object obj)
-{
-  return false;
-}
-
 public TypeReference getBaseTypeReference()
 {
   return dataType;
@@ -287,6 +219,78 @@ public boolean isPacked()
 public void setPacked(boolean packed)
 {
   this.packed = packed;
+}
+
+/** {@inheritDoc}
+ * 
+ *  <p>The input to this method is expected to be an 
+ *  array, and the return value will be the same array after
+ *  verifying the constraints associated with this datatype
+ *  definition.</p> 
+ *  
+ * 
+ */
+public Object toValue(Object value, TypeCheckResult conversionResult)
+{
+  int length=0;
+  
+  if (value.getClass().isArray()==true)
+  {
+    Class clz = value.getClass();
+    // Primitive datatypes
+    if (clz==long[].class)
+    {
+      length= ((long[])value).length;
+    } else
+    if ((clz==int[].class))
+    {
+      length= ((int[])value).length;
+    } else
+    if (clz==short[].class)
+    {
+      length= ((short[])value).length;
+    } else
+    if (clz==byte[].class)
+    {
+      length= ((byte[])value).length;
+    } else
+    if (clz==double[].class)
+      {
+      length= ((double[])value).length;
+      }
+    else
+      if (clz==float[].class)
+      {
+      length= ((float[])value).length;
+      }
+    else
+    if (clz==boolean[].class)
+    {
+      length= ((boolean[])value).length;
+    } else
+      if (clz==char[].class)
+      {
+      length= ((char[])value).length;
+    } else
+    {
+        length =  ((Object[])value).length;        
+    }
+  } else
+  {
+    throw new IllegalArgumentException(
+        "Invalid object type - should be an array");
+  }
+  
+  int elements = getElements();
+  if ((elements != -1) && (elements!=length))
+  {
+    conversionResult.error = new DatatypeException(DatatypeException.ERROR_BOUNDS_RANGE,
+        "Length must be between, " + elements
+        +", got "+length);
+    return null;
+  }
+ conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Unsupported value of class '"+value.getClass().getName()+"'.");
+ return null;
 }
 
 

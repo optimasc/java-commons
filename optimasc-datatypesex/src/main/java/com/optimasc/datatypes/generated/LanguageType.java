@@ -17,7 +17,7 @@ public class LanguageType extends Datatype implements EnumerationFacet, Parseabl
 
   public LanguageType()
   {
-    super(Datatype.OTHER,false);
+    super(false);
     enumHelper = new EnumerationHelper(this);
   }
 
