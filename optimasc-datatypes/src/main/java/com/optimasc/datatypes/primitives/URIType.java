@@ -149,6 +149,7 @@ public class URIType extends PrimitiveType implements Convertable
    *  of allowed values.
    * 
    * @param value The value to check
+   * @return true if the validation is successful, otherwise false.
    */
   public boolean validateFormat(URI value)
   {
