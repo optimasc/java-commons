@@ -1,6 +1,6 @@
 package com.optimasc.datatypes.defined;
 
-import java.util.Arrays;
+import java.text.ParseException;
 
 import omg.org.astm.type.TypeReference;
 import omg.org.astm.type.UnnamedTypeReference;
@@ -9,19 +9,20 @@ import com.optimasc.datatypes.CharacterSetEncodingFacet;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.EnumerationFacet;
-import com.optimasc.datatypes.PatternFacet;
-import com.optimasc.datatypes.PatternHelper;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.aggregate.SequenceType;
 import com.optimasc.datatypes.primitives.CharacterType;
 import com.optimasc.lang.CharacterSet;
+import com.optimasc.text.DataConverter;
 import com.optimasc.text.StringUtilities;
-import com.optimasc.util.Pattern;
 
 
 /** Datatype that represents a character string datatype. The actual encoding 
  *  of the string depends on the {@code characterType} property. By default, 
- *  it supports ASCII character encoding..
+ *  it supports ASCII character encoding. This class also permits to do
+ *  manual validation using the <code>com.optimasc.text.DataConverter</code> class, in this
+ *  case the {@link com.optimasc.text.DataConverter#parseObject(CharSequence)} method
+ *  is called to validate the input, and the format should return a string.
  * 
  *  This is equivalent to the following datatypes:
  *  <ul>
@@ -53,7 +54,7 @@ import com.optimasc.util.Pattern;
  *
  * @author Carl Eric Codère
  */
-public class StringType extends SequenceType implements CharacterSetEncodingFacet,EnumerationFacet, PatternFacet
+public class StringType extends SequenceType implements CharacterSetEncodingFacet,EnumerationFacet
 {
   /** No normalization is done, the value is not changed */
   public static final String WHITESPACE_PRESERVE = "preserve";
@@ -74,8 +75,8 @@ public class StringType extends SequenceType implements CharacterSetEncodingFace
   protected static final int LOW_SURROGATE = 0xDC00;
   
 
-  protected PatternHelper patternHelper;
   protected String whitespace;
+  protected DataConverter formatter;
 
   /** Creates a default string type definition. The default string type
    *  definition supports the full US-ASCII character set, including
@@ -86,7 +87,7 @@ public class StringType extends SequenceType implements CharacterSetEncodingFace
   {
     this(0,Integer.MIN_VALUE,new UnnamedTypeReference(new CharacterType(CharacterSet.ASCII)));
     whitespace = WHITESPACE_PRESERVE;
-    patternHelper = new PatternHelper();
+    formatter = null;
   }
 
   /** Creates a string type definition. This routine verifies the
@@ -107,7 +108,7 @@ public class StringType extends SequenceType implements CharacterSetEncodingFace
        throw new IllegalArgumentException("The type reference should point to '"+charType.getType().getClass().getName()+"'"
             + " but points to '"+charType.getType().getClass().getName()+"'.");   
     }
-    patternHelper = new PatternHelper();
+    formatter = null;
     whitespace = WHITESPACE_PRESERVE;
   }
   
@@ -125,7 +126,7 @@ public class StringType extends SequenceType implements CharacterSetEncodingFace
        throw new IllegalArgumentException("The type reference should point to '"+charType.getType().getClass().getName()+"'"
             + " but points to '"+charType.getType().getClass().getName()+"'.");   
     }
-    patternHelper = new PatternHelper();
+    formatter = null;
     whitespace = WHITESPACE_PRESERVE;
   }
   
@@ -149,23 +150,22 @@ public class StringType extends SequenceType implements CharacterSetEncodingFace
        throw new IllegalArgumentException("The type reference should point to '"+baseType.getType().getClass().getName()+"'"
             + " but points to '"+baseType.getType().getClass().getName()+"'.");   
     }
-    patternHelper = new PatternHelper();
+    formatter = null;
     whitespace = WHITESPACE_PRESERVE;
   }
 
-  /** Creates a string that must match the pattern
-   *  of one the specified selection values. The
+  /** Creates a string that must match the formatter. 
+   *  The
    *  minimum length and maximum length is automatically
    *  calculated from the selection values.
    *
-   * @param patterns [in] A list of allowed values on
-   *  a string representation.
+   * @param validator [in] A string pattern validator.
    * @param baseType [in] The base type of the sequence.
    * @throws IllegalArgumentException If the actual value 
    *  of choices elements is not of the correct java object
    *  type or if they do not meet the constraints of <code>baseType</code>.
    */
-  public StringType(Pattern patterns[], TypeReference baseType)
+  public StringType(DataConverter validator, TypeReference baseType)
   {
     super(baseType,String.class);
     if ((baseType.getType() instanceof CharacterType)==false)
@@ -174,7 +174,7 @@ public class StringType extends SequenceType implements CharacterSetEncodingFace
             + " but points to '"+baseType.getType().getClass().getName()+"'.");   
     }
     whitespace = WHITESPACE_PRESERVE;
-    patternHelper = new PatternHelper(patterns);
+    formatter = validator;
   }  
 
   /** {@inheritDoc}
@@ -283,7 +283,7 @@ public class StringType extends SequenceType implements CharacterSetEncodingFace
           +", got "+charCount);
       return null;
     }
-    if (validatePatterns(string)==false)
+    if (validateFormat(string)==false)
     {
       conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"The string does not match the datatype specification");
       return null;
@@ -298,23 +298,34 @@ public class StringType extends SequenceType implements CharacterSetEncodingFace
   }
 
 
-  public Pattern[] getPatterns()
-  {
-    return patternHelper.getPatterns();
-  }
-
-  
   /** Validates if the value of string is within the allowed pattern name
    *  of allowed values.
    * 
    * @param value The value to check
-   * @throws DatatypeException if the value is not allowed.
+   * @return true if the validation is successful, otherwise false.
    */
-  public boolean validatePatterns(CharSequence value)
+  public boolean validateFormat(CharSequence value)
   {
-    return patternHelper.validatePatterns(value);
+    if (formatter==null)
+      return true;
+    try 
+    {
+     Object res = formatter.parseObject(value);
+     if (res.getClass().isAssignableFrom(String.class)==false)
+     {
+       throw new IllegalArgumentException("Invalid data converter class, it does not return a class of type '"+getClassType().getName()+"'.");
+     }
+    } catch (ParseException e)
+    {
+      return false;
+    }
+    return true;
   }
-
+  
+  public DataConverter getFormatValidator()
+  {
+    return formatter;
+  }
 
 
   public static String normalizeWhitespaces(String value, String type)
@@ -376,8 +387,8 @@ public class StringType extends SequenceType implements CharacterSetEncodingFace
     {
       return false;
     }
-    Pattern patterns[] = getPatterns();
-    if (Arrays.equals(patterns,stringType.getPatterns())==false)
+    DataConverter dataConverter = stringType.getFormatValidator();
+    if (dataConverter != formatter)
     {
       return false;
     }
