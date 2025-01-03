@@ -2,6 +2,10 @@ package com.optimasc.datatypes;
 
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 
+/** Interface for data types that can convert data to their java language
+ *  representation.
+ *
+ */
 public interface Convertable
 {
   /** Tries to convert this valid value to its natural java type 

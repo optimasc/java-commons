@@ -2,7 +2,8 @@ package com.optimasc.datatypes;
 
 import com.optimasc.lang.CharacterSet;
 
-/** Represents a character set encoding repertoire. */
+/** Interface for data types that represent a specific character set encoding repertoire. 
+ **/
 public interface CharacterSetEncodingFacet extends Restriction
 {
   /** Return the character set repertoire. */

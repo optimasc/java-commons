@@ -1,9 +1,7 @@
 package com.optimasc.datatypes;
 
-/** Interface that is implemented to represent
- *  a type that may be bounded, such as with
- *  ranges of values.
- * 
+/** Interface for data types that are bounded, 
+ *  such as with ranges of values.
  *
  */
 public interface BoundedFacet
