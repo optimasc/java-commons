@@ -25,7 +25,7 @@ public abstract class DateEncoder
    *  differently.
    *
    * @param cal [in] The calendar that will be converted.
-   * @return The numeric associated with this calendar
+   * @return The encoded value associated with this calendar
    */
   public abstract long encode(final Calendar cal);
   
@@ -59,24 +59,24 @@ public abstract class DateEncoder
    */
   public abstract int getMinBits();
   
-  /** Converts the value to a Date that contains 
-   *  the year, month and day in the Gregorian
-   *  proleptic calendar. There may be loss
-   *  of precision since the value returned
-   *  contains only year, month and day fields.
+  /** Converts the value to a DateTime  in the 
+   *  Gregorian proleptic calendar. 
    * 
    * @param value [in] The internal value to decode.
-   * @return The date format.
+   * @return The date time format with the specified
+   *   resolution.
    */
   public abstract DateTime decode(long value);
   
-  /** Converts a year, month, day value to 
-   *  an encoded values. 
+  /** Converts a DateTime to an encoded form. The
+   *  actual precision of the encoded form may
+   *  be less than the input depending on the
+   *  encoding format, {@link #getPrecision()}
+   *  can be used to get the unit precision of
+   *  the encoded form.
    * 
-   * @param year [in] The year number, either positive
-   *   indicate CE or negative or zero for BCE.
-   * @param month [in] The month number, from 1 to 12.
-   * @param day [in] The day number from 1, to 31
+   * @param value [in] The date time value that
+   *   needs to be encoded.
    * @return The encoded value
    * @throws IllegalArgumentException If one of the
    *   input parameters is invalid.

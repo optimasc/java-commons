@@ -182,7 +182,7 @@ public abstract class DateConverter
    * 
    * @param year [in] The year, in astronomical year numbering.
    * @param month [in] The month of the year [1..12]
-   * @param day [in] The day of the month [1..32]
+   * @param day [in] The day of the month [1..31]
    * @return The number of days elapsed according to the internal
    *   reference implementation.
    */

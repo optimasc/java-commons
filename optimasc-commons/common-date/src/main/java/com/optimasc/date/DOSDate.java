@@ -23,7 +23,7 @@ package com.optimasc.date;
 import java.util.Calendar;
 import com.optimasc.date.DateTime.*;
 
-/** Utility class used to convert between a Calendar object and a 
+/** Class to convert between date time objects and a 
  *  MS-DOS Date value.
  *  
  * @author Carl Eric Codere
@@ -107,7 +107,7 @@ public class DOSDate extends DateEncoder
       return SIZE;
     }
     
-    protected long encode(int year, int month, int day)
+    protected static long encode(int year, int month, int day)
     {
       /* check for invalid dates */
       if ((month < DateTime.MIN_MONTH) || (month > DateTime.MAX_MONTH))
@@ -134,10 +134,6 @@ public class DOSDate extends DateEncoder
 
     public long encode(DateTime value)
     {
-      if (value.resolution != Calendar.DAY_OF_MONTH)
-      {
-        throw new IllegalArgumentException("Precision should be day of month");
-      }
       Date date = value.date;
       return encode(date.year,date.month,date.day);
     }

@@ -2,6 +2,12 @@ package com.optimasc.date;
 
 import java.util.Calendar;
 
+/** Class used to represent a date and optional according to a 
+ *  reference 'epoch' in the specified time unit.
+ *  
+ * @author Carl Eric Codere
+ *
+ */
 public class DateTimeFormat
 {
   /** Default internal value which is in day from a reference to instance of 0000-01-01 */ 
@@ -52,6 +58,13 @@ public class DateTimeFormat
    */
   protected long epoch;
   
+  /** Create a date-time format with the specified 
+   *  unit with a reference 'epoch' based on a referential
+   *  of 0000-00-00 in UTC in the specified time units.
+   * 
+   * @param timeUnit [in] The time units for this reference
+   * @param epoch [in] The number of time units since 0000-00-00 UTC.
+   */
   public DateTimeFormat(int timeUnit, long epoch)
   {
     super();
