@@ -47,8 +47,13 @@ public abstract class AbstractDataOutputStream extends OutputStream
   public abstract void write(int b) throws IOException;
   public abstract void close() throws IOException;
   public abstract void flush() throws IOException;
-  public abstract void write(byte[] b) throws IOException;
-  public abstract  void write(byte[] b, int off, int len) throws IOException; 
+  public abstract  void write(byte[] b, int off, int len) throws IOException;
+  
+  public void write(byte[] b) throws IOException
+  {
+    write(b, 0, b.length); 
+  }
+  
 
   public void writeBoolean(boolean v) throws IOException
   {
@@ -127,7 +132,7 @@ public abstract class AbstractDataOutputStream extends OutputStream
       writeBuffer[4] = (byte)((v >> 32) & 0xff);
       writeBuffer[5] = (byte)((v >> 40) & 0xff);
       writeBuffer[6] = (byte)((v >> 48) & 0xff);
-      writeBuffer[7] = (byte)((v >> 48) & 0xff);
+      writeBuffer[7] = (byte)((v >> 56) & 0xff);
     }
     write(writeBuffer,0,8);
   }
@@ -241,11 +246,21 @@ public abstract class AbstractDataOutputStream extends OutputStream
     throw new IllegalArgumentException("Unsupported operation");
   }
 
+  /**  Sets the desired byte order for future write of data to this stream.
+   * 
+   * @param byteOrder [in] One of ByteOrder.BIG_ENDIAN or ByteOrder.LITTLE_ENDIAN, indicating whether 
+   *   network byte order or its reverse will be used for future writes.
+   */
   public void setByteOrder(ByteOrder byteOrder)
   {
     this.byteOrder = byteOrder;
   }
 
+  /** Returns the byte order with which data values will be written to this stream.
+   * 
+   * @return One of ByteOrder.BIG_ENDIAN or ByteOrder.LITTLE_ENDIAN, indicating the byte order 
+   *   being used.
+   */
   public ByteOrder getByteOrder()
   {
     return byteOrder;

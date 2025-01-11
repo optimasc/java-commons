@@ -72,7 +72,7 @@ public class ByteOrder
      */
      private static final ByteOrder[] values = {LITTLE_ENDIAN,BIG_ENDIAN};
      //VALUES needs to be located here, otherwise illegal forward reference
-     public static final Vector VALUES;
+     protected static final Vector VALUES;
      
      static {
        VALUES = new Vector();

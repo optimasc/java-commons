@@ -2,8 +2,8 @@ package com.optimasc.io;
 
 import java.io.IOException;
 
-/** Implemented by some streams so the read/write position can be adjusted.
- *  The API are similar to a subset of the {@link javax.imageio.stream.ImageInputStream}
+/** Interface implemented by some streams so the read/write position can be adjusted.
+ *  This API is similar to a subset of the {@link javax.imageio.stream.ImageInputStream}
  *  interface.
  * 
  * @author Carl Eric Codere

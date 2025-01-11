@@ -12,6 +12,12 @@ import java.io.OutputStream;
 public class FilteredDataOutputStream extends AbstractDataOutputStream
 {
   protected OutputStream out;
+  
+  public FilteredDataOutputStream(OutputStream out)
+  {
+    super();
+    this.out = out;
+  }
 
   public void write(int b) throws IOException
   {

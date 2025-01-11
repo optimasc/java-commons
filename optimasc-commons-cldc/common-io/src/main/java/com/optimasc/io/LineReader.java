@@ -15,7 +15,9 @@ import java.io.InputStream;
 public class LineReader
 {
 
-  protected static final int MAX_LINE_LENGTH = 1024;
+  /** Maximum expected line length in bytes. 
+   *  The value here is based on the <code>_POSIX2_LINE_MAX</code> value. */
+  protected static final int MAX_LINE_LENGTH = 2048;
 
   /**
    * Reads a single line using encoded in ISO-8859-1 format using the specified reader.

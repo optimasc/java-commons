@@ -2,7 +2,7 @@ package com.optimasc.io;
 
 import java.io.IOException;
 
-/** Interface to be implemented for reading bits.
+/** Interface for support of reading bits. 
  * 
  * @author Carl Eric Codere
  *

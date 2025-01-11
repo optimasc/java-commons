@@ -7,7 +7,8 @@ import java.io.InputStream;
 import java.io.UTFDataFormatException;
 
 /** A filtered input stream that is similar to {@link java.io.DataInputStream}
- *  but which can be overriden (some of the methods are non-final). 
+ *  but which can be overriden (some of the methods are non-final). The
+ *  input data is assumed to be in network byte order (big endian). 
  * 
  * @author Carl Eric codere
  *

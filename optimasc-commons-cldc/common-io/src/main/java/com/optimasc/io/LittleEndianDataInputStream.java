@@ -3,6 +3,16 @@ package com.optimasc.io;
 import java.io.IOException;
 import java.io.InputStream;
 
+/** A data input stream that lets an application read primitive Java data types from an underlying input stream assuming
+ *  that the underlying data is stored in little endian byte order. This class
+ *  is an extension of the {@link java.io.DataInputStream} that swaps the data
+ *  so that it is converted to big endian.
+ *  
+ *  @see java.io.DataInputStream
+ * 
+ * @author Carl Eric Codere
+ *
+ */
 public class LittleEndianDataInputStream extends DataInputStream
 {
   public LittleEndianDataInputStream(InputStream in)
@@ -19,6 +29,7 @@ public class LittleEndianDataInputStream extends DataInputStream
     return (short) result;
   }
 
+  /** {@inheritDoc} */
   public int readUnsignedShort() throws IOException
   {
     int result;

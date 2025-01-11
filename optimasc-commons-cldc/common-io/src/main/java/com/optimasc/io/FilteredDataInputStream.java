@@ -16,7 +16,7 @@ import java.io.InputStream;
  *  </ul>
  *  
  *  <p>The {@link java.io.ByteInputStream} and {@link java.io.FileInputStream}
- *  classes do follow the above contracts and can be used directly.</p>.
+ *  classes of the Java SDK do follow the above contracts and can be used directly.</p>.
  * 
  * @author Carl Eric Codere
  *
@@ -67,6 +67,10 @@ public class FilteredDataInputStream extends SeekableDataInputStream implements 
 
   public int read(byte[] b) throws IOException
   {
+    if (b.length == 0)
+    {
+      return 0;
+    }
     return read(b,0,b.length);
   }
 

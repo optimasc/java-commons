@@ -26,12 +26,15 @@ import java.io.InputStream;
 import java.io.UTFDataFormatException;
 
 /**
- * An abstract filter input stream that implements reading raw binary data that
- * including bit reading and reading data in different endian formats.
+ * An abstract input stream that implements reading raw binary data that
+ * includes bit reading and reading data in different endian formats. 
  * 
  * <p>By default, reading data primitives is assumed to be in 
  * big endian format, {@link #setByteOrder(ByteOrder)} can be 
- * used to change the endian of the input data. </p> 
+ * used to change the endian of the input data. </p>
+ * 
+ *  <p>It also assumes that the strings are encoded in modified UTF-8
+ *  format, as defined by the Java SDK specification. </p>
  *
  * @author Carl Eric Codere
  */
@@ -39,8 +42,6 @@ public abstract class AbstractDataInputStream extends InputStream implements Dat
 {
   protected int readCount;
   protected ByteOrder byteOrder;
-  protected int bitOffset = 8;
-  protected int bitBuffer;
 
   /** Read buffer */
   protected byte readBuffer[] = new byte[8];
@@ -51,12 +52,24 @@ public abstract class AbstractDataInputStream extends InputStream implements Dat
     byteOrder = ByteOrder.BIG_ENDIAN;
   }
   
-  
+ 
+  /** Sets the desired byte order for future reads of data values from this stream.
+  *
+  * @param byteOrder one of {@link ByteOrder#BIG_ENDIAN} or {@link ByteOrder#LITTLE_ENDIAN},
+  * indicating whether network byte order or its reverse will be used for future reads.
+  * @throws IllegalArgumentException if the parameter is not one of the allowed
+  *  parameters.
+  */
   public void setByteOrder(ByteOrder byteOrder)
   {
     this.byteOrder = byteOrder;
   }
 
+  /** Returns the byte order with which data values will be read from this stream.
+  *
+  * @return one of {@link ByteOrder#BIG_ENDIAN} or {@link ByteOrder#LITTLE_ENDIAN}, indicating which byte order is
+  * being used.
+  */
   public ByteOrder getByteOrder()
   {
     return byteOrder;
@@ -192,6 +205,17 @@ public abstract class AbstractDataInputStream extends InputStream implements Dat
     return (byte) result;
   }
 
+  /** Reads two input bytes and returns a short value. The
+   *  reading uses the actively configured endian as set
+   *  by {@link #setByteOrder(ByteOrder)} to read the data
+   *  and convert it to java byte ordering.
+   *  
+   *  @return The signed 16-bit value read.
+   *  
+   *  @throws EOFException - if this stream reaches the end before reading all the bytes. 
+   *  @throws IOException - if an I/O error occurs.
+   *  
+   */
   public short readShort() throws IOException
   {
     int result;
@@ -208,6 +232,18 @@ public abstract class AbstractDataInputStream extends InputStream implements Dat
     return (short) result;
   }
 
+  /** Reads two input bytes and returns it as an integer with
+   *  the range between 0 and 65535. The
+   *  reading uses the actively configured endian as set
+   *  by {@link #setByteOrder(ByteOrder)} to read the data
+   *  and convert it to java byte ordering.
+   *  
+   *  @return The unsigned 16-bit value read.
+   *  
+   *  @throws EOFException - if this stream reaches the end before reading all the bytes. 
+   *  @throws IOException - if an I/O error occurs.
+   *  
+   */
   public int readUnsignedShort() throws IOException
   {
     int result;
@@ -224,6 +260,17 @@ public abstract class AbstractDataInputStream extends InputStream implements Dat
     return (int) (result & 0xFFFF);
   }
 
+  /** Reads four input bytes and returns a long value. The
+   *  reading uses the actively configured endian as set
+   *  by {@link #setByteOrder(ByteOrder)} to read the data
+   *  and convert it to java byte ordering.
+   *  
+   *  @return The signed 32-bit value read.
+   *  
+   *  @throws EOFException - if this stream reaches the end before reading all the bytes. 
+   *  @throws IOException - if an I/O error occurs.
+   *  
+   */
   public int readInt() throws IOException
   {
     int result;
@@ -241,6 +288,18 @@ public abstract class AbstractDataInputStream extends InputStream implements Dat
     return result;
   }
 
+  /** Reads four input bytes and returns it as an integer with
+   *  the range between 0 and 4294967295. The
+   *  reading uses the actively configured endian as set
+   *  by {@link #setByteOrder(ByteOrder)} to read the data
+   *  and convert it to java byte ordering.
+   *  
+   *  @return The unsigned 32-bit value read.
+   *  
+   *  @throws EOFException - if this stream reaches the end before reading all the bytes. 
+   *  @throws IOException - if an I/O error occurs.
+   *  
+   */
   public long readUnsignedInt() throws IOException
   {
     int result;
@@ -258,6 +317,17 @@ public abstract class AbstractDataInputStream extends InputStream implements Dat
     return ((long) result & 0xFFFFFFFFL);
   }
 
+  /** Reads eight input bytes and returns a long value. The
+   *  reading uses the actively configured endian as set
+   *  by {@link #setByteOrder(ByteOrder)} to read the data
+   *  and convert it to java byte ordering.
+   *  
+   *  @return The signed 64-bit value read.
+   *  
+   *  @throws EOFException - if this stream reaches the end before reading all the bytes. 
+   *  @throws IOException - if an I/O error occurs.
+   *  
+   */
   public long readLong() throws IOException
   {
     long result = 0;
@@ -281,6 +351,19 @@ public abstract class AbstractDataInputStream extends InputStream implements Dat
     return result;
   }
 
+  
+  /** Reads one input byte and returns it as an integer with
+   *  the range between 0 and 255. The
+   *  reading uses the actively configured endian as set
+   *  by {@link #setByteOrder(ByteOrder)} to read the data
+   *  and convert it to java byte ordering.
+   *  
+   *  @return The unsigned 8-bit value read.
+   *  
+   *  @throws EOFException - if this stream reaches the end before reading all the bytes. 
+   *  @throws IOException - if an I/O error occurs.
+   *  
+   */
   public int readUnsignedByte() throws IOException
   {
     int result = read();
@@ -296,6 +379,15 @@ public abstract class AbstractDataInputStream extends InputStream implements Dat
     return readUTF(this);
   }
 
+  /** Reads one input byte and returns false if its
+   *  value is zero, otherwise it returns true.
+   *  
+   *  @return The unsigned 8-bit value read.
+   *  
+   *  @throws EOFException - if this stream reaches the end before reading all the bytes. 
+   *  @throws IOException - if an I/O error occurs.
+   *  
+   */
   public boolean readBoolean() throws IOException
   {
     int result = read();
@@ -345,181 +437,8 @@ public abstract class AbstractDataInputStream extends InputStream implements Dat
     return LineReader.readISOLine(this);
   }
 
-  public long readBits(int numBits) throws IOException
-  {
-    if ((numBits < 0) || (numBits > 64))
-    {
-      throw new IllegalArgumentException("number of its must be between 0 and 64");
-    }
-    if (byteOrder == ByteOrder.LITTLE_ENDIAN)
-    {
-      int value = 0;
-      for (int i = 0; i < numBits; i++)
-      {
-        /* Bit offset is from 0 to 7 */
-        if (bitOffset == 8)
-        {
-          bitBuffer = read();
 
-          if (bitBuffer == -1)
-            throw new EOFException();
 
-          bitOffset = 0;
-        }
-        int bit = (bitBuffer >>> bitOffset);
-        bitOffset++;
-        value |= ((bit & 0x01) << i);
-      }
-      return value;
-    }
-    else
-    {
-      int value = 0;
-      for (int i = numBits - 1; i >= 0; i--)
-      {
-        /* Bit offset is from 0 to 7 */
-        if (bitOffset == 8)
-        {
-          bitBuffer = read();
-
-          if (bitBuffer == -1)
-            throw new EOFException();
-
-          bitOffset = 0;
-        }
-        int bit = (bitBuffer >>> bitOffset);
-        bitOffset++;
-        value |= ((bit & 0x01) << i);
-      }
-      return value;
-    }
-  }
-
-  public void skipBits(int numBits) throws IOException
-  {
-    if ((numBits < 0) || (numBits > 32))
-    {
-      throw new IllegalArgumentException("number of its must be between 0 and 64");
-    }
-    if (byteOrder == ByteOrder.LITTLE_ENDIAN)
-    {
-      for (int i = 0; i < numBits; i++)
-      {
-        /* Bit offset is from 0 to 7 */
-        if (bitOffset == 8)
-        {
-          bitBuffer = read();
-
-          if (bitBuffer == -1)
-            throw new EOFException();
-
-          bitOffset = 0;
-        }
-        bitOffset++;
-      }
-    }
-    else
-    {
-      for (int i = numBits - 1; i >= 0; i--)
-      {
-        /* Bit offset is from 0 to 7 */
-        if (bitOffset == 8)
-        {
-          bitBuffer = read();
-          if (bitBuffer == -1)
-            throw new EOFException();
-
-          bitOffset = 0;
-        }
-        bitOffset++;
-      }
-    }
-  }
-
-  public int peekBits(int numBits) throws IOException
-  {
-    int localBitBuffer = bitBuffer;
-    int localBitOffset = bitOffset;
-    if (markSupported() ==false)
-    {
-      throw new IOException("mark() is not supported so bit peeking is not supported.");
-    }
-    mark((numBits / 8)+1);
-    int value = 0;
-    if ((numBits < 0) || (numBits > 32))
-    {
-      throw new IllegalArgumentException("number of its must be between 0 and 64");
-    }
-    if (byteOrder == ByteOrder.LITTLE_ENDIAN)
-    {
-      for (int i = 0; i < numBits; i++)
-      {
-        /* Bit offset is from 0 to 7 */
-        if (localBitOffset == 8)
-        {
-          localBitBuffer = read();
-
-          if (localBitBuffer == -1)
-            throw new EOFException();
-
-          localBitOffset = 0;
-        }
-        int bit = (localBitBuffer >>> localBitOffset);
-        localBitOffset++;
-        value |= ((bit & 0x01) << i);
-      }
-    }
-    else
-    {
-      for (int i = numBits - 1; i >= 0; i--)
-      {
-        /* Bit offset is from 0 to 7 */
-        if (localBitOffset == 8)
-        {
-          localBitBuffer = read();
-
-          if (localBitBuffer == -1)
-            throw new EOFException();
-
-          localBitOffset = 0;
-        }
-        int bit = (localBitBuffer >>> localBitOffset);
-        localBitOffset++;
-        value |= ((bit & 0x01) << i);
-      }
-    }
-    reset();
-    return value;
-  }
-
-  public int getBitOffset() throws IOException
-  {
-    return bitOffset;
-  }
-
-  public int readBit() throws IOException
-  {
-    /* Bit offset is from 0 to 7 */
-    if (bitOffset == 8)
-    {
-      bitBuffer = read();
-
-      if (bitBuffer == -1)
-        throw new EOFException();
-
-      bitOffset = 0;
-    }
-    int bit = (bitBuffer >>> bitOffset);
-    bitOffset++;
-    return bit & 0x01;
-  }
-
-  public void setBitOffset(int offset)
-  {
-    if ((offset < 0) || (offset > 7))
-      throw new IllegalArgumentException();
-    bitOffset = offset;
-  }
 
   public char readChar() throws IOException
   {
@@ -537,15 +456,50 @@ public abstract class AbstractDataInputStream extends InputStream implements Dat
     return (char) (result & 0xFFFF);
   }
   
+  
+  public String readString() throws IOException
+  {
+    return readUTF();
+  }
+
+
   /*-************************ InputStream methods *************************/
   public abstract void close() throws IOException;
   public abstract void mark(int readlimit); 
   public abstract boolean markSupported(); 
-  public abstract int read(byte[] b) throws IOException; 
+  
+  /** Reads up to len bytes from the stream, and stores them into buffer
+   *  starting at index off. The number of bytes read is returned.
+   *  If no bytes can be read because the end of the stream has been
+   *  reached, -1 is returned.
+   *
+   * The bit offset within the stream is reset to zero before the read occurs
+   *
+   * @param buffer an array of bytes to be written to.
+   * @param off the starting position within buffer to write to.
+   * @param len the maximum number of bytes to read.
+   * @return the number of bytes actually read, or -1 to indicate EOF.
+   * @throws IOException If an I/O Error occurs
+   */
   public abstract int read(byte[] b, int off, int len) throws IOException;
+  /** Reads a single byte from the stream and returns it as an integer
+   *  between 0 and 255. If the end of the stream is reached, -1 is returned.
+   *
+   *  The bit offset within the stream is reset to zero before the read occurs.
+   *
+   * @return a byte value from the stream, as an int, or -1 to indicate EOF.
+   * @throws IOException
+   */
   public abstract int read() throws IOException;
   public abstract void reset() throws IOException; 
   public abstract long skip(long n) throws IOException;
   public abstract int available() throws IOException;
 
+  public int read(byte[] b) throws IOException
+  {
+    if (b.length == 0)
+      return 0;
+    return read(b,0,b.length);
+  }
+  
 }

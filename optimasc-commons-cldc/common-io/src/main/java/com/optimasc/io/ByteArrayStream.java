@@ -5,7 +5,8 @@ import java.io.OutputStream;
 
 /** Represents a seekable, readable and writable stream
  *  composed of a byte array. It supports either a fixed
- *  byte array, or a growable byte array.  
+ *  byte array, or an internally allocated byte array that
+ *  can grow.   
  * 
  * @author Carl Eric Codere
  *
@@ -13,11 +14,16 @@ import java.io.OutputStream;
 public class ByteArrayStream extends SeekableDataStream
 {
   protected byte[] buf;
-  protected long streamPos;
+  protected int streamPos;
   protected long markPos;
   protected boolean canResize;
   protected int length;
   
+  /** Instantiates a fixed length byte array stream based on the 
+   *  specified buffer.
+   * 
+   * @param buffer [in] The byte array backing this stream.
+   */
   public ByteArrayStream(byte[] buffer)
   {
     super();
@@ -26,6 +32,13 @@ public class ByteArrayStream extends SeekableDataStream
     markPos = 0;
   }
   
+  /** Instantiates a byte array stream with
+   *  a specified initial size that can grow
+   *  as required. 
+   * 
+   * @param size [in] The initial size in bytes
+   *   of the byte array. A value of zero is allowed
+   */
   public ByteArrayStream(int size)
   {
     super();
@@ -39,19 +52,65 @@ public class ByteArrayStream extends SeekableDataStream
   }
   
   
-  public void write(int b) throws IOException
-  {
-    buf[(int) streamPos++] = (byte)b;
-  }
-
-
   public void write(byte[] b) throws IOException
   {
     write(b,0,b.length);
   }
 
+  
+  public void write(int b) throws IOException
+  {
+    if ((streamPos+1) > buf.length)
+    {
+      if (canResize)
+      {
+        int newcount = length + 1;
+        byte newbuf[] = new byte[Math.max(buf.length << 1, newcount)];
+        System.arraycopy(buf, 0, newbuf, 0, length);
+        buf = newbuf;
+        length++;
+      } else
+      {
+        throw new IOException("Trying to write past end of buffer");
+      }
+    }
+    buf[(int) streamPos++] = (byte) b;
+    if (streamPos > length)
+    {
+      length = (int) streamPos;
+    }
+  }
+
   public void write(byte[] b, int off, int len) throws IOException
   {
+    if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length)
+        || ((off + len) < 0))
+    {
+      throw new IndexOutOfBoundsException();
+    } else if (len == 0)
+    {
+      return;
+    }
+    if ((streamPos+len) > buf.length)
+    {
+      if (canResize)
+      {
+        int newcount = length + len;
+        byte newbuf[] = new byte[Math.max(buf.length << 1, newcount)];
+        System.arraycopy(buf, 0, newbuf, 0, length);
+        length = len-streamPos;
+        buf = newbuf;
+      } else
+      {
+        throw new IOException("Trying to write past end of buffer");
+      }
+    }
+    System.arraycopy(b, off, buf, (int)streamPos, len);
+    streamPos = streamPos + len;
+    if (streamPos > length)
+    {
+      length = (int) streamPos;
+    }
   }
 
 
@@ -64,7 +123,11 @@ public class ByteArrayStream extends SeekableDataStream
 
   public void seek(long newPosition) throws IOException
   {
-    streamPos = newPosition;
+    if (newPosition > Integer.MAX_VALUE)
+    {
+      throw new IOException(ByteArrayStream.class.getName()+" seek position is out of range.");
+    }
+    streamPos = (int)newPosition;
   }
 
 
@@ -137,6 +200,10 @@ public class ByteArrayStream extends SeekableDataStream
     buf = null;
   }
 
+  /** This method does nothing, as there is 
+   *  nothing to flush.
+   * 
+   */
   public void flush() throws IOException
   {
   }
@@ -160,6 +227,12 @@ public class ByteArrayStream extends SeekableDataStream
     out.write(buf,0,length);
   }
 
+  /** Always returns false, since there 
+   *  is no caching for byte array streams.
+   *  
+   *  @return Always returns false;
+   * 
+   */
   public boolean isCached()
   {
     return false;

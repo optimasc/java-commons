@@ -2,11 +2,13 @@ package com.optimasc.io;
 
 import java.io.IOException;
 
-/** Implementation of an Input Stream that that directly works on a byte array buffer. 
- *  This is similar to {@link java.io.ByteArrayInputStram} with the additional 
+/** Input Stream that directly reads from a byte array buffer and which is seekable. 
+ *  This is similar to {@link java.io.ByteArrayInputStream} with the additional 
  *  functionality afforded by the {@link com.optimasc.io.AbstractDataInputStream} 
- *  class as well as being not synchronized and hence <em>not</em> thread-safe.
- *
+ *  class as well as not being synchronized and hence <em>not</em> thread-safe.
+ *  
+ *  <p>Because methods are not synchronized, on Sun Java 6 platform, this
+ *  class is approximately 3 times faster than the Java SE SDK implementation.</p>
  * 
  * @author Carl Eric Codere
  *
@@ -54,11 +56,13 @@ public class ByteArrayInputStream extends SeekableDataInputStream
   public final void seek(long newPosition) throws IOException
   {
     currentPos = newPosition;
+    bitOffset = 0;
   }
 
 
   public final int read() throws IOException
   {
+    bitOffset = 0;
     if ((currentPos+1) > length)
     {
       return -1;
@@ -77,6 +81,7 @@ public class ByteArrayInputStream extends SeekableDataInputStream
     {
       return -1;
     }
+    bitOffset = 0;
     if (currentPos + len > length) 
     {
       len = (int) (length - currentPos);
@@ -111,11 +116,6 @@ public class ByteArrayInputStream extends SeekableDataInputStream
     buf = null;
   }
 
-
-  public int read(byte[] b) throws IOException
-  {
-    return read(b,0,b.length);
-  }
 
   public boolean isCached()
   {

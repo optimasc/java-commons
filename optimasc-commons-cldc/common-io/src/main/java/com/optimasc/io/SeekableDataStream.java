@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UTFDataFormatException;
 
-public abstract class SeekableDataStream extends AbstractDataInputStream implements DataOutput, BitOutput, Seekable
+public abstract class SeekableDataStream extends SeekableDataInputStream implements DataOutput, BitOutput, Seekable
 {
   /** Write buffer */
   protected byte writeBuffer[] = new byte[8];
@@ -14,7 +14,6 @@ public abstract class SeekableDataStream extends AbstractDataInputStream impleme
   public abstract void write(int b) throws IOException;
   public abstract void close() throws IOException;
   public abstract void flush() throws IOException;
-  public abstract void write(byte[] b) throws IOException;
   public abstract  void write(byte[] b, int off, int len) throws IOException;
   public abstract void writeTo(OutputStream out) throws IOException;
 
@@ -95,7 +94,7 @@ public abstract class SeekableDataStream extends AbstractDataInputStream impleme
       writeBuffer[4] = (byte)((v >> 32) & 0xff);
       writeBuffer[5] = (byte)((v >> 40) & 0xff);
       writeBuffer[6] = (byte)((v >> 48) & 0xff);
-      writeBuffer[7] = (byte)((v >> 48) & 0xff);
+      writeBuffer[7] = (byte)((v >> 56) & 0xff);
     }
     write(writeBuffer,0,8);
   }

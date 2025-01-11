@@ -2,7 +2,8 @@
 
 /** Byte array read and write routines for java data type primitives. The routines
  *  supports both reading and writing from big endian and little endian data. The
- *  parameter and method names try to mimic the <code>ByteBuffer</code> class.
+ *  parameter and method names try to mimic the <code>ByteBuffer</code> class. For 
+ *  performance reasons, the methods in this class do not do any error checking.
  *
  *  <p>With some benchmarking, it has been confirmed that doing similar
  *  operations through <code>DataInputStream</code> is 22 times slower on Java 6 desktop
@@ -12,9 +13,15 @@
  * @author Carl Eric Codere
  *
  */
-public class ByteBufferIO {
-  
-  
+public class ByteBufferIO 
+{
+  private ByteBufferIO()
+  {
+    super();
+  }
+
+
+
   /** Writes a long value at specified byte offset in the byte buffer and
    *  returns the updated byte offset. The value written is written as a 8 byte
    *  little-endian value in the byte buffer.
@@ -163,6 +170,14 @@ public class ByteBufferIO {
   }
 
 
+  /** Reads and returns a long value from specified byte offset in the byte buffer 
+   *  assuming it is stored in little endian in the byte buffer. 
+   * 
+   *  @param buffer [in] The buffer that will be read from
+   *  @param offset [in] The offset in the buffer where the reading will start
+   *  @return The read <code>long</code> value. 
+   * 
+   */
   public static long getLongLittle(final byte[] buffer, final int offset)
   {
     return
@@ -176,6 +191,14 @@ public class ByteBufferIO {
         ((long)(buffer[offset+7] & 0xff)<< 56);
   }
 
+  /** Reads and returns an int value from specified byte offset in the byte buffer 
+   *  assuming it is stored in little endian in the byte buffer. 
+   * 
+   *  @param buffer [in] The buffer that will be read from
+   *  @param offset [in] The offset in the buffer where the reading will start
+   *  @return The read <code>int</code> value. 
+   * 
+   */
   public static int getIntLittle(final byte[] buffer, final int offset)
   {
     return ((buffer[offset + 0] & 0xff) << 0) +
@@ -184,6 +207,14 @@ public class ByteBufferIO {
         ((buffer[offset + 3] & 0xff) << 24);
   }
 
+  /** Reads and returns a short value from specified byte offset in the byte buffer 
+   *  assuming it is stored in little endian in the byte buffer. 
+   * 
+   *  @param buffer [in] The buffer that will be read from
+   *  @param offset [in] The offset in the buffer where the reading will start
+   *  @return The read <code>short</code> value. 
+   * 
+   */
   public static short getShortLittle(final byte[] buffer, final int offset)
   {
     return (short)(((buffer[offset + 0] & 0xff) << 0) +
@@ -294,6 +325,14 @@ public class ByteBufferIO {
 
 
 
+  /** Reads and returns a long value from specified byte offset in the byte buffer 
+   *  assuming it is stored in big endian in the byte buffer. 
+   * 
+   *  @param buffer [in] The buffer that will be read from
+   *  @param offset [in] The offset in the buffer where the reading will start
+   *  @return The read <code>long</code> value. 
+   * 
+   */
   public static long getLongBig(final byte[] buffer, final int offset)
   {
     return
@@ -302,11 +341,19 @@ public class ByteBufferIO {
         ((long)(buffer[offset+2] & 0xff) << 40) |
         ((long)(buffer[offset+3] & 0xff) << 32) |
         ((long)(buffer[offset+4] & 0xff) << 24) |
-        ((long)(buffer[offset+5] & 0xff) << 18) |
+        ((long)(buffer[offset+5] & 0xff) << 16) |
         ((long)(buffer[offset+6] & 0xff) << 8) |
         ((long)(buffer[offset+7] & 0xff)<< 0);
   }
 
+  /** Reads and returns an int value from specified byte offset in the byte buffer 
+   *  assuming it is stored in big endian in the byte buffer.
+   * 
+   *  @param buffer [in] The buffer that will be read from
+   *  @param offset [in] The offset in the buffer where the reading will start
+   *  @return The read <code>int</code> value. 
+   * 
+   */
   public static int getIntBig(final byte[] buffer, final int offset)
   {
     return ((buffer[offset + 0] & 0xff) << 24) +
@@ -315,6 +362,14 @@ public class ByteBufferIO {
         ((buffer[offset + 3] & 0xff) << 0);
   }
 
+  /** Reads and returns a short value from specified byte offset in the byte buffer 
+   *  assuming it is stored in big endian in the byte buffer. 
+   * 
+   *  @param buffer [in] The buffer that will be read from
+   *  @param offset [in] The offset in the buffer where the reading will start
+   *  @return The read <code>short</code> value. 
+   * 
+   */
   public static short getShortBig(final byte[] buffer, final int offset)
   {
     return (short)(((buffer[offset + 0] & 0xff) << 8) +
