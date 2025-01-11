@@ -25,7 +25,8 @@ import junit.framework.TestCase;
  */
 public abstract class InputStreamTest extends TestCase
 {
-  /** Expected data bytes to be read from the inputstream */
+  /** Expected data bytes to be read from the inputstream.
+   *  13 bytes in length */
   public static final byte[] BYTE_TEST_BUFFER = 
     { 0x00, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF };
 

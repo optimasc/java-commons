@@ -328,6 +328,64 @@ public abstract class AbstractDataInputStreamTest extends MarkableInputStreamTes
       fail();
     }
   }
+
+  
+  /** Test method {@link com.optimasc.io.AbstractDataInputStream#read(byte[])} 
+   *  when the buffer is bigger than the data to read. */
+  public void testReadByteArray_normal()
+  {
+    AbstractDataInputStream is = (AbstractDataInputStream) in;
+    byte[] readBuffer = new byte[BYTE_TEST_BUFFER.length*2];
+    try
+    {
+      /* Read more than data then there is in the buffer.
+       * should return the actual data length.
+       */
+      assertEquals(BYTE_TEST_BUFFER.length,is.read(readBuffer));
+      /* Compare each byte of read buffer */
+      for (int i=0;  i <BYTE_TEST_BUFFER.length; i++)
+      {
+        assertEquals(BYTE_TEST_BUFFER[i],readBuffer[i]);
+      }
+      /* Going beyond end of data, should return -1 */
+      assertEquals(-1,is.read(readBuffer));
+    } catch (IOException e)
+    {
+      fail();
+    }
+    try 
+    {
+      is.close();
+    } catch (IOException e)
+    {
+      fail();
+    }
+  }
+  
+  
+  /** Test method {@link com.optimasc.io.AbstractDataInputStream#read(byte[])} 
+   *  when the buffer length is zero. */
+  public void testReadByteArray_zerolength()
+  {
+    AbstractDataInputStream is = (AbstractDataInputStream) ein;
+    byte[] readBuffer = new byte[0];
+    try
+    {
+      assertEquals(0,is.read(readBuffer));
+      assertEquals(0,is.read(readBuffer));
+    } catch (IOException e)
+    {
+      fail();
+    }
+    try 
+    {
+      is.close();
+    } catch (IOException e)
+    {
+      fail();
+    }
+  }
+  
   
   
 
