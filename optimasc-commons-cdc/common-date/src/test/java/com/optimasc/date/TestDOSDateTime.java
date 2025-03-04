@@ -17,6 +17,8 @@ public class TestDOSDateTime extends TestCase
     super.tearDown();
   }
 
+  
+
   public void testEncodeCalendar()
   {
     Calendar cal = Calendar.getInstance();

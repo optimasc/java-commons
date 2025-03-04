@@ -154,5 +154,26 @@ public class TestConverter extends TestCase
        }
     }
   }
+  
+  public void testEpochs02()
+  {
+    long value;
+    DateTime result;
+    DateTime.Date date = new DateTime.Date(2002,1,19);
+    DateTime.Time time = new DateTime.Time(15,32,21,0,false);
+    DateTime dateTime = new DateTime(date,time,Calendar.MILLISECOND);
+
+    value = DateConverter.toDuration(dateTime, DateTimeEpochs.POSIX);
+    result = DateConverter.toDateTime(value, DateTimeEpochs.POSIX);
+    assertEquals(1011454341L,value);
+    assertEquals(Calendar.SECOND,result.resolution);
+    assertEquals(date.year,result.date.year);
+    assertEquals(date.month,result.date.month);
+    assertEquals(date.day,result.date.day);
+    assertEquals(time.hour,result.time.hour);
+    assertEquals(time.minute,result.time.minute);
+    assertEquals(time.second,result.time.second);
+    
+  }
 
 }
