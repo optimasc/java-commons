@@ -167,7 +167,10 @@ public class NumericFormatters
   
   
   /**
-   * Integer type converter. The syntax is the one supported by the Java
+   * Integer type converter.  This converter converts a decimal 
+   * number string representation to a <code>BigInteger</code> Java Object. 
+   * 
+   * The syntax is the one supported by the Java
    * Language specification in decimal notation. This format is also compliant
    * with the following syntaxes:
    * <ul>
@@ -224,11 +227,7 @@ public class NumericFormatters
    * In <code>lenient</code> mode, the above are accepted without 
    * raising an error.
    * 
-   * <p>Based on the range of the parsed value, it can either convert the
-   * value to a {@link java.lang.Long} or {@link java.math.BigInteger} if
-   * the value does not fit within the range of an Integer. <em>Because of this,
-   * do not rely on {@link #getClassType()} to get the actual class type 
-   * returned.</em></p> 
+   * <p>The value returned is a <code>BigInteger</code> Java Object.</p>
    * 
    * 
    * When <code>lenient</code> is <code>false</code> the converter is compliant
@@ -273,10 +272,10 @@ public class NumericFormatters
             true, true);
       }
       // If it fits in 62 bits then convert it to a Long value.
-      if (result.bitLength() < 63)
+/*      if (result.bitLength() < 63)
       {
         return new Long(result.longValue());
-      }
+      }*/
       return result;
       
     }
@@ -534,11 +533,7 @@ public class NumericFormatters
    * <code>[+]?(([0-9])|([1-9][0-9]+))</code>
    * </p>
    * 
-   * <p>Based on the range of the parsed value, it can either convert the
-   * value to a {@link java.lang.Long} or {@link java.lang.BigInteger} if
-   * the value does not fit within the range of an Integer. <em>Because of this,
-   * do not rely on {@link #getClassType()} to get the actual class type 
-   * returned.</em></p> 
+   * <p>The value returned is a <code>BigInteger</code> Java Object.</p>
    * 
    * <p>In canonical representation (non-lenient) parsing mode, if a '+' sign or leading 0
    * digits are present, conversion will fail. In lenient mode, the
@@ -583,10 +578,10 @@ public class NumericFormatters
             false, true);
       }
       // If it fits in 62 bits then convert it to a Long value.
-      if (result.bitLength() < 63)
+/*      if (result.bitLength() < 63)
       {
         return new Long(result.longValue());
-      }
+      }*/
       return result;
     }
 
