@@ -54,7 +54,7 @@ import com.optimasc.lang.GregorianDatetimeCalendar;
  *         <td>day in month</td>
  *         <td>(Number)</td>
  *         <td>10</td>
- *         </tr>
+ *         </tr>  
  *         <tr valign=top>
  *         <td>H</td>
  *         <td>hour in day (0&tilde;23)</td>
