@@ -114,7 +114,7 @@ public abstract class DateConverter
         return dateValue + timeValue - targetFormat.epoch;
       case DateTimeFormat.TimeUnit.MILLISECONDS:
         dateValue =  encodeDate(value.date.year,value.date.month,value.date.day);
-        // Convert to seconds
+        // Convert to milliseconds
         dateValue = dateValue * MILLISECONDS_DAY;
         if (value.time != null)
         {
