@@ -236,6 +236,143 @@ public class StandardFormattersTest extends TestCase
     assertEquals(strValue, converter.format(value));
   }
   
+  
+  /** Tests OID canonical input conversion valid use-cases */
+  public void testOIDValid() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.OIDConverter();
+    assertEquals(true,converter.isLenient());
+    final int[] res = {1,2,3,5};
+    
+    String strValue; 
+    int[] output;
+    
+    try {
+      strValue = "1.2.3.5";
+      output = (int[]) converter.parseObject(strValue);
+      assertTrue(Arrays.equals(output, res));
+      assertEquals(strValue,converter.format(output));
+    } catch (ParseException e)
+    {
+      fail();
+    }
+  }
+  
+  /** Tests OID input conversion invalid use-cases (canonical mode) */
+  public void testOIDInvalid() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.OIDConverter();
+    assertEquals(true,converter.isLenient());
+    converter.setLenient(false);
+    
+    int[] output;
+    String strValue;
+    boolean fail=true;
+    
+    try {
+      fail = true;
+      strValue = "1.";
+      output = (int[]) converter.parseObject(strValue);
+    } catch (ParseException e)
+    {
+      assertEquals(2,e.getErrorOffset());
+      fail = false;
+    }
+    assertFalse(fail);
+
+    try {
+      fail = true;
+      strValue = "1.3.AB";
+      output = (int[]) converter.parseObject(strValue);
+    } catch (ParseException e)
+    {
+      assertEquals(4,e.getErrorOffset());
+      fail = false;
+    }
+    assertFalse(fail);
+    
+  }
+  
+  
+  public void testQualifiedNameValid() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.QualifiedNameConverter();
+    assertEquals(false,converter.isLenient());
+    
+    String strValue; 
+    String output;
+
+    String res = "_312:ch";
+    
+    try {
+      strValue = "_312:ch";
+      output = (String) converter.parseObject(strValue);
+      assertEquals(res,output);
+      assertEquals(strValue,converter.format(output));
+    } catch (ParseException e)
+    {
+      fail();
+    }
+    
+    res = "_312";
+    
+    try {
+      strValue = "_312";
+      output = (String) converter.parseObject(strValue);
+      assertEquals(res,output);
+      assertEquals(strValue,converter.format(output));
+    } catch (ParseException e)
+    {
+      fail();
+    }
+    
+  }
+  
+  
+  public void testQualifiedNameInvalid() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.QualifiedNameConverter();
+    assertEquals(false,converter.isLenient());
+    
+    String strValue; 
+    String output;
+    boolean fail = true;
+
+    String res = ":ch";
+    
+    try {
+      fail = true;
+      strValue = ":ch";
+      output = (String) converter.parseObject(strValue);
+      assertEquals(res,output);
+      assertEquals(strValue,converter.format(output));
+    } catch (ParseException e)
+    {
+        assertEquals(0,e.getErrorOffset());
+        fail = false;
+      }
+    assertFalse(fail);
+    
+    res = "_3:1:2";
+    
+    try {
+      fail = true;
+      strValue = "_3:1:2";
+      output = (String) converter.parseObject(strValue);
+      assertEquals(res,output);
+      assertEquals(strValue,converter.format(output));
+    } catch (ParseException e)
+      {
+        assertEquals(4,e.getErrorOffset());
+        fail = false;
+      }
+    assertFalse(fail);
+    
+  }
+  
+  
+  
+  
   /** Tests Locale canonical input conversion valid use-cases */
   public void testLocaleValid() throws ParseException
   {

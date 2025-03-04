@@ -6,7 +6,11 @@ import java.net.URISyntaxException;
 import java.text.FieldPosition;
 import java.text.ParseException;
 import java.text.ParsePosition;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+
+import com.optimasc.lang.MediaType;
 
 /*
  * 
@@ -678,7 +682,11 @@ public class StandardFormatters
   }
 
   /**
-   * Type converter to native Java Objects for a Locale. It supports a subset of
+   * Type converter to native Java Objects for a Locale. A <code>Locale</code> is 
+   * represented by a Java Object of type <code>Locale</code>.
+   *  
+   * 
+   * It supports a subset of
    * the format defined in IETF RFC 5646. The differences are specified below:
    * 
    * <ul>
@@ -924,6 +932,88 @@ public class StandardFormatters
       return parseObject(value.toString());
     }
   }
+  
+  
+  /** Type converter to native Java Objects for an ASN.1 OBJECT IDENTIFIER. An <code>OID</code> 
+   * is represented by a Java Object of type <code>int[]</code>. 
+   * 
+   * This formatter only supports the NumberForm of the OBJECT IDENTIFIER syntax. */
+  public static class OIDConverter extends DataConverter
+  {
+    private static DataConverter instance;
+
+    public OIDConverter()
+    {
+      super(int[].class, true);
+    }
+
+    public static DataConverter getInstance()
+    {
+      if (instance == null)
+      {
+        synchronized (OIDConverter.class)
+        {
+          if (instance == null)
+            instance = new OIDConverter();
+        }
+      }
+      return instance;
+    }
+
+    public StringBuffer format(Object value, StringBuffer toAppendTo, FieldPosition pos)
+    {
+      if ((value instanceof int[]) == false)
+      {
+        throw new IllegalArgumentException("Object value is not instance of '"
+            + clz.getName() + "'");
+      }
+      int[] v = (int[]) value;
+      for (int i=0; i < v.length-1; i++)
+      {
+        toAppendTo.append(Integer.toString(v[i]));
+        toAppendTo.append(".");
+      }
+      toAppendTo.append(Integer.toString(v[v.length-1]));
+      return toAppendTo;
+    }
+
+    public Object parseObject(CharSequence value) throws ParseException
+    {
+      ParsePosition pos = new ParsePosition(0);
+      List list = new ArrayList();
+      int n = -1;
+      while (pos.getIndex()<value.length())
+      {
+        n = Parsers.parsePositiveNumber(value, pos, 1, 64);
+        list.add(new Integer(n));
+        if (pos.getIndex()==value.length())
+          break;
+        if (value.charAt(pos.getIndex())!='.')
+        {
+          throw new ParseException("Expecting '.' but found another character",pos.getIndex());
+        }
+        pos.setIndex(pos.getIndex()+1);
+        n = -1;
+      }
+      if (n == -1)
+      {
+        pos.setErrorIndex(pos.getIndex());
+        throw new ParseException("Expecting positive number but found another character",pos.getIndex());
+      }
+      int result[] = new int[list.size()];
+      for (int i=0; i < result.length; i++)
+      {
+        result[i] = ((Integer)list.get(i)).intValue();
+      }
+      return result;
+    }
+
+    public Object parseObject(String value) throws ParseException
+    {
+      return parseObject((CharSequence)value);
+    }
+  }
+  
 
   /**
    * Type converter to native Java Objects for NAME definition as specified in
@@ -1079,6 +1169,345 @@ public class StandardFormatters
     }
     
   }
+  
+  
+  /**
+   * Type converter to native Java Objects for NCName definition is a strict subet
+   * of the XMLSchema datatype specification. A <code>NCName</code> is represented by a
+   * Java Object of type <code>String</code>.
+   * 
+   * <p>
+   * Name values must begin with a unicode letter, non-digit number, ideograph, underscore ("_"), and may 
+   * be followed by any number of letters, numbers, ideographs, connector punctuations,  
+   * hyphens ("-"), underscores ("_") and periods (".").
+   * </p>
+   * 
+   * When in <code>lenient</code> mode, all invalid characters automatically
+   * removed and empty strings are allowed. 
+   *
+   * The default mode is not lenient.
+   * 
+   * */
+  public static class NCNameConverter extends DataConverter
+  {
+    private static DataConverter instance;
+    
+    /**
+     * Verifies if the character is a subset of XML NAME type.
+     * 
+     * @param ch
+     *          [in] The character to verify. Only supports
+     *          characters in the Basic Multilanguage Plane (BMP).
+     * @return true if character is valid, false otherwise.
+     */
+    public static boolean isNameChar(char ch)
+    {
+      //@formatter:off
+      /* \p{L} or _ */
+      if (isNameStartChar(ch)==true) return true;
+      switch (Character.getType(ch))
+      {
+        /* \p{Nd} */
+        case Character.DECIMAL_DIGIT_NUMBER:
+          /* \p{Pc} */
+        case Character.CONNECTOR_PUNCTUATION:
+          return true;
+        default:
+          break;
+      }
+      if (ch=='-') return true;
+      if (ch=='.') return true;
+      if (ch==0xB7) return true;
+      //@formatter:on
+      return false;
+    }
+
+    /**
+     * Verifies if the start character is a subset of XML NAME type.
+     * 
+     * @param ch
+     *          [in] The character to verify. Only supports
+     *          characters in the Basic Multilanguage Plane (BMP).
+     * @return true if character is valid, false otherwise.
+     */
+    public static boolean isNameStartChar(char ch)
+    {
+      //@formatter:off
+      /* \p{L} */
+      if (Character.isLetter(ch)) return true;
+      /* \p{Nl} */
+      if (Character.getType(ch)==Character.LETTER_NUMBER) return true;
+      if (ch == '_') return true;
+      return false;
+      //@formatter:on
+    }
+
+    public NCNameConverter(boolean lenient)
+    {
+      super(String.class, lenient);
+    }
+
+    public NCNameConverter()
+    {
+      this(false);
+    }
+
+    public Object parseObject(CharSequence value) throws ParseException
+    {
+      int inLength = value.length();
+      int outOffset;
+      if ((inLength == 0) && (lenient == false))
+      {
+        throw new ParseException("Empty string are not allowed.", 0);
+      }
+      char c;
+      char[] outBuffer = new char[inLength];
+      if (lenient == false)
+      {
+        outOffset = inLength;
+        c = value.charAt(0);
+        if (isNameStartChar(c) == false)
+        {
+          throw new ParseException("Illegal character '" + c + "' found.", 0);
+        }
+        outBuffer[0] = c;
+        for (int i = 1; i < value.length(); i++)
+        {
+          c = value.charAt(i);
+          if (isNameChar(c) == false)
+          {
+            throw new ParseException("Illegal character '" + c + "' found.", i);
+          }
+          outBuffer[i] = c;
+        }
+      }
+      else
+      {
+        outOffset = 0;
+        c = value.charAt(0);
+        if (isNameStartChar(c) == false)
+        {
+        }
+        else
+        {
+          outBuffer[outOffset++] = c;
+        }
+        for (int i = 1; i < value.length(); i++)
+        {
+          c = value.charAt(i);
+          if (isNameChar(c) == false)
+          {
+            continue;
+          }
+          outBuffer[outOffset++] = c;
+        }
+      }
+      String result = new String(outBuffer, 0, outOffset);
+      outBuffer = null;
+      return result;
+    }
+
+    public Object parseObject(String value) throws ParseException
+    {
+      return parseObject((CharSequence) value);
+    }
+
+    public StringBuffer format(Object value, StringBuffer toAppendTo, FieldPosition pos)
+    {
+      if ((value instanceof CharSequence) == false)
+      {
+        throw new IllegalArgumentException("Object value is not instance of '"
+            + clz.getName() + "'");
+      }
+      return toAppendTo.append(value.toString());
+    }
+    
+    public static DataConverter getInstance()
+    {
+      if (instance == null)
+      {
+        synchronized (NCNameConverter.class)
+        {
+          if (instance == null)
+            instance = new NCNameConverter();
+        }
+      }
+      return instance;
+    }
+    
+  }
+  
+  
+  /**
+   * Type converter to native Java Objects for QualifiedName definition is a strict subet
+   * of the XMLSchema datatype specification. A <code>QName</code> is represented by a
+   * Java Object of type <code>String</code>.
+   * 
+   * <p>
+   * Name values must begin with a unicode letter, non-digit number, ideograph, underscore ("_"), and may 
+   * be followed by any number of letters, numbers, ideographs, connector punctuations,  
+   * hyphens ("-"), underscores ("_") and periods ("."). It is possible to have a (":") character
+   * that separates the prefix from the rest.
+   * </p>
+   * 
+   * When in <code>lenient</code> mode, all invalid characters automatically
+   * removed and empty strings are allowed. 
+   *
+   * The default mode is not lenient.
+   * 
+   * */
+  public static class QualifiedNameConverter extends DataConverter
+  {
+    private static DataConverter instance;
+    
+
+    public QualifiedNameConverter(boolean lenient)
+    {
+      super(String.class, lenient);
+    }
+
+    public QualifiedNameConverter()
+    {
+      this(false);
+    }
+
+    public Object parseObject(CharSequence value) throws ParseException
+    {
+      int inLength = value.length();
+      int outOffset;
+      boolean foundColon = false;
+      if ((inLength == 0) && (lenient == false))
+      {
+        throw new ParseException("Empty string are not allowed.", 0);
+      }
+      char c;
+      char[] outBuffer = new char[inLength];
+      if (lenient == false)
+      {
+        outOffset = inLength;
+        c = value.charAt(0);
+        if (NCNameConverter.isNameStartChar(c) == false)
+        {
+          throw new ParseException("Illegal character '" + c + "' found.", 0);
+        }
+        outBuffer[0] = c;
+        for (int i = 1; i < value.length(); i++)
+        {
+          c = value.charAt(i);
+          if (c == ':')
+          {
+            if (foundColon == true)
+            {
+              throw new ParseException("Illegal character '" + c + "' found.", i);
+            }
+            foundColon = true;
+          }
+          else
+          if (NCNameConverter.isNameChar(c) == false)
+          {
+            throw new ParseException("Illegal character '" + c + "' found.", i);
+          }
+          outBuffer[i] = c;
+        }
+      }
+      else
+      {
+        outOffset = 0;
+        c = value.charAt(0);
+        if (NCNameConverter.isNameStartChar(c) == false)
+        {
+        }
+        else
+        {
+          outBuffer[outOffset++] = c;
+        }
+        for (int i = 1; i < value.length(); i++)
+        {
+          c = value.charAt(i);
+          if (c == ':')
+          {
+            if (foundColon == true)
+            {
+              continue;
+            }
+            foundColon = true;
+          }
+          if (NCNameConverter.isNameChar(c) == false)
+          {
+            continue;
+          }
+          outBuffer[outOffset++] = c;
+        }
+      }
+      String result = new String(outBuffer, 0, outOffset);
+      outBuffer = null;
+      return result;
+    }
+
+    public Object parseObject(String value) throws ParseException
+    {
+      return parseObject((CharSequence) value);
+    }
+
+    public StringBuffer format(Object value, StringBuffer toAppendTo, FieldPosition pos)
+    {
+      if ((value instanceof CharSequence) == false)
+      {
+        throw new IllegalArgumentException("Object value is not instance of '"
+            + clz.getName() + "'");
+      }
+      return toAppendTo.append(value.toString());
+    }
+    
+    public static DataConverter getInstance()
+    {
+      if (instance == null)
+      {
+        synchronized (QualifiedNameConverter.class)
+        {
+          if (instance == null)
+            instance = new QualifiedNameConverter();
+        }
+      }
+      return instance;
+    }
+    
+  }
+  
+  
+  
+  
+  /** Represents a Media Type converter */
+  public static class MediaTypeConverter extends DataConverter 
+  {
+     public MediaTypeConverter()
+     {
+       super(MediaType.class,false);
+     }
+
+    public Object parseObject(String value) throws ParseException
+    {
+      return new MediaType(value);
+    }
+
+    public Object parseObject(CharSequence value) throws ParseException
+    {
+      return parseObject(value.toString());
+    }
+
+    public StringBuffer format(Object value, StringBuffer toAppendTo, FieldPosition pos)
+    {
+      MediaType mt;
+      if ((value instanceof MediaType) == false)
+      {
+        throw new IllegalArgumentException("Object value is not instance of '"
+            + clz.getName() + "'");
+      }
+      mt = (MediaType) value;
+      return toAppendTo.append(mt.toString());
+    }
+  }
+  
 
   /**
    * Type converter to native Java Objects for a subset of visible US-ASCII
@@ -1174,6 +1603,130 @@ public class StandardFormatters
     }
 
   }
+  
+  
+  
+  /**
+   * Type converter to native Java Objects for a subset of visible US-ASCII
+   * characters. This is equivalent to the ASN.1 <code>PrintableString</code>. A
+   * <code>PrintableString</code> is represented by a Java Object of type
+   * <code>String</code>.
+   * 
+   * When in <code>lenient</code> mode, all control characters are automatically
+   * removed and empty strings are allowed. By default parsing is lenient. In
+   * all whatever the mode non printable characters will cause an exception.
+   * 
+   * */
+  public static class PrintableStringConverter extends DataConverter
+  {
+    private static DataConverter instance;
+    
+    public static final int MIN_CHAR = 32;
+    public static final int MAX_CHAR = 127;
+    
+    
+
+
+    public PrintableStringConverter()
+    {
+      super(String.class, true);
+    }
+    
+    public static DataConverter getInstance()
+    {
+      if (instance == null)
+      {
+        synchronized (PrintableStringConverter.class)
+        {
+          if (instance == null)
+            instance = new PrintableStringConverter();
+        }
+      }
+      return instance;
+    }
+    
+    
+    
+    
+
+    public Object parseObject(CharSequence value) throws ParseException
+    {
+      int inLength = value.length();
+      int outOffset;
+      if ((inLength == 0) && (lenient == false))
+      {
+        throw new ParseException("Empty strings are not allowed.", 0);
+      }
+      char c;
+      char[] outBuffer = new char[inLength];
+      if (lenient == false)
+      {
+        outOffset = inLength;
+        for (int i = 0; i < inLength; i++)
+        {
+          c = value.charAt(i);
+          switch (c)
+          {
+            case 32:
+            case 39:
+            case 61:
+            case 63:
+              break;
+            default:
+              if (((c >= 40) && (c <= 58)) || ((c >= 65) && ( c <= 90)) || ((c >= 97) || (c<=122)))
+              {
+                break;
+              }
+              throw new ParseException("Illegal character '" + c + "' found.", i);
+          }
+          outBuffer[i] = c;
+        }
+      }
+      else
+      {
+        outOffset = 0;
+        for (int i = 0; i < inLength; i++)
+        {
+          c = value.charAt(i);
+          switch (c)
+          {
+            case 32:
+            case 39:
+            case 61:
+            case 63:
+              break;
+            default:
+              if (((c >= 40) && (c <= 58)) || ((c >= 65) && ( c <= 90)) || ((c >= 97) || (c<=122)))
+              {
+                break;
+              }
+              continue;
+          }
+          outBuffer[outOffset++] = c;
+        }
+      }
+      String result = new String(outBuffer, 0, outOffset);
+      outBuffer = null;
+      return result;
+    }
+
+    public Object parseObject(String value) throws ParseException
+    {
+      return parseObject((CharSequence) value);
+    }
+
+    public StringBuffer format(Object value, StringBuffer toAppendTo, FieldPosition pos)
+    {
+      if ((value instanceof CharSequence) == false)
+      {
+        throw new IllegalArgumentException("Object value is not instance of '"
+            + clz.getName() + "'");
+      }
+      return toAppendTo.append(value.toString());
+    }
+
+  }
+  
 
   /**
    * Type converter to native Java Objects for the IANA ISO-8859-1 character
@@ -1270,7 +1823,6 @@ public class StandardFormatters
    * <ul>
    * <li>ASN.1 ITU X.680</li>
    * <li>LDAP IETF RFC 4517 (OID: 1.3.6.1.4.1.1466.115.121.1.7)</li>
-   * <li>vCard IETF RFC 6350 BOOLEAN type</li>
    * <li>SQL99 Boolean syntax</li>
    * </ul>
    * 
@@ -1281,6 +1833,7 @@ public class StandardFormatters
    * <li>W3C XML Schema Second Edition (2004) integer built-in datatype
    * canonical representation</li>
    * <li>ISO/IEC 11404 General purpose datatypes.</li>
+   * <li>vCard IETF RFC 6350 BOOLEAN type</li>
    * </ul>
    */
   public static class BooleanConverter extends DataConverter
