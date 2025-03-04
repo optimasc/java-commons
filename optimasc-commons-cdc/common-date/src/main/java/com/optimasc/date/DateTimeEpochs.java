@@ -33,4 +33,11 @@ public class DateTimeEpochs
     *  This has been verified against the Epoch (computing) Wikipedia page on 2024-06-25.
     * */
    public static final DateTimeFormat RATA_DIE_DAY = new DateTimeFormat(DateTimeFormat.TimeUnit.DAYS,+365);
+   /** NTFS modified timestamp epoch which has a resolution of milliseconds since 1601-01-01 UTC Gregorian Calendar.
+    * From a NTFS timestamp which has a resolution of of 100 ns, you must divide the value by 10000 
+    * (value * 100 ns/intervals = ns -> ns/1000000 -> ms)
+    * get the number of milliseconds.
+    */  
+   public static final DateTimeFormat MNTFS = new DateTimeFormat(DateTimeFormat.TimeUnit.MILLISECONDS,+584754L*24L*60L*60L*1000L); 
+   
 }
