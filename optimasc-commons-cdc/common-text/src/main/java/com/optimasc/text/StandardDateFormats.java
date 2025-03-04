@@ -10,6 +10,7 @@ public class StandardDateFormats
   // Resolution day
   public static final String PATTERN_ISO8601_DATE = "yyyy-MM-dd";
   public static final String PATTERN_ISO8601_TIME = "HH:mm:ss.SX";
+  public static final String PATTERN_ISO8601_DATETIME = "yyyy-MM-ddTHH:mm:ss";
   
   /** ISO 8601 Time with or without timezone */
   public static final DateConverter ISO8601_TIME = new DateConverter(
@@ -68,6 +69,21 @@ public class StandardDateFormats
       new String[]{
        "yyyy:MM:dd HH:mm:ss"}
   );
+  
+  /** Date/time pattern for ISO 8601 standard date (YYYY-MM-DD) */
+  public static final DateConverter ISO8601_DATE = new DateConverter(
+      new String[]{
+          PATTERN_ISO8601_DATE}
+  );
+  
+  
+  /** Date/time pattern for ISO 8601 standard date and local time (YYYY-MM-DDThh:mm:ss) */
+  public static final DateConverter ISO8601_DATETME = new DateConverter(
+      new String[]{
+          PATTERN_ISO8601_DATETIME}
+  );
+  
+  
       
 }
 
