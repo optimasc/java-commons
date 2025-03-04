@@ -81,25 +81,21 @@ public class DOSDateTime extends DateEncoder
       throw new IllegalArgumentException("Invalid year value, should be "+DOSDate.MIN_YEAR+".."+DOSDate.MAX_YEAR);
     }
     /* check for invalid dates */
-    if ((value.date.month < DateTime.MIN_MONTH) || (value.date.month > DateTime.MAX_MONTH))
-    {
-      throw new IllegalArgumentException("Invalid month value, should be "+DateTime.MIN_MONTH+".."+DateTime.MAX_MONTH);
-    }
     if ((value.date.day < DateTime.MIN_DAY) || (value.date.day > DateTime.MAX_DAY))
     {
       throw new IllegalArgumentException("Invalid day value, should be "+DateTime.MIN_DAY+".."+DateTime.MAX_DAY);
     }
     if ((value.time.hour < DateTime.MIN_HOUR) || (value.time.hour > DateTime.MAX_HOUR))
     {
-      throw new IllegalArgumentException("Invalid month value, should be "+DateTime.MIN_HOUR+".."+DateTime.MAX_HOUR);
+      throw new IllegalArgumentException("Invalid hour value, should be "+DateTime.MIN_HOUR+".."+DateTime.MAX_HOUR);
     }
     if ((value.time.minute < DateTime.MIN_MINUTE) || (value.time.minute > DateTime.MAX_MINUTE))
     {
-      throw new IllegalArgumentException("Invalid day value, should be "+DateTime.MIN_MINUTE+".."+DateTime.MAX_MINUTE);
+      throw new IllegalArgumentException("Invalid minute value, should be "+DateTime.MIN_MINUTE+".."+DateTime.MAX_MINUTE);
     }
     if ((value.time.second < DateTime.MIN_SECOND) || (value.time.second > DateTime.MAX_SECOND))
     {
-      throw new IllegalArgumentException("Invalid day value, should be "+DateTime.MIN_SECOND+".."+DateTime.MAX_SECOND);
+      throw new IllegalArgumentException("Invalid second value, should be "+DateTime.MIN_SECOND+".."+DateTime.MAX_SECOND);
     }
     if (value.time.localTime==false)
     {
