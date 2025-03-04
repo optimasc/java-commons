@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.optimasc.commons</groupId>
+        <artifactId>common</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+  <name>Common Language additional types</name>
+  <url></url>
+  <inceptionYear>2016</inceptionYear>
+  <artifactId>optimasc-commons-math</artifactId>
+  <description>A set of additional math routines compatible with CDC 1.1 Foundation profile and Java 1.4 that can be used to write portable code. </description>
+  
+  <licenses>
+   <license>
+        <name>Apache-2.0</name>
+        <url>${project.basedir}/LICENSE.txt</url>
+   </license>
+  </licenses> 
+  
+   <developers>
+    <developer>
+      <name>Carl Eric Codère</name>
+      <roles>
+        <role>creator</role>
+        <role>developer</role>
+      </roles>
+    </developer>
+  </developers>
+  
+  <contributors>
+    <contributor>
+      <name>Apache Harmony project</name>
+      <url>https://harmony.apache.org/</url>
+      <organization>Apache Harmony</organization>
+      <organizationUrl>https://harmony.apache.org</organizationUrl>
+      <roles>
+        <role>source code for surrogate pairs</role>
+      </roles>
+    </contributor>  
+  </contributors>
+  
+  
+	<!-- List of organization associated with this project -->
+	<organization>
+		<name>Optima SC Inc.</name>
+		<url>http://www.optimasc.com</url>
+	</organization>
+
+</project>
