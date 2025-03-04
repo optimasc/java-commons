@@ -14,6 +14,7 @@
         <module>common-io</module>
         <module>common-date</module>
         <module>common-lang</module>
+        <module>common-math</module>
         <module>common-text</module>
     </modules>  
   
@@ -118,7 +119,7 @@
 				<maven.compiler.debuglevel>lines,source</maven.compiler.debuglevel>
 				<maven.compiler.optimize>true</maven.compiler.optimize>
 				<maven.javadoc.skip>false</maven.javadoc.skip>
-				<maven.source.skip>true</maven.source.skip>
+				<maven.source.skip>false</maven.source.skip>
 				<assembly.skipAssembly>true</assembly.skipAssembly>
 				<project.build.directory.classes>${project.build.directory}/classes</project.build.directory.classes>
 				<project.build.outputDirectory.classes.jar>${project.build.outputDirectory.classes}</project.build.outputDirectory.classes.jar>
@@ -287,7 +288,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.5</version>
+						<version>1.6</version>
 						<executions>
 							<execution>
 								<id>sign-artifacts</id>
@@ -446,6 +447,7 @@
 				<executions>
 					<execution>
 						<id>attach-sources</id>
+						<phase>verify</phase>
 						<goals>
 							<goal>jar-no-fork</goal>
 						</goals>
