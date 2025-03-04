@@ -66,6 +66,16 @@ import com.optimasc.text.PrintfFormat;
 public final class StringUtilities
 {
 
+  /** Matches MS-DOS / UNIX style wildcards. A wildcard
+   *  is represented by a '*' character which matches
+   *  zero or more characters and the '?' which matches
+   *  a single character.
+   *   
+   * @param N1 [in] The string, which may contain wildcards
+   *   that will be used as basis for the match.
+   * @param N2 [in] The value that will be compared.
+   * @return true if there N1 matches N2.
+   */
   public static boolean wildcardMatch(String N1, String N2)
   {
     int P1;
@@ -221,23 +231,38 @@ public final class StringUtilities
     return str;
   }
 
+  /** Whitespace normalization: Preserve all whitespace */
+  public static final int WHITESPACE_PRESERVE = 1;
+  /** Whitespace normalization: All occurrences of 
+   *  0x09 (tab), 0x0A (line feed) and 0x0D (carriage return) 
+   *  are replaced with 0x20 (space) characters.  */
+  public static final int WHITESPACE_REPLACE = 2;
+  /** Whitespace normalization: After the processing implied by 
+   *  {@link #WHITESPACE_REPLACE}, contiguous sequences of 0x20's are 
+   *  collapsed to a single 0x20, and leading and trailing 0x20's are removed. 
+   */
+  public static final int WHITESPACE_COLLAPSE = 3;
+
   /**
-   * This routine is used to normalize the whitespace in a string. It can be
-   * used in three different ways:
+   * Normalizes the whitespace in a string. It can be used in three different 
+   * ways:
    *
-   * If normType is WHITESPACE_PRESERVE nothing is done on the string and it is
-   * returned as is, if normType is WHITESPACE_REPLACE all occurrences of #x9
+   * If normType is {@link #WHITESPACE_PRESERVE} nothing is done on the string and it is
+   * returned as is, if normType is {@link #WHITESPACE_REPLACE} all occurrences of #x9
    * (tab), #xA (line feed) and #xD (carriage return) are replaced with #x20
-   * (space). if normType is WHITESPACE_COLLAPSE after the processing implied by
+   * (space). if normType is {@link #WHITESPACE_COLLAPSE} after the processing implied by
    * WHITESPACE_REPLACE, contiguous sequences of #x20's are collapsed to a
    * single #x20, and leading and trailing #x20's are removed.
    *
    * The values returned is a newly allocated string.
+   * 
+   * <p>The behaviour is equivalent to the <code>whiteSpace</code> attribute
+   * of XMLSchema Second Edition.</p>
+   * 
+   * @param s [in] The string that will be normalzied.
+   * @param normType [in] Normalization type  
+   * @return The normalized string
    */
-  public static final int WHITESPACE_PRESERVE = 1;
-  public static final int WHITESPACE_REPLACE = 2;
-  public static final int WHITESPACE_COLLAPSE = 3;
-
   public static String normalizeWhitespaces(String s, int normType)
   {
     // Preserve the whiteSpace, simply do nothing
@@ -276,6 +301,16 @@ public final class StringUtilities
     return res.toString().trim();
   }
 
+  /** Splits this string around matches of the given string.
+   * 
+   *  <p>This is a subset of the Java 1.4 SDK String <code>split</code>
+   *  method which is not available in JSR 219 CDC foundation profile.</p>
+   * 
+   * @param original [in] The string to split
+   * @param separator [in] The separator string used to 
+   *   split the string.
+   * @return The separated string.
+   */
   public static String[] split(String original, String separator)
   {
     Vector nodes = new Vector();
@@ -304,6 +339,16 @@ public final class StringUtilities
   private static final String TRUE = "true";
   private static final String FALSE = "false";
 
+  /**
+   * Converts the specified boolean to its string representation.
+   * 
+   * <p>This method is added here since it is available in 
+   * Java 1.4 SDK but not in the JSR 219 CDC Foundation profile</p>
+   * 
+   * @param value
+   *            the boolean to convert.
+   * @return "true" if {@code value} is {@code true}, "false" otherwise.
+   */  
   public static String booleanToString(boolean b)
   {
     if (b)
@@ -505,12 +550,16 @@ public final class StringUtilities
   }
 
   /**
-   * Dump the data in the specified array to a printstream.
+   * Dump the data in the specified array to a printstream. The format
+   * of the data is split into two parts, the left parts printing the
+   * hex parts while the right part prints the ASCII representation
+   * of the value.
    *
-   * @param out
-   * @param bytes
-   * @param length
-   * @param width
+   * @param out [in] The output stream where the text will be output.
+   * @param bytes [in] The bytes that will be printed
+   * @param length [in] The length of the array
+   * @param width [in] The width in characters of the ASCII part
+   *   and hexadecimal part.
    * @throws IOException
    */
   public static void dumpData(PrintStream out, byte[] bytes, int length,
@@ -519,17 +568,26 @@ public final class StringUtilities
     for (int index = 0; index < length; index += width)
     {
       printHex(out, bytes, index, width);
-      printAscii(out, bytes, index, width);
+      printASCII(out, bytes, index, width);
       out.println();
     }
   }
 
-  private static void printHex(PrintStream out, byte[] bytes, int offset,
-      int width)
+  /** Prints hexadecimal representation of binary values in a buffer 
+   *  to the output stream. Each hexadecimal value is separated
+   *  from the others by a space.
+   * 
+   * @param out [in] The output stream where the text will be output.
+   * @param bytes [in] The bytes that will be printed
+   * @param offset [in] The offset in the buffer
+   * @param length [in] The maximum number of bytes to print
+   */
+  public static void printHex(PrintStream out, byte[] bytes, int offset,
+      int length)
   {
     PrintfFormat pf = new PrintfFormat("%02x ");
     int index;
-    for (index = 0; index < width; index++)
+    for (index = 0; index < length; index++)
     {
       if (index + offset < bytes.length)
       {
@@ -541,12 +599,21 @@ public final class StringUtilities
     }
   }
 
-  private static void printAscii(PrintStream out, byte[] bytes, int offset,
-      int width) throws UnsupportedEncodingException
+  /** Prints ASCII representation of binary values in a buffer 
+   *  to the output stream. When the character is not printable
+   *  as ASCII a dot "."  character is output instead.
+   * 
+   * @param out [in] The output stream where the text will be output.
+   * @param bytes [in] The bytes that will be printed
+   * @param offset [in] The offset in the buffer
+   * @param length [in] The maximum number of bytes to print
+   */
+  public static void printASCII(PrintStream out, byte[] bytes, int offset,
+      int length) throws UnsupportedEncodingException
   {
     int val;
     char c;
-    for (int index = 0; index < width; index++)
+    for (int index = 0; index < length; index++)
     {
       if (index + offset < bytes.length)
       {

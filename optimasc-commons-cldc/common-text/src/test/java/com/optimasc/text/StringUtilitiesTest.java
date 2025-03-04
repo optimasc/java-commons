@@ -49,6 +49,8 @@
 
 package com.optimasc.text;
 
+import java.io.IOException;
+
 import junit.framework.TestCase;
 
 /**
@@ -189,6 +191,21 @@ public class StringUtilitiesTest extends TestCase {
         assertEquals(true, result);
 
 
+    }
+    
+    /** Testing of dumpData routine */
+    public void testDumpData()
+    {
+      final byte[] buffer = {0x00,0x20,0x30,0x31,0x32,0x33,0x34,0x36,0x37,0x38};
+      
+      try
+      {
+        StringUtilities.dumpData(System.out, buffer, buffer.length, 8);
+      } catch (IOException e)
+      {
+        fail();
+      }
+      
     }
 
 }
