@@ -11,7 +11,7 @@
     
     <modules>
         <module>optimasc-commons-cldc</module>
-        <module>optimasc-commons</module>
+        <module>optimasc-commons-cdc</module>
         <module>optimasc-datatypes</module>
     </modules>    
     
