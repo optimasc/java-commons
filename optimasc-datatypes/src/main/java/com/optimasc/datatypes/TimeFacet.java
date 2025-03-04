@@ -13,4 +13,6 @@ public interface TimeFacet extends TimeUnitFacet
    *  
    */
   public boolean isLocalTime();
+  
+  public void setLocalTime(boolean localTime);  
 }

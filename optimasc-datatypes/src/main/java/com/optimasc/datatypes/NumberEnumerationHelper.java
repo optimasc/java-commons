@@ -1,12 +1,12 @@
 package com.optimasc.datatypes;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Arrays;
 
 /** Class that implements an enumeration helper manager. It assumes
  *  that the values are unlimited values which may have some 
- *  fractional digits, hence all operations are done through the
- *  <code>BigDecimal</code> class.
+ *  fractional digits.
  *  
  *  <p>It is to note for searching, that a copy of the allowed
  *  choices is made internally and is sorted.</p>
@@ -14,18 +14,56 @@ import java.util.Arrays;
  * @author Carl Eric Codere
  *
  */
-public class DecimalEnumerationHelper implements DecimalEnumerationFacet
+public class NumberEnumerationHelper implements NumberEnumerationFacet
 {
-  protected BigDecimal[] sortedEnumeration;
-  
-  public BigDecimal[] getChoices()
+  public static class NumericValue implements Comparable
   {
-    return sortedEnumeration;
+    protected BigDecimal value;
+    protected Number originalValue;
+    
+    public NumericValue(BigDecimal value, Number originalValue)
+    {
+      this.value = value;
+      this.originalValue = originalValue;
+    }
+
+    public int compareTo(Object o)
+    {
+      return value.compareTo(((NumericValue)(o)).value);
+    }
   }
   
-  public DecimalEnumerationHelper()
+  protected NumericValue[] sortedEnumeration;
+  protected Number[] choices;
+  
+  public Number[] getChoices()
+  {
+    return choices;
+  }
+  
+  public NumberEnumerationHelper()
   {
     sortedEnumeration = null;
+  }
+  
+  
+  protected NumericValue convert(Number n)
+  {
+    NumericValue v = null;
+    if (n instanceof BigDecimal)
+    {
+      v = new NumericValue((BigDecimal) n,n);
+    } else
+    if (n instanceof BigInteger)
+    {
+        v = new NumericValue(new BigDecimal((BigInteger)n),n);
+    } else
+    if ((n instanceof Double) || (n instanceof Float))
+    {
+          v = new NumericValue(new BigDecimal(n.doubleValue()),n);
+    } else
+      v = new NumericValue(new BigDecimal(n.longValue()),n);
+    return v;
   }
 
   /**
@@ -34,7 +72,7 @@ public class DecimalEnumerationHelper implements DecimalEnumerationFacet
    * @throws IllegalArgumentException Thrown if the scales
    *   of the values are different.
    */
-  public void setChoices(BigDecimal[] choices) throws IllegalArgumentException
+  public void setChoices(Number[] choices) throws IllegalArgumentException
   {
     int scale;
     if (choices == null)
@@ -44,30 +82,33 @@ public class DecimalEnumerationHelper implements DecimalEnumerationFacet
     }
     if (choices.length > 0)
     {
-      scale = choices[0].scale();
-      for (int i=1; i < choices.length; i++)
+      sortedEnumeration = new NumericValue[choices.length];
+      this.choices = choices;
+      for (int i=0; i < choices.length; i++)
       {
-        if (choices[i].scale()!=scale)
-        {
-          throw new IllegalArgumentException("The scale of the numeric values must be equal.");
-        }
+        Number n = choices[i];
+        NumericValue v = null;
+        v = convert(n);
+        sortedEnumeration[i] = v;
       }
     }
-    sortedEnumeration = new BigDecimal[choices.length];
-    System.arraycopy(choices, 0, sortedEnumeration, 0, choices.length);
     Arrays.sort(sortedEnumeration);
-    
-    
+    /** Now get back the sorted array */
+    for (int i=0; i < sortedEnumeration.length; i++)
+    {
+      this.choices[i] = sortedEnumeration[i].originalValue;
+    }
   }
 
-  public boolean validateChoice(BigDecimal value)
+  public boolean validateChoice(Number value)
   {
     // No restriction
     if (sortedEnumeration == null)
     {
       return true;
     }
-    if (Arrays.binarySearch(sortedEnumeration, value)<0)
+    NumericValue otherValue = convert(value);
+    if (Arrays.binarySearch(sortedEnumeration, otherValue)<0)
        return false;
     return true;
   }
@@ -80,12 +121,18 @@ public class DecimalEnumerationHelper implements DecimalEnumerationFacet
       sortedEnumeration = null;
       return;
     }
-    sortedEnumeration = new BigDecimal[choices.length];
+    sortedEnumeration = new NumericValue[choices.length];
     for (int i=0; i < choices.length; i++)
     {
-      sortedEnumeration[i] = BigDecimal.valueOf(choices[i]);
+      sortedEnumeration[i] = new NumericValue(BigDecimal.valueOf(choices[i]),new Long(choices[i]));
     }
     Arrays.sort(sortedEnumeration);
+    /** Now get back the sorted array */
+    this.choices = new Number[sortedEnumeration.length];
+    for (int i=0; i < sortedEnumeration.length; i++)
+    {
+      this.choices[i] = sortedEnumeration[i].originalValue;
+    }
   }
 
   public boolean validateChoice(long value)
@@ -95,7 +142,7 @@ public class DecimalEnumerationHelper implements DecimalEnumerationFacet
     {
       return true;
     }
-    BigDecimal v = BigDecimal.valueOf(value);
+    NumericValue v =convert(BigDecimal.valueOf(value));
     if (Arrays.binarySearch(sortedEnumeration, v)<0)
        return false;
     return true;
@@ -105,7 +152,7 @@ public class DecimalEnumerationHelper implements DecimalEnumerationFacet
   {
     final int prime = 31;
     int result = 1;
-    result = prime * result + DecimalEnumerationHelper.hashCode(sortedEnumeration);
+    result = prime * result + NumberEnumerationHelper.hashCode(sortedEnumeration);
     return result;
   }
 
@@ -118,9 +165,9 @@ public class DecimalEnumerationHelper implements DecimalEnumerationFacet
       return true;
     if (obj == null)
       return false;
-    if ((obj instanceof DecimalEnumerationHelper)==false)
+    if ((obj instanceof NumberEnumerationHelper)==false)
       return false;
-    DecimalEnumerationHelper other = (DecimalEnumerationHelper) obj;
+    NumberEnumerationHelper other = (NumberEnumerationHelper) obj;
     
     if ((sortedEnumeration == null) && (other.sortedEnumeration!=null))
     {

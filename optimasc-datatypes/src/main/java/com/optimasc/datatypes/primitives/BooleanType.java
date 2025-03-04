@@ -14,11 +14,12 @@ import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.DecimalRangeHelper;
+import com.optimasc.datatypes.NumberRangeHelper;
 import com.optimasc.datatypes.OrderedFacet;
 import com.optimasc.datatypes.TypeUtilities;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.visitor.TypeVisitor;
+import com.optimasc.lang.NumberComparator;
 
 /** Datatype that represents a boolean value which represents a logical
  *  true of false state.
@@ -61,7 +62,7 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
    */
   public static final UnnamedTypeReference DEFAULT_ORDERED_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_ORDERED_INSTANCE);
   
-  protected DecimalRangeHelper rangeHelper;
+  protected NumberRangeHelper rangeHelper;
   
     /** Constructs a new boolean type definition  
      * 
@@ -71,8 +72,10 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
     protected BooleanType(boolean ordered)
     {
         super(ordered);
-        rangeHelper = new DecimalRangeHelper(BigDecimal.valueOf(0),BigDecimal.valueOf(1));
+        rangeHelper = new NumberRangeHelper(new Integer(0),new Integer(1));
     }
+    
+    
     
     
     /** Constructs a new boolean type definition that 
@@ -133,33 +136,11 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
         return null;
       }
       
-      if (ordinalValue instanceof BigDecimal)
+      if (NumberComparator.INSTANCE.compare(TypeUtilities.DECIMAL_ZERO,ordinalValue)==0)
       {
-        BigDecimal bigDecimal = (BigDecimal)ordinalValue;  
-        if (bigDecimal.compareTo(TypeUtilities.DECIMAL_ZERO)==0)
-        {
-          return Boolean.FALSE;
-        }
-        return Boolean.TRUE;
-      } else
-      if (ordinalValue instanceof BigInteger)
-      {
-        BigInteger bigInteger = (BigInteger)ordinalValue;  
-        if (bigInteger.compareTo(BigInteger.ZERO)==0)
-        {
-          return Boolean.FALSE;
-        }
-        return Boolean.TRUE;
-      } else
-      {
-        long value = ordinalValue.longValue();
-        if (value == 0)
-        {
-          return Boolean.FALSE;
-          
-        }
-        return Boolean.TRUE;
+        return Boolean.FALSE;
       }
+      return Boolean.TRUE;
     }
     
     
@@ -221,7 +202,7 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
     }
 
 
-    public BigDecimal getMinInclusive()
+    public Number getMinInclusive()
     {
       if (ordered ==false)
       {
@@ -231,7 +212,7 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
     }
 
 
-    public BigDecimal getMaxInclusive()
+    public Number getMaxInclusive()
     {
       if (ordered ==false)
       {
@@ -252,7 +233,7 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
     }
 
 
-    public boolean validateRange(BigDecimal value)
+    public boolean validateRange(Number value)
     {
       // Throw and exception when value is not ordered.
       if (ordered ==false)
@@ -279,5 +260,6 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
       }
       return defaultTypeReference; 
     }
-    
+
+
 }

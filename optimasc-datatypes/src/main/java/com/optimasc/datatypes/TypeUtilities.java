@@ -13,6 +13,7 @@ import com.optimasc.datatypes.defined.UCS2CharType;
 import com.optimasc.datatypes.primitives.IntegralType;
 import com.optimasc.datatypes.primitives.RealType;
 import com.optimasc.lang.CharacterSet;
+import com.optimasc.lang.NumberComparator;
 
 /** General type utilities */
 public class TypeUtilities
@@ -75,15 +76,15 @@ public class TypeUtilities
    * @param right The right type that is the source of the value.
    * @return true if an out of range value may occur.
    */
-  public static boolean isOutOfBounds(DecimalRangeFacet left, DecimalRangeFacet right)
+  public static boolean isOutOfBounds(NumberRangeFacet left, NumberRangeFacet right)
   {
     // Compare the values.
     // this.minInclusive <= other.minInclusive AND 
     // this.maxInclusive >= other.maxInclusive 
-    boolean minEquality = left.getMinInclusive().compareTo(right.getMinInclusive())==0;
-    boolean minLess = left.getMinInclusive().compareTo(right.getMinInclusive()) == -1;
-    boolean maxEquality = left.getMaxInclusive().compareTo(right.getMaxInclusive())==0;
-    boolean maxGreater = left.getMaxInclusive().compareTo(right.getMaxInclusive()) == 1;
+    boolean minEquality = NumberComparator.INSTANCE.compare(left.getMinInclusive(),right.getMinInclusive())==0;
+    boolean minLess = NumberComparator.INSTANCE.compare(left.getMinInclusive(),right.getMinInclusive()) == -1;
+    boolean maxEquality = NumberComparator.INSTANCE.compare(left.getMaxInclusive(),right.getMaxInclusive())==0;
+    boolean maxGreater = NumberComparator.INSTANCE.compare(left.getMaxInclusive(),right.getMaxInclusive()) == 1;
     
     if (((minEquality) || (minLess)) && ((maxEquality) || (maxGreater)))
       return true;
@@ -324,12 +325,13 @@ public static boolean isLongValueExact(BigDecimal value)
   return false;
 }
 
-public static boolean isExact(BigDecimal value)
+public static boolean isExact(Number value)
 {
+  BigDecimal bd = NumberComparator.toBigDecimal(value); 
   // The number is scaled, so maybe an approximation.
-  if (value.scale()>0)
+  if (bd.scale()>0)
   {
-    if (value.signum()!=0)
+    if (bd.signum()!=0)
       return false;
   }
   return true;

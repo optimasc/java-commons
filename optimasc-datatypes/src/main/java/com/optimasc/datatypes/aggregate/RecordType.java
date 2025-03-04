@@ -11,11 +11,13 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
 
 
 /** This datatype represents a record datatype that consists of other datatypes
- *  embedded within them in the specified order.
+ *  embedded within them. By default, the ordering is significant, and {@link #setOrdered(boolean)}
+ *  should be called if it should not be significant.
  *  
  *  This is equivalent to the following datatypes:
  *  <ul>
- *   <li>SEQUENCE ASN.1 datatype</li>
+ *   <li>SEQUENCE ASN.1 datatype if <code>ordered</code> is true, or SET ASN.1 datatype
+ *     if <code>ordered</code> is false.</li>
  *   <li><code>record</code> ISO/IEC 11404 General purpose datatype</li>
  *  </ul>
  * 

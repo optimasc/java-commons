@@ -21,6 +21,9 @@ public interface DateTimeEnumerationFacet
    *  have been specified, the value returned is <code>null</code>. */  
   public Calendar[] getChoices();
   
+  public void setChoices(Calendar[] choices);
+  
+  
   /** Validates if the value is within the specified choices. If 
    *  no allowed choices have been defined, this method always
    *  returns <code>true</code>. 

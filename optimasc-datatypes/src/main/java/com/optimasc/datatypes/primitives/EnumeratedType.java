@@ -10,10 +10,11 @@ import com.optimasc.datatypes.BoundedFacet;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.EnumerationFacet;
-import com.optimasc.datatypes.DecimalRangeFacet;
+import com.optimasc.datatypes.NumberRangeFacet;
 import com.optimasc.datatypes.OrderedFacet;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.visitor.TypeVisitor;
+import com.optimasc.lang.NumberComparator;
 
 /**
  * Abstract Datatype that represents a finite number of distinguished values
@@ -212,7 +213,7 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
    * shall return <code>null</code>.
    * 
    */
-  public BigDecimal getMinInclusive()
+  public Number getMinInclusive()
   {
     if ((choices != null) && (choices.length > 0) && (choices[0] != null))
     {
@@ -229,12 +230,12 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
             minValue = numberedItemValue;
           }
         }
-        return BigDecimal.valueOf(minValue);
+        return new Long(minValue);
       }
       else
       {
         // Return minimum index of choices array 
-        return BigDecimal.valueOf(0);
+        return new Long(0);
       }
     }
     return null;
@@ -248,7 +249,7 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
    * shall return <code>null</code>.
    * 
    */
-  public BigDecimal getMaxInclusive()
+  public Number getMaxInclusive()
   {
     if ((choices != null) && (choices.length > 0) && (choices[0] != null))
     {
@@ -265,12 +266,12 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
             maxValue = numberedItemValue;
           }
         }
-        return BigDecimal.valueOf(maxValue);
+        return new Long(maxValue);
       }
       else
       {
         // Return maximum index of choices array 
-        return BigDecimal.valueOf(choices.length - 1);
+        return new Long(choices.length - 1);
       }
     }
     else
@@ -384,11 +385,11 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
       throw new IllegalArgumentException("Expecting parameter of type '"
           + value.getClass().getName() + "'.");
     }
-    DecimalRangeFacet rangeType;
-    rangeType = (DecimalRangeFacet) value;
+    NumberRangeFacet rangeType;
+    rangeType = (NumberRangeFacet) value;
     
-    BigDecimal minOtherValue = rangeType.getMinInclusive();
-    BigDecimal maxOtherValue = rangeType.getMaxInclusive();
+    BigDecimal minOtherValue = NumberComparator.toBigDecimal(rangeType.getMinInclusive());
+    BigDecimal maxOtherValue = NumberComparator.toBigDecimal(rangeType.getMaxInclusive());
 
     // No bounds at all - no restrictions in both ranges
     if ((rangeType.isBounded()==false) && (isBounded()==false))
@@ -409,7 +410,7 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
     
     if ((getMinInclusive() != null) && (getMaxInclusive()!=null))
     {
-      rangeValue = getMaxInclusive().subtract(getMinInclusive());
+      rangeValue = NumberComparator.toBigDecimal(getMaxInclusive()).subtract(NumberComparator.toBigDecimal(getMinInclusive()));
     }
     if ((minOtherValue != null) && (maxOtherValue!=null))
     {
@@ -545,7 +546,7 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
     return validateRange(v);
   }
 
-  public boolean validateRange(BigDecimal value)
+  public boolean validateRange(Number value)
   {
     if (choices == null)
     {
@@ -558,12 +559,12 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
 
     // Compare the values.
     // value < minInclusive
-    if (value.compareTo(getMinInclusive()) == -1)
+    if (NumberComparator.INSTANCE.compare(value,getMinInclusive()) == -1)
     {
       return false;
     }
     // value >= maxInclusive 
-    if (value.compareTo(getMaxInclusive()) == 1)
+    if (NumberComparator.INSTANCE.compare(value,getMaxInclusive()) == 1)
     {
       return false;
     }

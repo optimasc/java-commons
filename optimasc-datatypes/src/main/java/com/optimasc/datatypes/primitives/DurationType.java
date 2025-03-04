@@ -9,12 +9,12 @@ import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.DecimalEnumerationFacet;
-import com.optimasc.datatypes.DecimalEnumerationHelper;
-import com.optimasc.datatypes.DecimalRangeFacet;
-import com.optimasc.datatypes.DecimalRangeHelper;
+import com.optimasc.datatypes.NumberEnumerationFacet;
+import com.optimasc.datatypes.NumberEnumerationHelper;
 import com.optimasc.datatypes.IntegerEnumerationFacet;
 import com.optimasc.datatypes.IntegerEnumerationHelper;
+import com.optimasc.datatypes.NumberRangeFacet;
+import com.optimasc.datatypes.NumberRangeHelper;
 import com.optimasc.datatypes.OrderedFacet;
 import com.optimasc.datatypes.TimeUnitFacet;
 import com.optimasc.datatypes.Type;
@@ -23,6 +23,7 @@ import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.date.DateTimeFormat;
 import com.optimasc.lang.Duration;
+import com.optimasc.lang.NumberComparator;
 
 /** * Datatype that represents elapsed time. To avoid
  *    any issues with time ranges because of months
@@ -44,12 +45,12 @@ import com.optimasc.lang.Duration;
  * @author Carl Eric Codere
  *
  */
-public class DurationType extends PrimitiveType implements OrderedFacet, DecimalRangeFacet, TimeUnitFacet, IntegerEnumerationFacet
+public class DurationType extends PrimitiveType implements OrderedFacet, NumberRangeFacet, TimeUnitFacet, IntegerEnumerationFacet
 {
   private static DurationType defaultTypeInstance;
   private static TypeReference defaultTypeReference;
   
-  protected DecimalRangeHelper rangeHelper;
+  protected NumberRangeHelper rangeHelper;
   protected IntegerEnumerationHelper enumHelper;
   
   protected int timeUnit;
@@ -61,7 +62,7 @@ public class DurationType extends PrimitiveType implements OrderedFacet, Decimal
   public DurationType()
   {
     super(true);
-    rangeHelper = new DecimalRangeHelper(BigDecimal.valueOf(0),null);
+    rangeHelper = new NumberRangeHelper(new Long(0),null);
     enumHelper = new IntegerEnumerationHelper(false);
     timeUnit = DateTimeFormat.TimeUnit.MILLISECONDS;
   }
@@ -76,7 +77,7 @@ public class DurationType extends PrimitiveType implements OrderedFacet, Decimal
   {
     super(true);
     DateTimeFormat.TimeUnit.validate(unit);
-    rangeHelper = new DecimalRangeHelper(BigDecimal.valueOf(0),null);
+    rangeHelper = new NumberRangeHelper(new Long(0),null);
     enumHelper = new IntegerEnumerationHelper(false);
     timeUnit = unit;
   }
@@ -96,7 +97,7 @@ public class DurationType extends PrimitiveType implements OrderedFacet, Decimal
     enumHelper = new IntegerEnumerationHelper(false);
     enumHelper.setChoices(choices);
     long[] sortedChoices = enumHelper.getChoicesAsInteger();
-    rangeHelper = new DecimalRangeHelper(BigDecimal.valueOf(sortedChoices[0]),BigDecimal.valueOf(sortedChoices[sortedChoices.length-1]));
+    rangeHelper = new NumberRangeHelper(new Long(sortedChoices[0]),new Long(sortedChoices[sortedChoices.length-1]));
     timeUnit = unit;
   }
   
@@ -114,7 +115,7 @@ public class DurationType extends PrimitiveType implements OrderedFacet, Decimal
     super(true);
     DateTimeFormat.TimeUnit.validate(unit);
     enumHelper = new IntegerEnumerationHelper(false);
-    rangeHelper = new DecimalRangeHelper(BigDecimal.valueOf(0),BigDecimal.valueOf(maxValue));
+    rangeHelper = new NumberRangeHelper(new Long(0),new Long(maxValue));
     timeUnit = unit;
   }
   
@@ -199,7 +200,7 @@ public class DurationType extends PrimitiveType implements OrderedFacet, Decimal
 
   protected Object toValueNumber(Number ordinalValue, TypeCheckResult conversionResult)
   {
-    BigDecimal bigDecimal;
+    Number bigDecimal;
     
     // Throw and exception when value is not ordered.
     if (ordered ==false)
@@ -244,10 +245,10 @@ public class DurationType extends PrimitiveType implements OrderedFacet, Decimal
     }
     if (validateRange(ordinalValue)==false)
     {
-      BigDecimal bigDecimal = getBoundedValue(BigDecimal.valueOf(ordinalValue));
+      Number bigValue = getBoundedValue(BigDecimal.valueOf(ordinalValue));
       conversionResult.narrowingConversion = true;
       conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_NUMERIC_OUT_OF_RANGE,"Number is outside of valide range");
-      return new Long(bigDecimal.longValue());
+      return new Long(bigValue.longValue());
     }
     return new Long(ordinalValue);
   }
@@ -314,12 +315,12 @@ public class DurationType extends PrimitiveType implements OrderedFacet, Decimal
     return false;
   }
 
-  public BigDecimal getMinInclusive()
+  public Number getMinInclusive()
   {
     return rangeHelper.getMinInclusive();
   }
 
-  public BigDecimal getMaxInclusive()
+  public Number getMaxInclusive()
   {
     return rangeHelper.getMaxInclusive();
   }
@@ -329,7 +330,7 @@ public class DurationType extends PrimitiveType implements OrderedFacet, Decimal
     return rangeHelper.validateRange(value);
   }
 
-  public boolean validateRange(BigDecimal value)
+  public boolean validateRange(Number value)
   {
     return rangeHelper.validateRange(value);
   }
@@ -370,22 +371,27 @@ public class DurationType extends PrimitiveType implements OrderedFacet, Decimal
    * @param value
    * @return
    */
-  protected BigDecimal getBoundedValue(BigDecimal value)
+  protected Number getBoundedValue(Number value)
   {
-    BigDecimal minInclusive = getMinInclusive();
-    BigDecimal maxInclusive = getMaxInclusive(); 
+    Number minInclusive = getMinInclusive();
+    Number maxInclusive = getMaxInclusive(); 
     
-    if ((minInclusive != null) && (value.compareTo(minInclusive)==-1))
+    if ((minInclusive != null) && (NumberComparator.INSTANCE.compare(value,minInclusive)==-1))
     {
       return getMinInclusive();
     } else
-    if ((minInclusive != null) &&  (value.compareTo(maxInclusive)==1))
+    if ((minInclusive != null) &&  (NumberComparator.INSTANCE.compare(value,maxInclusive)==1))
     {
         return getMaxInclusive();
     }
     return value;
     
   }
-  
+
+  public void setAccuracy(int accuracy)
+  {
+    timeUnit = accuracy;
+  }
+
   
 }

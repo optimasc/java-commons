@@ -6,8 +6,8 @@ import java.math.BigInteger;
 import com.optimasc.datatypes.BoundedFacet;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.DecimalEnumerationFacet;
-import com.optimasc.datatypes.DecimalRangeFacet;
+import com.optimasc.datatypes.NumberEnumerationFacet;
+import com.optimasc.datatypes.NumberRangeFacet;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 
 import junit.framework.TestCase;
@@ -43,7 +43,7 @@ public class IntegerTypeTest extends AbstractNumberTest
     // Check first non-bounded value
     assertEquals(0,numericType.getScale());
     assertEquals(Integer.MAX_VALUE,numericType.getPrecision());
-    DecimalRangeFacet rangedType = (DecimalRangeFacet) defaultInstance;
+    NumberRangeFacet rangedType = (NumberRangeFacet) defaultInstance;
     
     assertEquals(false,rangedType.isBounded());
     
@@ -53,9 +53,9 @@ public class IntegerTypeTest extends AbstractNumberTest
     assertEquals(null,rangedType.getMaxInclusive());
     
     // Verify that choices are null
-    if (rangedType instanceof DecimalEnumerationFacet)
+    if (rangedType instanceof NumberEnumerationFacet)
     {
-      DecimalEnumerationFacet enumFacet = (DecimalEnumerationFacet) rangedType;
+      NumberEnumerationFacet enumFacet = (NumberEnumerationFacet) rangedType;
       assertEquals(null,enumFacet.getChoices());
     }
     
@@ -85,16 +85,16 @@ public class IntegerTypeTest extends AbstractNumberTest
     assertEquals(0,numericType.getScale());
     // This value is consisten with industry values (IBM/Microsoft)
     assertEquals(10,numericType.getPrecision());
-    DecimalRangeFacet rangedType = numericType;
+    NumberRangeFacet rangedType = numericType;
     
     assertEquals(true,rangedType.isBounded());
-    assertEquals(BigDecimal.valueOf(Integer.MIN_VALUE),rangedType.getMinInclusive());
-    assertEquals(BigDecimal.valueOf(Integer.MAX_VALUE),rangedType.getMaxInclusive());
+    assertEquals(BigInteger.valueOf(Integer.MIN_VALUE).longValue(),rangedType.getMinInclusive().longValue());
+    assertEquals(BigInteger.valueOf(Integer.MAX_VALUE).longValue(),rangedType.getMaxInclusive().longValue());
     
     // Verify that choices are null
-    if (numericType instanceof DecimalEnumerationFacet)
+    if (numericType instanceof NumberEnumerationFacet)
     {
-      DecimalEnumerationFacet enumFacet = numericType;
+      NumberEnumerationFacet enumFacet = numericType;
       assertEquals(null,enumFacet.getChoices());
     }
     
@@ -120,11 +120,11 @@ public class IntegerTypeTest extends AbstractNumberTest
     assertEquals(0,numericType.getScale());
     assertEquals(1,numericType.getPrecision());
     
-    DecimalRangeFacet rangedType = numericType;
+    NumberRangeFacet rangedType = numericType;
     
     assertEquals(true,rangedType.isBounded());
-    assertEquals(BigDecimal.valueOf(0),rangedType.getMinInclusive());
-    assertEquals(BigDecimal.valueOf(0),rangedType.getMaxInclusive());
+    assertEquals(BigDecimal.valueOf(0).longValue(),rangedType.getMinInclusive().longValue());
+    assertEquals(BigDecimal.valueOf(0).longValue(),rangedType.getMaxInclusive().longValue());
     
     assertEquals(false,rangedType.validateRange(BigDecimal.valueOf(Long.MIN_VALUE)));
     assertEquals(true,rangedType.validateRange(BigDecimal.valueOf(0)));
@@ -149,7 +149,7 @@ public class IntegerTypeTest extends AbstractNumberTest
     try
     {
       // Check first non-bounded value
-      DecimalRangeFacet rangedType = new IntegralType(Integer.MAX_VALUE,Integer.MIN_VALUE);
+      NumberRangeFacet rangedType = new IntegralType(Integer.MAX_VALUE,Integer.MIN_VALUE);
     } catch (IllegalArgumentException e)
     {
       success = true;
@@ -169,13 +169,13 @@ public class IntegerTypeTest extends AbstractNumberTest
     assertEquals(Integer.MAX_VALUE,numericType.getPrecision());
 
     
-    DecimalEnumerationFacet enumFacet = (DecimalEnumerationFacet)numericType; 
+    NumberEnumerationFacet enumFacet = (NumberEnumerationFacet)numericType; 
     assertEquals(null,enumFacet.getChoices());
     
     // The range will be null
-    if (enumFacet instanceof DecimalRangeFacet)
+    if (enumFacet instanceof NumberRangeFacet)
     {
-      DecimalRangeFacet rangeType = (DecimalRangeFacet) enumFacet;
+      NumberRangeFacet rangeType = (NumberRangeFacet) enumFacet;
       assertEquals(null,rangeType.getMinInclusive());
       assertEquals(null,rangeType.getMaxInclusive());
     }
@@ -202,7 +202,8 @@ public class IntegerTypeTest extends AbstractNumberTest
     {
       BigDecimal choices[] = new BigDecimal[] {BigDecimal.valueOf(0),new BigDecimal(0.5)};
       // Check first non-bounded value
-      DecimalEnumerationFacet enumFacet = new IntegralType(choices);
+      NumberEnumerationFacet enumFacet = new IntegralType();
+      enumFacet.setChoices(choices);
     } catch (IllegalArgumentException e)
     {
       success = true;
@@ -223,15 +224,15 @@ public class IntegerTypeTest extends AbstractNumberTest
     assertEquals(5,numericType.getPrecision());
     
     
-    DecimalEnumerationFacet enumFacet = (DecimalEnumerationFacet)numericType; 
+    NumberEnumerationFacet enumFacet = (NumberEnumerationFacet)numericType; 
     assertNotNull(enumFacet.getChoices());
     
     //== The range will be set
-    if (enumFacet instanceof DecimalRangeFacet)
+    if (enumFacet instanceof NumberRangeFacet)
     {
-      DecimalRangeFacet rangeType = (DecimalRangeFacet) enumFacet;
-      assertEquals(minInclusive,rangeType.getMinInclusive());
-      assertEquals(maxInclusive,rangeType.getMaxInclusive());
+      NumberRangeFacet rangeType = (NumberRangeFacet) enumFacet;
+      assertEquals(minInclusive.longValue(),rangeType.getMinInclusive().longValue());
+      assertEquals(maxInclusive.longValue(),rangeType.getMaxInclusive().longValue());
     }
     
     

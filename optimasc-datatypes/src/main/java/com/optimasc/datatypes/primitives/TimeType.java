@@ -13,9 +13,9 @@ import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.DateTimeEnumerationFacet;
 import com.optimasc.datatypes.DateTimeEnumerationHelper;
-import com.optimasc.datatypes.DecimalRangeHelper;
 import com.optimasc.datatypes.EnumerationFacet;
 import com.optimasc.datatypes.EnumerationHelper;
+import com.optimasc.datatypes.NumberRangeHelper;
 import com.optimasc.datatypes.OrderedFacet;
 import com.optimasc.datatypes.Restriction;
 import com.optimasc.datatypes.TimeUnitFacet;
@@ -109,15 +109,15 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedFacet, 
   protected int accuracy;
   protected boolean localTime;
   protected DateTimeEnumerationHelper enumHelper;
-  protected DecimalRangeHelper rangeHelper;
+  protected NumberRangeHelper rangeHelper;
   
-  protected static final DecimalRangeHelper milliRangeHelper = new DecimalRangeHelper(BigDecimal.valueOf(MIN_VALUE_MILLISECONDS),
+  protected static final NumberRangeHelper milliRangeHelper = new NumberRangeHelper(BigDecimal.valueOf(MIN_VALUE_MILLISECONDS),
       BigDecimal.valueOf(MAX_VALUE_MILLISECONDS));
   
-  protected static final DecimalRangeHelper secondRangeHelper = new DecimalRangeHelper(BigDecimal.valueOf(MIN_VALUE_SECONDS),
+  protected static final NumberRangeHelper secondRangeHelper = new NumberRangeHelper(BigDecimal.valueOf(MIN_VALUE_SECONDS),
       BigDecimal.valueOf(MAX_VALUE_SECONDS));
   
-  protected static final DecimalRangeHelper minuteRangeHelper =  new DecimalRangeHelper(BigDecimal.valueOf(MIN_VALUE_MINUTES),
+  protected static final NumberRangeHelper minuteRangeHelper =  new NumberRangeHelper(BigDecimal.valueOf(MIN_VALUE_MINUTES),
       BigDecimal.valueOf(MAX_VALUE_MINUTES));
 
   
@@ -510,12 +510,12 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedFacet, 
     return false;
   }
 
-  public BigDecimal getMinInclusive()
+  public Number getMinInclusive()
   {
     return rangeHelper.getMinInclusive();
   }
 
-  public BigDecimal getMaxInclusive()
+  public Number getMaxInclusive()
   {
     return rangeHelper.getMaxInclusive();
   }
@@ -525,7 +525,7 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedFacet, 
     return rangeHelper.validateRange(value);
   }
 
-  public boolean validateRange(BigDecimal value)
+  public boolean validateRange(Number value)
   {
     return rangeHelper.validateRange(value);
   }
@@ -543,6 +543,22 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedFacet, 
       defaultTypeReference = new UnnamedTypeReference(defaultTypeInstance);
     }
     return defaultTypeReference; 
+  }
+
+  public void setLocalTime(boolean localTime)
+  {
+    this.localTime = localTime;
+  }
+
+  public void setAccuracy(int accuracy)
+  {
+    validateAccuracy(accuracy);
+    this.accuracy = accuracy;
+  }
+
+  public void setChoices(Calendar[] choices)
+  {
+    enumHelper.setChoices(choices);
   }
 
 }

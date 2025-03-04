@@ -92,17 +92,17 @@ public class AggregateTypesTest extends TestCase
   protected void internalTestDataAggregateType(AggregateType datatype, AggregateType otherDatatype)
   {
     testBasicDataType(datatype);
-    assertEquals(false, datatype.isOrdered());
+    assertEquals(true, datatype.isOrdered());
     assertEquals(otherDatatype, datatype);
     assertEquals(datatype, datatype);
     assertEquals(0,datatype.getMemberCount());
-    assertEquals(false,datatype.isOrdered());
+    assertEquals(true,datatype.isOrdered());
     assertEquals(false,datatype.isPacked());
     datatype.setPacked(true);
     datatype.setPacked(false);
     assertEquals(false,datatype.isPacked());
     
-    assertEquals(false,datatype.isOrdered());
+    assertEquals(true,datatype.isOrdered());
     assertEquals(null,datatype.lookupMember("member1",true));
     
     // Now create some fields/columns
@@ -153,13 +153,15 @@ public class AggregateTypesTest extends TestCase
     assertEquals(otherDatatype,datatype);
   }
 
-  public void testRecordType()
+  public void testRecordTypeDefault()
   {
     AggregateType datatype = new RecordType();
     AggregateType otherDatatype = new RecordType();
     
     internalTestDataAggregateType(datatype,otherDatatype);
   }
+  
+  
   
   
   public void testTableType()
@@ -176,18 +178,18 @@ public class AggregateTypesTest extends TestCase
   protected void internalTestAggregateType(DerivableAggregateType datatype, DerivableAggregateType otherDatatype)
   {
     testBasicDataType(datatype);
-    assertEquals(false, datatype.isOrdered());
+    assertEquals(true, datatype.isOrdered());
     assertEquals(otherDatatype, datatype);
     assertEquals(datatype, datatype);
     assertEquals(0,datatype.getMemberCount());
     assertEquals(0, datatype.getDerivesFromCount());
-    assertEquals(false,datatype.isOrdered());
+    assertEquals(true,datatype.isOrdered());
     assertEquals(false,datatype.isPacked());
     datatype.setPacked(true);
     datatype.setPacked(false);
     assertEquals(false,datatype.isPacked());
     
-    assertEquals(false,datatype.isOrdered());
+    assertEquals(true,datatype.isOrdered());
     assertEquals(null,datatype.lookupMember("member1",true));
     
     TypeReference standardProcedure = ProcedureType.DEFAULT_TYPE_REFERENCE;

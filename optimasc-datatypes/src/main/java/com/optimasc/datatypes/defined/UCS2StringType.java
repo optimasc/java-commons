@@ -21,7 +21,7 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  *  <p>By default, the allowed minimum length of the string type is 0 characters, and the default maximum length
  *  is {@code Integer#MAX_VALUE}, {@code pattern} and {@code choices} are set to null.</p>
  *  
- *  <p>Internally, values of this type are represented as {@link String}.</p>
+ *  <p>Internally, values of this type are represented as a {@link String}.</p>
  *
  * @author Carl Eric Codère
  */

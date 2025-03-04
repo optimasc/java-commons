@@ -30,4 +30,8 @@ public interface MemberObject extends UserConfiguration
    *  to the containing type.
    */
   public AccessKind getAccessKind();
+  /** Returns true if this member object is optional and is not
+   *  required to be present.
+   */
+  public boolean isOptional();
 }

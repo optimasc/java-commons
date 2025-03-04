@@ -116,5 +116,4 @@ public class LengthHelper implements LengthFacet
     return "Size("+minLengthStr + ".."+maxLengthStr+ ")";
   }
 
-  
 }

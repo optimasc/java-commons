@@ -57,13 +57,13 @@ public class CharacterType extends PrimitiveType implements CharacterSetEncoding
   public CharacterType(CharacterSet characterSet)
   {
     super(true);
-    this.characterSet = characterSet;
+    setCharacterSet(characterSet);
   }
   
   public CharacterType(CharacterSet characterSet, boolean ordered)
   {
     super(ordered);
-    this.characterSet = characterSet;
+    setCharacterSet(characterSet);
   }
   
   
@@ -246,14 +246,14 @@ public class CharacterType extends PrimitiveType implements CharacterSetEncoding
     return v.visit(this, arg);
   }
 
-  public BigDecimal getMinInclusive()
+  public Number getMinInclusive()
   {
-    return BigDecimal.valueOf(characterSet.getMinInclusive());
+    return new Long(characterSet.getMinInclusive());
   }
 
-  public BigDecimal getMaxInclusive()
+  public Number getMaxInclusive()
   {
-    return BigDecimal.valueOf(characterSet.getMaxInclusive());
+    return new Long(characterSet.getMaxInclusive());
   }
 
   public boolean validateRange(long value)
@@ -263,7 +263,7 @@ public class CharacterType extends PrimitiveType implements CharacterSetEncoding
     return characterSet.isValid(value);
   }
 
-  public boolean validateRange(BigDecimal value)
+  public boolean validateRange(Number value)
   {
     if (ordered==false)
       return false;
@@ -278,6 +278,11 @@ public class CharacterType extends PrimitiveType implements CharacterSetEncoding
       defaultTypeReference = new NamedTypeReference("character" ,defaultTypeInstance);
     }
     return defaultTypeReference; 
+  }
+
+  public void setCharacterSet(CharacterSet charset)
+  {
+    this.characterSet = charset;
   }
 
 

@@ -9,7 +9,9 @@ import com.optimasc.datatypes.MemberObject;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** This datatype represents a table datatype that consists of fields
- *  representing columns of data.
+ *  representing columns of data. By default, the ordering of the
+ *  rows in a table is not significant, this can be modified by
+ *  calling {@link #setOrdered(boolean)}.
  *  
  *  This is equivalent to the following datatypes:
  *  <ul>

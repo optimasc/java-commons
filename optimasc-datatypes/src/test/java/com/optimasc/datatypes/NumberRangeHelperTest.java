@@ -6,7 +6,7 @@ import com.optimasc.datatypes.primitives.BooleanType;
 
 import junit.framework.TestCase;
 
-public class DecimalRangeHelperTest extends TestCase
+public class NumberRangeHelperTest extends TestCase
 {
 
   protected void setUp() throws Exception
@@ -24,7 +24,7 @@ public class DecimalRangeHelperTest extends TestCase
     boolean success = false;
     try
     {
-      DecimalRangeHelper rangeHelper = new DecimalRangeHelper(BigDecimal.valueOf(Integer.MAX_VALUE),BigDecimal.valueOf(0));
+      NumberRangeHelper rangeHelper = new NumberRangeHelper(BigDecimal.valueOf(Integer.MAX_VALUE),BigDecimal.valueOf(0));
     } catch (IllegalArgumentException e)
     {
       success = true;
@@ -35,8 +35,8 @@ public class DecimalRangeHelperTest extends TestCase
   
   public void testNoBounds()
   {
-    DecimalRangeHelper rangeHelper = new DecimalRangeHelper(null,null);
-    DecimalRangeHelper otherRangeHelper = new DecimalRangeHelper(null,null);
+    NumberRangeHelper rangeHelper = new NumberRangeHelper(null,null);
+    NumberRangeHelper otherRangeHelper = new NumberRangeHelper(null,null);
     
     assertNull(rangeHelper.getMinInclusive());
     assertNull(rangeHelper.getMaxInclusive());
@@ -54,8 +54,8 @@ public class DecimalRangeHelperTest extends TestCase
   public void testNoUpperBoundOne()
   {
     BigDecimal ZERO = BigDecimal.valueOf(0);
-    DecimalRangeHelper rangeHelper = new DecimalRangeHelper(BigDecimal.valueOf(0),null);
-    DecimalRangeHelper otherRangeHelper = new DecimalRangeHelper(null,null);
+    NumberRangeHelper rangeHelper = new NumberRangeHelper(BigDecimal.valueOf(0),null);
+    NumberRangeHelper otherRangeHelper = new NumberRangeHelper(null,null);
     
     assertEquals(ZERO,rangeHelper.getMinInclusive());
     assertEquals(null,rangeHelper.getMaxInclusive());
@@ -73,8 +73,8 @@ public class DecimalRangeHelperTest extends TestCase
   public void testNoUpperBoundBoth()
   {
     BigDecimal ZERO = BigDecimal.valueOf(0);
-    DecimalRangeHelper rangeHelper = new DecimalRangeHelper(BigDecimal.valueOf(0),null);
-    DecimalRangeHelper otherRangeHelper = new DecimalRangeHelper(BigDecimal.valueOf(55),null);
+    NumberRangeHelper rangeHelper = new NumberRangeHelper(BigDecimal.valueOf(0),null);
+    NumberRangeHelper otherRangeHelper = new NumberRangeHelper(BigDecimal.valueOf(55),null);
     
     assertEquals(ZERO,rangeHelper.getMinInclusive());
     assertEquals(null,rangeHelper.getMaxInclusive());

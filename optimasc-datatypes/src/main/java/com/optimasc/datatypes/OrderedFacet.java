@@ -11,7 +11,7 @@ import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
  * @author Carl Eric Codere
  *
  */
-public interface OrderedFacet extends Convertable, DecimalRangeFacet
+public interface OrderedFacet extends Convertable, NumberRangeFacet
 {
    /** Tries to convert this valid ordered value 
     *  to its natural java type representation. 

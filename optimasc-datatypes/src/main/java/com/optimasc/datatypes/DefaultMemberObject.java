@@ -12,19 +12,21 @@ public class DefaultMemberObject implements MemberObject
   protected String identifier;
   protected TypeReference typeReference;
   protected AccessKind access;
+  protected boolean optional;
   protected HashMap userData;
   
-  public DefaultMemberObject(String identifier, TypeReference typeRef, AccessKind access)
+  public DefaultMemberObject(String identifier, TypeReference typeRef, AccessKind access, boolean optional)
   {
     super();
     this.identifier = identifier;
     this.typeReference = typeRef;
     this.access = access;
+    this.optional = optional;
   }
   
   public DefaultMemberObject(String identifier, TypeReference typeRef)
   {
-    this(identifier,typeRef,AccessKind.Public);
+    this(identifier,typeRef,AccessKind.Public,false);
   }
 
   public Object getUserData(String key)
@@ -91,6 +93,11 @@ public class DefaultMemberObject implements MemberObject
     if (this.typeReference.getType().equals(otherObject.getDefinitionType().getType())==false)
       return false;
     return true;
+  }
+
+  public boolean isOptional()
+  {
+    return optional;
   }
   
   

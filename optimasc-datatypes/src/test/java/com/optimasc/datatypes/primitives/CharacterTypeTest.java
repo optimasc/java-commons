@@ -128,8 +128,8 @@ public class CharacterTypeTest extends DatatypeTest
   {
     CharacterType ordered01 = new CharacterType(CharacterSet.ASCII, true);
 
-    assertEquals(BigDecimal.valueOf(0),ordered01.getMinInclusive());
-    assertEquals(BigDecimal.valueOf(127),ordered01.getMaxInclusive());
+    assertEquals(new Long(0),ordered01.getMinInclusive());
+    assertEquals(new Long(127),ordered01.getMaxInclusive());
     
     assertEquals(false,ordered01.validateRange(128));
     assertEquals(false,ordered01.validateRange(-1));

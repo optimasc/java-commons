@@ -3,6 +3,8 @@ package com.optimasc.datatypes;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import com.optimasc.lang.NumberComparator;
+
 /** Class that used internally to manage ranges of Decimal and ordered
  *  values. This class supports numbers that are scaled hence that
  *  contains fractional digits as non-scaled values.
@@ -10,10 +12,10 @@ import java.math.BigInteger;
  * @author Carl Eric Codere
  *
  */
-public class DecimalRangeHelper implements DecimalRangeFacet
+public class NumberRangeHelper implements NumberRangeFacet
 {
-  protected BigDecimal minInclusive;
-  protected BigDecimal maxInclusive;
+  protected Number minInclusive;
+  protected Number maxInclusive;
   protected int scale;
   
   
@@ -31,32 +33,10 @@ public class DecimalRangeHelper implements DecimalRangeFacet
    * @throw IllegalArgumentException thrown if bounds scales are not
    *   equal.  
    */
-  public DecimalRangeHelper(BigDecimal minInclusive, BigDecimal maxInclusive)
+  public NumberRangeHelper(Number minInclusive, Number maxInclusive)
   {
     super();
-    if ((minInclusive != null)  && (maxInclusive != null))
-    {
-      if (minInclusive.scale()!=maxInclusive.scale())
-      {
-        throw new IllegalArgumentException("Scale of the ranges should be equal");
-      }
-      if (minInclusive.compareTo(maxInclusive)==1)
-      {
-        throw new IllegalArgumentException(
-            "minInclusive is greater in magniture than maxInclusive.");
-      }
-      scale =  minInclusive.scale(); 
-    } else
-    if ((minInclusive != null)  && (maxInclusive == null))
-    {
-      scale =  minInclusive.scale(); 
-    } else
-    if ((maxInclusive != null)  && (minInclusive == null))
-    {
-      scale =  maxInclusive.scale(); 
-    }
-    this.minInclusive = minInclusive;
-    this.maxInclusive = maxInclusive;
+    setRange(minInclusive, maxInclusive);
   }
   
   
@@ -82,13 +62,13 @@ public class DecimalRangeHelper implements DecimalRangeFacet
    * @param value
    * @return
    */
-  public boolean isRestrictionOf(DecimalRangeFacet value)
+  public boolean isRestrictionOf(NumberRangeFacet value)
   {
-    DecimalRangeFacet rangeType;
-    rangeType = (DecimalRangeFacet) value;
+    NumberRangeFacet rangeType;
+    rangeType = (NumberRangeFacet) value;
     
-    BigDecimal minOtherValue = rangeType.getMinInclusive();
-    BigDecimal maxOtherValue = rangeType.getMaxInclusive();
+    Number minOtherValue = rangeType.getMinInclusive();
+    Number maxOtherValue = rangeType.getMaxInclusive();
 
     // No bounds at all - no restrictions in both ranges
     if ((value.isBounded()==false) && (isBounded()==false))
@@ -124,7 +104,7 @@ public class DecimalRangeHelper implements DecimalRangeFacet
     {
       if (minInclusive != null)
       {
-        return (minInclusive.compareTo(minOtherValue))==1 || (maxInclusive != null);
+        return (NumberComparator.INSTANCE.compare(minInclusive,minOtherValue))==1 || (maxInclusive != null);
       }
       return false;
     }
@@ -133,7 +113,7 @@ public class DecimalRangeHelper implements DecimalRangeFacet
     {
       if (maxInclusive != null)
       {
-        return (maxInclusive.compareTo(maxOtherValue))==-1 || (minInclusive != null);
+        return (NumberComparator.INSTANCE.compare(maxInclusive,maxOtherValue))==-1 || (minInclusive != null);
       }
       return false;
     }
@@ -142,16 +122,16 @@ public class DecimalRangeHelper implements DecimalRangeFacet
     if (maxInclusive == null)
       return false;
     
-    return ((minInclusive.compareTo(minOtherValue))==1) && (maxInclusive.compareTo(maxOtherValue))==-1;
+    return ((NumberComparator.INSTANCE.compare(minInclusive,minOtherValue))==1) && (NumberComparator.INSTANCE.compare(maxInclusive,maxOtherValue))==-1;
   }
 
 
-  public BigDecimal getMinInclusive()
+  public Number getMinInclusive()
   {
     return minInclusive;
   }
 
-  public BigDecimal getMaxInclusive()
+  public Number getMaxInclusive()
   {
     return maxInclusive;
   }
@@ -166,7 +146,7 @@ public class DecimalRangeHelper implements DecimalRangeFacet
     return validateRange(v);
   }
 
-  public boolean validateRange(BigDecimal value)
+  public boolean validateRange(Number value)
   {
     if (scale==0)
     {
@@ -181,12 +161,12 @@ public class DecimalRangeHelper implements DecimalRangeFacet
     }
     // Compare the values.
     // value < minInclusive
-    if ((minInclusive != null) && (value.compareTo(minInclusive)==-1))
+    if ((minInclusive != null) && (NumberComparator.INSTANCE.compare(value, minInclusive)==-1))
     {
       return false;
     }
     // value >= maxInclusive 
-    if ((maxInclusive != null) &&  (value.compareTo(maxInclusive)==1))
+    if ((maxInclusive != null) &&  (NumberComparator.INSTANCE.compare(value,maxInclusive)==1))
     {
       return false;
     }
@@ -195,7 +175,7 @@ public class DecimalRangeHelper implements DecimalRangeFacet
 
   /** Return the precision of a number. The value
    *  returned is an approximation of the number of 
-   *  digits for integer values. For exaple, following
+   *  digits for integer values. For example, following
    *  industry standards, an 32-bit signed integer
    *  has a precision of 10 digits even if the maximum
    *  value is not 9999999999 but 2147483647.
@@ -207,9 +187,10 @@ public class DecimalRangeHelper implements DecimalRangeFacet
     {
       return Integer.MAX_VALUE;
     }
+    BigDecimal v = NumberComparator.toBigDecimal(maxInclusive);
     // Calculate the precision of the number
     // Get the unscaled value and then get the precision.
-    BigInteger value = maxInclusive.unscaledValue();
+    BigInteger value = v.unscaledValue();
     BigInteger NINE = BigInteger.valueOf(9); 
     BigInteger TEN = BigInteger.valueOf(10); 
         
@@ -228,7 +209,7 @@ public class DecimalRangeHelper implements DecimalRangeFacet
     {
       return Short.MAX_VALUE;
     }
-    return maxInclusive.scale();
+    return NumberComparator.getScale(maxInclusive);
   }
 
 
@@ -243,9 +224,9 @@ public class DecimalRangeHelper implements DecimalRangeFacet
       return true;
     if (obj == null)
       return false;
-    if ((obj instanceof DecimalRangeHelper)==false)
+    if ((obj instanceof NumberRangeHelper)==false)
       return false;
-    DecimalRangeHelper other = (DecimalRangeHelper) obj;
+    NumberRangeHelper other = (NumberRangeHelper) obj;
     if (maxInclusive == null)
     {
       if (other.maxInclusive != null)
@@ -271,7 +252,7 @@ public class DecimalRangeHelper implements DecimalRangeFacet
   {
     if (isBounded()==false)
       return false;
-    if ((minInclusive != null) && (minInclusive.compareTo(BigDecimal.valueOf(0))==0))
+    if ((minInclusive != null) && (NumberComparator.INSTANCE.compare(minInclusive, BigDecimal.valueOf(0))>=0))
     {
       return true;
     }
@@ -314,4 +295,34 @@ public class DecimalRangeHelper implements DecimalRangeFacet
     }
     return false;
   }
+
+
+  public void setRange(Number minInclusive, Number maxInclusive)
+  {
+    if ((minInclusive != null)  && (maxInclusive != null))
+    {
+      if (NumberComparator.getScale(minInclusive)!=NumberComparator.getScale(maxInclusive))
+      {
+        throw new IllegalArgumentException("Scale of the ranges should be equal");
+      }
+      if (NumberComparator.INSTANCE.compare(minInclusive,maxInclusive)==1)
+      {
+        throw new IllegalArgumentException(
+            "minInclusive is greater in magniture than maxInclusive.");
+      }
+      scale =  NumberComparator.getScale(minInclusive);
+    } else
+    if ((minInclusive != null)  && (maxInclusive == null))
+    {
+      scale =  NumberComparator.getScale(minInclusive);
+    } else
+    if ((maxInclusive != null)  && (minInclusive == null))
+    {
+      scale =  NumberComparator.getScale(maxInclusive);
+    }
+    this.minInclusive = minInclusive;
+    this.maxInclusive = maxInclusive;
+  }
+
+
 }

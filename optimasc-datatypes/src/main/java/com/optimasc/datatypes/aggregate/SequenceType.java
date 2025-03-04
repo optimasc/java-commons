@@ -779,10 +779,21 @@ public class SequenceType extends Datatype implements LengthFacet,Restriction,
     return false;*/
   }
 
+  public void setLength(int minLength, int maxLength)
+  {
+    lengthHelper.setLength(minLength, maxLength);
+  }
+
   public Object[] getChoices()
   {
     return enumeration;
   }
+
+  public void setChoices(Object[] choices)
+  {
+    enumeration = choices;
+  }
   
   
+
 }

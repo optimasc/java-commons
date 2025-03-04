@@ -14,7 +14,6 @@ import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.DateTimeEnumerationFacet;
 import com.optimasc.datatypes.DateTimeEnumerationHelper;
-import com.optimasc.datatypes.DecimalRangeFacet;
 import com.optimasc.datatypes.TimeFacet;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.visitor.TypeVisitor;
@@ -524,6 +523,22 @@ public class DateTimeType extends PrimitiveType implements BoundedFacet, TimeFac
       defaultTypeReference = new NamedTypeReference("time(second)" ,defaultTypeInstance);
     }
     return defaultTypeReference; 
+  }
+
+  public void setAccuracy(int accuracy)
+  {
+    validateAccuracy(accuracy);
+    this.accuracy = accuracy;
+  }
+
+  public void setChoices(Calendar[] choices)
+  {
+    enumHelper.setChoices(choices);
+  }
+
+  public void setLocalTime(boolean localTime)
+  {
+    this.localTime = localTime;
   }
   
 }

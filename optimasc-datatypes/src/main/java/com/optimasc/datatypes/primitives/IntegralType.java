@@ -14,10 +14,11 @@ import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.DecimalRangeHelper;
+import com.optimasc.datatypes.NumberRangeHelper;
 import com.optimasc.datatypes.TypeUtilities;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.visitor.TypeVisitor;
+import com.optimasc.lang.NumberComparator;
 
 /**
  * Datatype that represents an integral numeric value. For
@@ -31,9 +32,9 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  * <li><code>integer</code> XMLSchema built-in datatype</li>
  * </ul>
  * 
- * <p>Internally, values of this type are represented as {@link BigInteger}, but
- * when converting from decimal types, the rounding mode is 
- * <code>BigDecimal.ROUND_DOWN</code>.</p>
+ * <p>Internally, values of this type are represented as {@link BigInteger} and 
+ * value conversion returns a <code>BigInteger</code>, but when converting 
+ * from decimal types, the rounding mode is <code>BigDecimal.ROUND_DOWN</code>.</p>
  * 
  * 
  * @author Carl Eric Codère
@@ -56,26 +57,20 @@ public class IntegralType extends DecimalType
   public IntegralType(int minInclusive, int maxInclusive)
   {
     super(0);
-    rangeHelper = new DecimalRangeHelper(BigDecimal.valueOf(minInclusive),
-        BigDecimal.valueOf(maxInclusive));
+    rangeHelper = new NumberRangeHelper(BigInteger.valueOf(minInclusive),
+        BigInteger.valueOf(maxInclusive));
   }
   
   /** Creates a bounded integer type. */ 
   public IntegralType(BigInteger minInclusive, BigInteger maxInclusive)
   {
     super(0);
-    BigDecimal minValue = null;
-    BigDecimal maxValue = null;
-    if (minInclusive != null)
-      minValue = new BigDecimal(minInclusive);
-    if (maxInclusive != null)
-      maxValue = new BigDecimal(maxInclusive);
-    rangeHelper = new DecimalRangeHelper(minValue,
-        maxValue);
+    rangeHelper = new NumberRangeHelper(minInclusive,
+        maxInclusive);
   }
   
   /** Creates an integer numeric type with selected values allowed only (enumeration facet). */ 
-  public IntegralType(BigDecimal[] choices)
+  public IntegralType(BigInteger[] choices)
   {
     super(choices);
   }
@@ -119,11 +114,11 @@ public class IntegralType extends DecimalType
    *    value does not have a scale of zero.
    * 
    */
-  protected void setChoices(BigDecimal[] choices)
+  public void setChoices(Number[] choices)
   {
     for (int i=0; i < choices.length; i++)
     {
-      if (choices[i].scale()>0)
+      if (NumberComparator.getScale(choices[i])>0)
       {
         throw new IllegalArgumentException("Scale should be zero for integer choices.");
       }

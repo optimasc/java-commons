@@ -8,7 +8,7 @@ import java.util.Arrays;
  * @author Carl Eric Codere
  *
  */
-public class IntegerEnumerationHelper extends DecimalEnumerationHelper
+public class IntegerEnumerationHelper extends NumberEnumerationHelper
 {
   /** Indicates if we allow negative values. */
   protected boolean allowNegative;
@@ -48,9 +48,9 @@ public class IntegerEnumerationHelper extends DecimalEnumerationHelper
   }
 
   protected long[] sortedEnumeration;
-  protected BigDecimal[] cachedChoices;
+  protected Number[] cachedChoices;
   
-  public BigDecimal[] getChoices()
+  public Number[] getChoices()
   {
     if (cachedChoices != null)
     {

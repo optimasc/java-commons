@@ -3,23 +3,29 @@ package com.optimasc.datatypes.primitives;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import omg.org.astm.type.TypeReference;
-
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.DecimalEnumerationFacet;
-import com.optimasc.datatypes.DecimalEnumerationHelper;
-import com.optimasc.datatypes.DecimalRangeFacet;
-import com.optimasc.datatypes.DecimalRangeHelper;
+import com.optimasc.datatypes.NumberEnumerationFacet;
+import com.optimasc.datatypes.NumberEnumerationHelper;
+import com.optimasc.datatypes.NumberRangeHelper;
+import com.optimasc.datatypes.NumberRangeSetterFacet;
 import com.optimasc.datatypes.OrderedFacet;
-import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.TypeUtilities;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
+import com.optimasc.datatypes.visitor.TypeVisitor;
+import com.optimasc.lang.NumberComparator;
 
-public abstract class AbstractNumberType extends PrimitiveType  implements DecimalRangeFacet,OrderedFacet, DecimalEnumerationFacet
+public abstract class AbstractNumberType extends PrimitiveType  implements NumberRangeSetterFacet,OrderedFacet, NumberEnumerationFacet
 {
-  protected DecimalRangeHelper rangeHelper;
-  protected DecimalEnumerationHelper enumHelper;
+
+  public Object accept(TypeVisitor v, Object arg)
+  {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  protected NumberRangeHelper rangeHelper;
+  protected NumberEnumerationHelper enumHelper;
   protected int scale;
   protected int roundingMode;
   
@@ -43,8 +49,8 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Decim
     {
       roundingMode = BigDecimal.ROUND_DOWN;
     }
-    rangeHelper = new DecimalRangeHelper(null,null);
-    enumHelper = new DecimalEnumerationHelper();
+    setRange(null,null);
+    enumHelper = new NumberEnumerationHelper();
   }
   
   /** Creates an bounded numeric value. This creates 
@@ -64,8 +70,8 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Decim
   protected AbstractNumberType(BigDecimal minInclusive, BigDecimal maxInclusive)
   {
     super(true);
-    rangeHelper = new DecimalRangeHelper(minInclusive,maxInclusive);
-    enumHelper = new DecimalEnumerationHelper();
+    setRange(minInclusive,maxInclusive);
+    enumHelper = new NumberEnumerationHelper();
     this.scale = rangeHelper.getScale();
     roundingMode = BigDecimal.ROUND_HALF_EVEN;
     if (scale==0)
@@ -91,15 +97,15 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Decim
    *  is false.
    *  
    */
-  protected AbstractNumberType(BigDecimal choices[])
+  protected AbstractNumberType(Number choices[])
   {
     super(true);
-    enumHelper = new DecimalEnumerationHelper();
+    enumHelper = new NumberEnumerationHelper();
     setChoices(choices);
     // Get the lowest range and highest range that will become the
     // minValue and maxValue
-    BigDecimal sortedChoices[] = enumHelper.getChoices();
-    rangeHelper = new DecimalRangeHelper(sortedChoices[0],sortedChoices[sortedChoices.length-1]);
+    Number sortedChoices[] = enumHelper.getChoices();
+    setRange(sortedChoices[0],sortedChoices[sortedChoices.length-1]);
     this.scale = rangeHelper.getScale();
     roundingMode = BigDecimal.ROUND_HALF_EVEN;
     if (scale==0)
@@ -111,12 +117,12 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Decim
   protected AbstractNumberType(long choices[])
   {
     super(true);
-    enumHelper = new DecimalEnumerationHelper();
+    enumHelper = new NumberEnumerationHelper();
     setChoices(choices);
     // Get the lowest range and highest range that will become the
     // minValue and maxValue
-    BigDecimal sortedChoices[] = enumHelper.getChoices();
-    rangeHelper = new DecimalRangeHelper(sortedChoices[0],sortedChoices[sortedChoices.length-1]);
+    Number sortedChoices[] = enumHelper.getChoices();
+    setRange(sortedChoices[0],sortedChoices[sortedChoices.length-1]);
     this.scale = rangeHelper.getScale();
     roundingMode = BigDecimal.ROUND_HALF_EVEN;
     if (scale==0)
@@ -131,12 +137,12 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Decim
     return BigDecimal.class;
   }
 
-  public BigDecimal getMinInclusive()
+  public Number getMinInclusive()
   {
     return rangeHelper.getMinInclusive();
   }
 
-  public BigDecimal getMaxInclusive()
+  public Number getMaxInclusive()
   {
     return rangeHelper.getMaxInclusive();
   }
@@ -244,7 +250,7 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Decim
   /** {@inheritDoc}
    * 
    */
-  public boolean validateRange(BigDecimal value)
+  public boolean validateRange(Number value)
   {
     if (isBounded())
     {
@@ -273,6 +279,7 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Decim
    * 
    * <p>Finally, when the value is <code>BigDecimal</code> it should
    * be of the scale at this type.</p>
+   * 
    * 
    */
   public Object toValue(Object value, TypeCheckResult conversionResult)
@@ -317,10 +324,10 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Decim
       // type, zero extend the value.
       if (rangeHelper.isNaturalNumber()==true)
       {
-        BigDecimal maxRange = getMaxInclusive();
+        Number maxRange = getMaxInclusive();
         if (maxRange != null)
         {
-          BigInteger intRange = maxRange.toBigInteger();
+          BigInteger intRange = NumberComparator.toBigDecimal(maxRange).toBigInteger();
           int bitLength = intRange.bitLength();
           if ((ordinalValue instanceof Byte) && (bitLength==8))
           {
@@ -364,7 +371,7 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Decim
 
     if (validateRange(bigDecimal)==false)
     {
-      bigDecimal = getBoundedValue(bigDecimal);
+      bigDecimal = NumberComparator.toBigDecimal(getBoundedValue(bigDecimal));
       conversionResult.narrowingConversion = true;
       conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_NUMERIC_OUT_OF_RANGE,"Number is outside of valide range");
     }
@@ -389,7 +396,7 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Decim
     return v;
   }
 
-  public BigDecimal[] getChoices()
+  public Number[] getChoices()
   {
     return enumHelper.getChoices();
   }
@@ -400,7 +407,7 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Decim
   }
   
 
-  public boolean validateChoice(BigDecimal value)
+  public boolean validateChoice(Number value)
   {
     return enumHelper.validateChoice(value);
   }
@@ -410,7 +417,7 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Decim
     enumHelper.setChoices(choices);
   }
   
-  protected void setChoices(BigDecimal[] choices)
+  public void setChoices(Number[] choices)
   {
     enumHelper.setChoices(choices);
   }
@@ -474,16 +481,16 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Decim
    * @param value
    * @return
    */
-  protected BigDecimal getBoundedValue(BigDecimal value)
+  protected Number getBoundedValue(Number value)
   {
-    BigDecimal minInclusive = getMinInclusive();
-    BigDecimal maxInclusive = getMaxInclusive(); 
+    Number minInclusive = getMinInclusive();
+    Number maxInclusive = getMaxInclusive(); 
     
-    if ((minInclusive != null) && (value.compareTo(minInclusive)==-1))
+    if ((minInclusive != null) && (NumberComparator.INSTANCE.compare(value,minInclusive)==-1))
     {
       return getMinInclusive();
     } else
-    if ((minInclusive != null) &&  (value.compareTo(maxInclusive)==1))
+    if ((minInclusive != null) &&  (NumberComparator.INSTANCE.compare(value,maxInclusive)==1))
     {
         return getMaxInclusive();
     }
@@ -491,5 +498,9 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Decim
     
   }
   
+  public void setRange(Number minInclusive, Number maxInclusive)
+  {
+    rangeHelper = new NumberRangeHelper(minInclusive,maxInclusive);
+  }
   
 }

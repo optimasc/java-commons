@@ -32,21 +32,35 @@ public abstract class AggregateType extends Datatype implements PackedFacet
    * is byte aligned.
    */
   protected boolean packed;
+  /** Indicates if the members of this aggregate datatype are ordered
+   *  or not. By default they are ordered.
+   * 
+   */
+  protected boolean ordered;
 
   /**
-   * Constructs an aggregate type with an empty member list.
+   * Constructs an aggregate type with an empty member list. The 
+   * aggregate type is ordered and not packed by default.
    * 
-   * @param typ
    */
   public AggregateType()
   {
     super(false);
     this.members = new ArrayList();
+    this.ordered = true;
+    this.packed = false;
   }
 
+  /**
+   * Constructs an aggregate type with the specified member list. The 
+   * aggregate type is ordered and not packed by default.
+   * 
+   */
   public AggregateType(MemberObject[] members)
   {
     super(false);
+    this.ordered = true;
+    this.packed = false;
     this.members = Arrays.asList(members);
   }
 
@@ -129,7 +143,7 @@ public abstract class AggregateType extends Datatype implements PackedFacet
   {
     this.packed = packed;
   }
-
+  
   public boolean equals(Object obj)
   {
     /* null always not equal. */
@@ -151,5 +165,17 @@ public abstract class AggregateType extends Datatype implements PackedFacet
     }
     return true;
   }
+
+  public boolean isOrdered()
+  {
+    return ordered;
+  }
+
+  public void setOrdered(boolean ordered)
+  {
+    this.ordered = ordered;
+  }
+  
+  
 
 }

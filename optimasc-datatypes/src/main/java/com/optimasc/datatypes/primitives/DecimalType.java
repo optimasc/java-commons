@@ -71,7 +71,7 @@ public class DecimalType extends AbstractNumberType
    * @throws IllegalArgumentException Thrown if any of 
    *   the scales of the choices differ.
    */
-  public DecimalType(BigDecimal[] choices) throws IllegalArgumentException
+  public DecimalType(Number[] choices) throws IllegalArgumentException
   {
     super(choices);
   }

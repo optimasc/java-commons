@@ -303,8 +303,8 @@ public class BooleanTypeTest extends DatatypeTest
   {
     BooleanType ordered01 = new BooleanType(true);
 
-    assertEquals(BigDecimal.valueOf(0),ordered01.getMinInclusive());
-    assertEquals(BigDecimal.valueOf(1),ordered01.getMaxInclusive());
+    assertEquals(BigDecimal.valueOf(0).longValue(),ordered01.getMinInclusive().longValue());
+    assertEquals(BigDecimal.valueOf(1).longValue(),ordered01.getMaxInclusive().longValue());
     
     assertEquals(false,ordered01.validateRange(34));
     assertEquals(false,ordered01.validateRange(-1));

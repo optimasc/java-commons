@@ -8,4 +8,7 @@ public interface CharacterSetEncodingFacet extends Restriction
 {
   /** Return the character set repertoire. */
   public CharacterSet getCharacterSet();
+  /** Set the character set repertoire. */
+//  public void setCharacterSet(CharacterSet charset);
+  
 }

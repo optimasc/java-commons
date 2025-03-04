@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.optimasc.datatypes.visitor.TypeVisitor;
+import com.optimasc.lang.NumberComparator;
 import com.optimasc.util.Pattern;
 import com.optimasc.utils.UserConfiguration;
 
@@ -223,25 +224,25 @@ public abstract class Type implements UserConfiguration
       }
       
       
-      if (this instanceof DecimalRangeFacet)
+      if (this instanceof NumberRangeFacet)
       {
-        DecimalRangeFacet thisObject = (DecimalRangeFacet) this;
-        if ((obj instanceof DecimalRangeFacet) == false)
+        NumberRangeFacet thisObject = (NumberRangeFacet) this;
+        if ((obj instanceof NumberRangeFacet) == false)
         {
           return false;
         }
-        DecimalRangeFacet otherObject = (DecimalRangeFacet) obj;
+        NumberRangeFacet otherObject = (NumberRangeFacet) obj;
         
-        DecimalRangeFacet other = (DecimalRangeFacet) obj;
-        BigDecimal maxInclusive = thisObject.getMaxInclusive();
-        BigDecimal minInclusive = thisObject.getMinInclusive();
+        NumberRangeFacet other = (NumberRangeFacet) obj;
+        Number maxInclusive = thisObject.getMaxInclusive();
+        Number minInclusive = thisObject.getMinInclusive();
         if (maxInclusive == null)
         {
           if (other.getMaxInclusive() != null)
             return false;
         }
         // We check that the scales are equal here!
-        else if (!maxInclusive.equals(other.getMaxInclusive()))
+        else if (NumberComparator.INSTANCE.compare(maxInclusive,other.getMaxInclusive())!=0)
           return false;
         if (minInclusive == null)
         {
@@ -249,7 +250,7 @@ public abstract class Type implements UserConfiguration
             return false;
         }
         // We check that the scales are equal here!
-        else if (!minInclusive.equals(other.getMinInclusive()))
+        else if (NumberComparator.INSTANCE.compare(minInclusive,other.getMinInclusive())!=0)
           return false;
       }
         

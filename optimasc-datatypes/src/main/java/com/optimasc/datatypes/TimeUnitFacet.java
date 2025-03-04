@@ -8,6 +8,7 @@ package com.optimasc.datatypes;
  */
 public interface TimeUnitFacet
 {
+  public void setAccuracy(int accuracy);
   /** Returns the time unit accuracy of
    *  this time type.
    */

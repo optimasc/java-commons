@@ -13,6 +13,7 @@ package com.optimasc.datatypes;
  *   <li><code>SIZE(minLength,maxLength)</code> ASN.1 constraint</li>
  *   <li><code>size(minLength,maxLength)</code> ISO/IEC 11404 subtype</li>
  *   <li><code>minLength</code> and <code>maxLength</code> XMLSchema constraining facets</li>
+ *   <li><code>X-MIN-VALUE-LENGTH</code> and <code>X-MAX-VALUE-LENGTH</code> LDAP Attribute definition extension syntax constraining facet</li>
  *  </ul>
  *  
  * @author Carl Eric Codère
@@ -28,4 +29,18 @@ public interface LengthFacet
    *  is not defined.
    */
   public int getMaxLength();
+  
+  /** Sets the minimum and maximum number of allowed elements.
+   * 
+   * @param minLength [in] The minimum length, must be
+   *   a non negative integer.
+   * @param maxLength [in] The maximum length or 
+   * {@link Integer#MIN_VALUE} when the maximum length 
+   *  is not defined.
+   * @throws IllegalArgumentException if minLength is less
+   *   than zero, or minLength is greater than maxLength.  
+   * 
+   */
+  public void setLength(int minLength, int maxLength);
+  
 }
