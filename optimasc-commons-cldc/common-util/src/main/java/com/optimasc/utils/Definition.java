@@ -63,7 +63,7 @@ public interface Definition extends AttributeSet
    
    
    /**
-    * Unique IDENTIFIER associated to this definition. This is equivalent to
+    * Unique identifier associated to this definition. This is equivalent to
     * ID in ITU-T X.501. This value is normally mandatory and usually has the 
     * OBJECT IDENTIFIER format but any type of string value is accepted.
     */
@@ -130,10 +130,9 @@ public interface Definition extends AttributeSet
     */
    public String getFriendlyName();
    
-   /** Returns the unique identifier
-    *  associated with this definition.
+   /** Returns the unique identifier associated with this definition.
     * 
-    * @return A potentiallt null
+    * @return A potentially <code>null</code> value.
     */
    public String getID();   
    

@@ -57,8 +57,8 @@ public class DefaultItemDefinition extends AbstractAttributeSet implements ItemD
    * 
    * <ul>
    * <li>{@link Definition#KEY_OBSOLETE}: <code>Boolean.FALSE</code></li>
-   * <li>{@link Definition#KEY_ID}: Equal to the qualifiednamee parameter
-   *  with a "-OID" suffix.</li>
+   * <li>{@link Definition#KEY_ID}: Equal to the qualifiedName parameter
+   *  with an "-OID" suffix.</li>
    * </ul>
    * 
    * @param displayName
@@ -104,7 +104,7 @@ public class DefaultItemDefinition extends AbstractAttributeSet implements ItemD
       throw new IllegalArgumentException("Description of attribute is more than "
           + Integer.toString(DESC_MAX_LENGTH) + " characters.");
     }
-
+    
     attributes.put(KEY_NAME, qualifiedName);
     if (description != null)
       attributes.put(KEY_DESC, description);
@@ -119,8 +119,9 @@ public class DefaultItemDefinition extends AbstractAttributeSet implements ItemD
       throw new IllegalArgumentException(
           "Invalid syntax, it is mandatory and class must be specified.");
     }
-/*    validateObjectIdentifier(id,true); */
     attributes.put(KEY_TYPE_NAME, typeName);
+    attributes.put(KEY_ID, qualifiedName+"-OID");
+    
     if (displayName != null)
       attributes.put(KEY_DISPLAY_NAME, displayName);
 
