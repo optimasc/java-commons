@@ -12,7 +12,7 @@ public interface AttributeSet
    *  set. 
    * 
    * @param attributeName [in] The attribute name to retrieve.
-   *   This is usually an expanded name attribute.
+   *   This is usually a qualified name.
    * @param expectedClass [in] The expected class output
    *  for this attribute for verification. If this value
    *  is <code>null</code>, then no class verification will be made.
