@@ -4,40 +4,38 @@ import java.text.ParseException;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
+import com.optimasc.datatypes.Convertable;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.EnumerationFacet;
 import com.optimasc.datatypes.EnumerationHelper;
-import com.optimasc.datatypes.Parseable;
+import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
+import com.optimasc.datatypes.primitives.PrimitiveType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
+import com.optimasc.text.Parsers;
 
-public class LanguageType extends Datatype implements EnumerationFacet, Parseable
+/** Represents a language, which is represented by an ISO 649-1 2 letter
+ *  code. It also supports the "x-default" value for language which will
+ *  be equal to the default locale.
+ * 
+ *  <p>Internally the language is represented by the <code>Locale</code>
+ *  java object.</p>
+ */
+public class LanguageType extends PrimitiveType implements EnumerationFacet, Convertable
 {
   protected EnumerationHelper enumHelper;
 
   public LanguageType()
   {
     super(false);
-    enumHelper = new EnumerationHelper(this);
+    enumHelper = new EnumerationHelper(Locale.class);
   }
 
-  @Override
   public Class getClassType()
   {
     return Locale.class;
   }
 
-
-  @Override
-  public void validate(Object value) throws IllegalArgumentException, DatatypeException
-  {
-    checkClass(value);
-    if (validateChoice(value) == false)
-    {
-      DatatypeException.throwIt(DatatypeException.ERROR_ILLEGAL_VALUE,
-          "The Locale does not match the datatype specification");
-    }
-  }
 
   @Override
   public Object accept(TypeVisitor v, Object arg)
@@ -61,27 +59,64 @@ public class LanguageType extends Datatype implements EnumerationFacet, Parseabl
     return enumHelper.validateChoice(value);
   }
 
-  public Object parseObject(String value) throws ParseException
+  public boolean isRestrictionOf(Datatype value)
   {
-    /* Check if the pattern is valid. */
-    Pattern pattern = Pattern
-        .compile("(((en-GB-oed|i-ami|i-bnn|i-default|i-enochian|i-hak|i-klingon|i-lux|i-mingo|i-navajo|i-pwn|i-tao|i-tay|i-tsu|sgn-BE-FR|sgn-BE-NL|sgn-CH-DE)|(art-lojban|cel-gaulish|no-bok|no-nyn|zh-guoyu|zh-hakka|zh-min|zh-min-nan|zh-xiang))|((([A-Za-z]{2,3}(-([A-Za-z]{3}(-[A-Za-z]{3}){0,2}))?)|[A-Za-z]{4}|[A-Za-z]{5,8})(-([A-Za-z]{4}))?(-([A-Za-z]{2}|[0-9]{3}))?(-([A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(-([0-9A-WY-Za-wy-z](-[A-Za-z0-9]{2,8})+))*(-(x(-[A-Za-z0-9]{1,8})+))?)|(x(-[A-Za-z0-9]{1,8})+))");
-    if (pattern.matcher(value).matches() == false)
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  public Object toValue(Object value, TypeCheckResult conversionResult)
+  {
+    Locale locale = null;
+    if (value instanceof Locale)
     {
-      throw new ParseException("Error parsing language code", 0);
+      // Only if the language is valid.
+      String langCode =  ((Locale)value).getLanguage();
+      if (langCode.length()!=0)
+      {
+        locale =  new Locale(langCode);
+      } else
+      {
+        conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Locale value does not contain any language specifier.");
+        return null;
+      }
     }
-    Locale locale = new Locale(value);
-    try
+    
+    if (value instanceof CharSequence)
     {
-      validate(locale);
-    } catch (IllegalArgumentException e)
+      CharSequence charSequence = (CharSequence) value;
+      String langCode;
+      StringBuffer buffer = new StringBuffer();
+      for (int i=0; i < charSequence.length(); i++)
+      {
+        buffer.append(charSequence.charAt(i));
+      }
+      langCode = buffer.toString().toLowerCase();
+      if (langCode.length() == 2)
+      {
+        locale =  new Locale(buffer.toString());
+      } else
+      if (langCode.equals("x-default"))
+      {
+        locale =  Locale.getDefault();
+      } else
+      {
+        conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Character sequence is not an ISO 639-1 language code or 'x-default'.");
+        return null;
+      }
+    }
+    if (locale != null)
     {
-      return new ParseException("Cannot parse language specifier.", 0);
-    } catch (DatatypeException e)
+    if (validateChoice(locale) == false)
     {
-      return new ParseException("Cannot parse language specifier.", 0);
+      conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"The Locale does not match the datatype specification");
+      return null;
     }
     return locale;
+    }
+    conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Unsupported value of class '"+value.getClass().getName()+"'.");
+    return null;
   }
+
 
 }

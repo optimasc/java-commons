@@ -1,19 +1,20 @@
 package com.optimasc.datatypes.derived;
 
+import com.optimasc.datatypes.defined.StringType;
 import com.optimasc.datatypes.defined.UCS2CharType;
-import com.optimasc.datatypes.generated.StringTypeEx;
 
 import omg.org.astm.type.TypeReference;
 
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.datatypes.visitor.TypeVisitorEx;
+import com.optimasc.text.DataConverter;
 
 /** Represents a normalized string type.
  * 
  * @author Carl Eric Codere
  *
  */
-public class NormalizedStringType extends StringTypeEx
+public class NormalizedStringType extends StringType
 {
   public NormalizedStringType(int minLength, int maxLength, TypeReference charType)
   {
@@ -33,6 +34,12 @@ public class NormalizedStringType extends StringTypeEx
     setWhitespace(WHITESPACE_REPLACE);
   }
   
+  public NormalizedStringType(DataConverter validator, TypeReference baseType)
+  {
+    super(validator,baseType);
+    setWhitespace(WHITESPACE_REPLACE);
+  }
+
   
 
   @Override

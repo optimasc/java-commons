@@ -13,14 +13,13 @@ import omg.org.astm.type.UnnamedTypeReference;
 import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.Parseable;
 import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.defined.UCS2StringType;
 import com.optimasc.datatypes.utils.VisualMap;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Alternate list of key-value pairs. */
-public class MapType extends Datatype implements ConstructedSimple, Parseable
+public class MapType extends Datatype implements ConstructedSimple
 {
   protected TypeReference valueDatatypeReference;
   protected Type valueDatatype;
@@ -36,7 +35,7 @@ public class MapType extends Datatype implements ConstructedSimple, Parseable
   
   public MapType()
   {
-      super(Datatype.OTHER,false);
+      super(false);
       setBaseTypeReference(UCS2StringType.TYPE_REFERENCE);
       setKeyDatatype(UCS2StringType.TYPE_REFERENCE);
   }
@@ -61,12 +60,12 @@ public class MapType extends Datatype implements ConstructedSimple, Parseable
   /** Validates the values, which must be a {@link Map}. 
    * 
    */
-  @Override
+/*  @Override
   public void validate(Object value) throws IllegalArgumentException, DatatypeException
   {
     checkClass(value);
     Map v = (Map)value;
-    /* Check each value in the map. */
+    // Check each value in the map.
     Iterator keyIterator = v.keySet().iterator();
     while (keyIterator.hasNext())
     {
@@ -80,9 +79,9 @@ public class MapType extends Datatype implements ConstructedSimple, Parseable
         ((Datatype)valueDatatype).validate(v.get(key));
       }
     }
-  }
+  }*/
 
-  public Object parseObject(String value) throws ParseException
+/*  public Object parseObject(String value) throws ParseException
   {
     VisualMap<Object,Object> visualMap = new VisualMap<Object, Object>();
     StringTokenizer st = new StringTokenizer(value,entrySeparatorChar);
@@ -92,6 +91,7 @@ public class MapType extends Datatype implements ConstructedSimple, Parseable
         String entry[] = entryString.split(keySeparatorChar);
         
         Object keyParsedValue = entry[0];
+        
         if (keyDatatype instanceof Parseable)
         {
           keyParsedValue =((Parseable)keyDatatype).parseObject(entry[0]);
@@ -114,7 +114,7 @@ public class MapType extends Datatype implements ConstructedSimple, Parseable
       throw new ParseException("Error while parsing list items.",0);
     }
     return visualMap;
-  }
+  }*/
 
   @Override
   public Object accept(TypeVisitor v, Object arg)

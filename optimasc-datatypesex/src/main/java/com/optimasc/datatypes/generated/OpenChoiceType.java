@@ -54,4 +54,9 @@ public class OpenChoiceType extends UnionType implements EnumerationFacet, Const
     }
     enumHelper.setChoices(choices);
   }
+
+  public boolean validateChoice(Object value)
+  {
+    return false;
+  }
 }

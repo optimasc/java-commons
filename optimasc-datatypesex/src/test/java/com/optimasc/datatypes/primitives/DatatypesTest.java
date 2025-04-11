@@ -16,8 +16,6 @@ import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.EnumerationFacet;
 import com.optimasc.datatypes.LengthFacet;
 import com.optimasc.datatypes.PatternFacet;
-import com.optimasc.datatypes.aggregate.ListType;
-import com.optimasc.datatypes.aggregate.SequenceListType;
 import com.optimasc.datatypes.aggregate.SequenceType;
 import com.optimasc.datatypes.defined.LatinCharType;
 import com.optimasc.datatypes.defined.LatinStringType;
@@ -53,59 +51,4 @@ public class DatatypesTest extends TestCase
   }
 
 
-  public void testSequenceType()
-  {
-    boolean success = false;
-    Vector v;
-    ListType datatype = new SequenceListType();
-    /* List of string types. */
-    datatype.setBaseTypeReference(new UnnamedTypeReference(new LatinStringType()));
-    ListType otherDatatype = new SequenceListType();
-    otherDatatype.setBaseTypeReference(new UnnamedTypeReference(new LatinStringType()));
-    testBasicDataType(datatype);
-    assertEquals(Vector.class, datatype.getClassType());
-    assertEquals(datatype, datatype);
-    assertEquals(otherDatatype, datatype);
-
-    datatype.setDelimiter(";");
-    try
-    {
-      v = (Vector) datatype.parse("one;two;three");
-      assertEquals(3,v.size());
-      assertEquals("one",v.get(0));
-      assertEquals("two",v.get(1));
-      assertEquals("three",v.get(2));
-    } catch (ParseException e)
-    {
-      fail();
-    }
-
-    /* Check the length values. valid use case */
-    datatype.setMinLength(0);
-    datatype.setMaxLength(1);
-    try
-    {
-      v = (Vector) datatype.parse("one");
-      assertEquals(1,v.size());
-      assertEquals("one",v.get(0));
-    } catch (ParseException e)
-    {
-      fail();
-    }
-
-    /* Invalid use case. */
-    success = false;
-    try
-    {
-      v = (Vector) datatype.parse("one;two;three");
-    } catch (ParseException e)
-    {
-      success = true;
-    }
-    assertEquals(true,success);
-
-
-
   }
-
-}

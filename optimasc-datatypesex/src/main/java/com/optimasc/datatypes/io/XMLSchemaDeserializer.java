@@ -9,13 +9,25 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.text.Format;
+import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
+import javax.naming.directory.Attribute;
+import javax.naming.directory.Attributes;
+import javax.naming.directory.BasicAttribute;
+import javax.naming.directory.BasicAttributes;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -34,10 +46,13 @@ import org.xml.sax.SAXException;
 
 import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Datatype;
+import com.optimasc.datatypes.EnumerationFacet;
+import com.optimasc.datatypes.LengthFacet;
+import com.optimasc.datatypes.NumberEnumerationFacet;
+import com.optimasc.datatypes.NumberRangeFacet;
+import com.optimasc.datatypes.NumberRangeSetterFacet;
 import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.aggregate.BagType;
-import com.optimasc.datatypes.aggregate.ListType;
-import com.optimasc.datatypes.aggregate.SequenceListType;
 import com.optimasc.datatypes.aggregate.SequenceType;
 import com.optimasc.datatypes.defined.BinaryType;
 import com.optimasc.datatypes.defined.ByteType;
@@ -54,20 +69,26 @@ import com.optimasc.datatypes.defined.UnsignedByteType;
 import com.optimasc.datatypes.defined.UnsignedIntType;
 import com.optimasc.datatypes.defined.UnsignedShortType;
 import com.optimasc.datatypes.defined.YearType;
+import com.optimasc.datatypes.derived.NameType;
 import com.optimasc.datatypes.derived.NormalizedStringType;
 import com.optimasc.datatypes.derived.TokenType;
 import com.optimasc.datatypes.generated.AltLangMapType;
 import com.optimasc.datatypes.generated.LanguageType;
 import com.optimasc.datatypes.generated.MapType;
-import com.optimasc.datatypes.generated.StringTypeEx;
 import com.optimasc.datatypes.generated.UnionType;
-import com.optimasc.datatypes.manager.DefaultTypeSymbolTable;
-import com.optimasc.datatypes.manager.SymbolTable;
 import com.optimasc.datatypes.manager.TypeSymbolTable;
 import com.optimasc.datatypes.primitives.BooleanType;
+import com.optimasc.datatypes.primitives.DateTimeType;
+import com.optimasc.datatypes.primitives.DecimalType;
+import com.optimasc.datatypes.primitives.DurationType;
 import com.optimasc.datatypes.primitives.IntegralType;
 import com.optimasc.datatypes.primitives.RealType;
 import com.optimasc.datatypes.primitives.URIType;
+import com.optimasc.datatypes.utils.DataValidator;
+import com.optimasc.text.NumericFormatters;
+import com.optimasc.text.NumericFormatters.IntegerConverter;
+import com.optimasc.text.StandardDateFormats;
+import com.optimasc.text.StandardFormatters;
 import com.sapient.BeanUtil;
 
 /** Converts XMLSchema specifications to created datatypes.
@@ -167,17 +188,17 @@ public class XMLSchemaDeserializer implements Deserializer
      so as to do a binary search as required. */
   public static FacetData[] facetsInformation =
   {
-      new FacetData("ENTITIES", FACET_STRINGS, null),
-      new FacetData("ENTITY", FACET_STRINGS, null),
-      new FacetData("ID", FACET_STRINGS, null),
-      new FacetData("IDREF", FACET_STRINGS, null),
-      new FacetData("IDREFS", FACET_STRINGS, null),
-      new FacetData("NCName", FACET_STRINGS, null),
-      new FacetData("NMTOKEN", FACET_STRINGS, null),
-      new FacetData("NMTOKENS", FACET_STRINGS, null),
-      new FacetData("NOTATION", FACET_STRINGS, null),
-      new FacetData("Name", FACET_STRINGS, null),
-      new FacetData("QName", FACET_STRINGS, null),
+/*      new FacetData("ENTITIES", FACET_STRINGS, StringType.class),
+      new FacetData("ENTITY", FACET_STRINGS, StringType.class),
+      new FacetData("ID", FACET_STRINGS, StringType.class),
+      new FacetData("IDREF", FACET_STRINGS, StringType.class),
+      new FacetData("IDREFS", FACET_STRINGS, StringType.class),
+      new FacetData("NCName", FACET_STRINGS, NameTypeType.class),
+      new FacetData("NMTOKEN", FACET_STRINGS, StringType.class),
+      new FacetData("NMTOKENS", FACET_STRINGS, StringType.class),
+      new FacetData("NOTATION", FACET_STRINGS, StringType.class),*/
+      new FacetData("Name", FACET_STRINGS, NameType.class),
+/*      new FacetData("QName", FACET_STRINGS, StringType.class),*/
 
       new FacetData("anyURI", FACET_STRINGS, URIType.class),
       new FacetData("base64Binary", FACET_STRINGS, BinaryType.class),
@@ -185,9 +206,9 @@ public class XMLSchemaDeserializer implements Deserializer
       new FacetData("byte", FACET_DECIMAL, ByteType.class),
       new FacetData("date", FACET_DATE, DateType.class),
       new FacetData("dateTime", FACET_DATETIME, TimestampType.class),
-      new FacetData("decimal", FACET_DECIMAL, null),
+      new FacetData("decimal", FACET_DECIMAL, DecimalType.class),
       new FacetData("double", FACET_DOUBLE, DoubleType.class),
-      new FacetData("duration", FACET_DURATION, null),
+      new FacetData("duration", FACET_DURATION, DurationType.class),
       new FacetData("float", FACET_FLOAT, SingleType.class),
       new FacetData("gDay", FACET_GDAY, null),
       new FacetData("gMonth", FACET_GMONTH, null),
@@ -198,15 +219,15 @@ public class XMLSchemaDeserializer implements Deserializer
       new FacetData("integer", FACET_DECIMAL, IntegralType.class),
       new FacetData("language", FACET_STRINGS, LanguageType.class),
       new FacetData("long", FACET_DECIMAL, LongType.class),
-      new FacetData("nonNegativeInteger", FACET_DECIMAL, NonNegativeIntegerType.class),
+//      new FacetData("nonNegativeInteger", FACET_DECIMAL),
       new FacetData("normalizedString", FACET_STRINGS, NormalizedStringType.class),
       new FacetData("short", FACET_DECIMAL, ShortType.class),
-      new FacetData("string", FACET_STRINGS, StringTypeEx.class),
+      new FacetData("string", FACET_STRINGS, StringType.class),
       new FacetData("time", FACET_TIME, null),
       new FacetData("token", FACET_STRINGS, TokenType.class),
       new FacetData("unsignedByte", FACET_DECIMAL, UnsignedByteType.class),
       new FacetData("unsignedInt", FACET_DECIMAL, UnsignedIntType.class),
-      new FacetData("unsignedLong", FACET_DECIMAL, null),
+//      new FacetData("unsignedLong", FACET_DECIMAL, UnsignedLongType.class),
       new FacetData("unsignedShort", FACET_DECIMAL, UnsignedShortType.class),
   };
 
@@ -372,7 +393,7 @@ public class XMLSchemaDeserializer implements Deserializer
       if ((listOrdering.equals(RDF_ARRAY_ORDERED)))
       {
         listType = new SequenceType(listElementDatatype,listElementDatatype.getType().getClassType());
-      } else
+      }/* else
       if ((listOrdering.equals(RDF_ALT_ARRAY)))
       {
         listType = new MapType(listElementDatatype); 
@@ -380,7 +401,7 @@ public class XMLSchemaDeserializer implements Deserializer
       if ((listOrdering.equals(RDF_ALT_LANG_ARRAY)))
       {
           listType = new AltLangMapType(listElementDatatype); 
-      } else
+      }*/ else
       {
         throw new IllegalArgumentException("'listType' value is invalid");
       }
@@ -429,7 +450,14 @@ public class XMLSchemaDeserializer implements Deserializer
     if (foundIndex >= 0)
     {
       FacetData facetInfo = facetsInformation[foundIndex];
-      Hashtable restrictions = getRestrictions(facetInfo, restrictionElement);
+      Map<String, Object> restrictions = null;
+      try
+      {
+        restrictions = getRestrictions(facetInfo, restrictionElement);
+      } catch (ParseException e)
+      {
+        return null;
+      }
       /** Some restrictions are currently not supported, indicate it. */
       if (restrictions.get("length") != null)
       {
@@ -446,7 +474,7 @@ public class XMLSchemaDeserializer implements Deserializer
         throw new UnsupportedOperationException(
             "facet of type 'maxExclusive' is not supported, adapt to use 'maxInclusive' instead.");
       }
-      Datatype o = (Datatype)createDataType(baseType, dataTypeName, restrictions, null);
+      NamedTypeReference o = createDataType(baseType, dataTypeName, restrictions, null);
       if (typeDocumentation != null)
       {
         o.setComment(typeDocumentation);
@@ -483,12 +511,6 @@ public class XMLSchemaDeserializer implements Deserializer
         }
       }
     }
-/*    datatypes.put("anyURI", new URIType());
-    datatypes.put("boolean", new BooleanType());
-    datatypes.put("integer", new IntegerType());
-    datatypes.put("language", new LanguageType());
-    datatypes.put("string", new StringTypeEx());
-    datatypes.put("long", new LongType());*/
   }
 
   
@@ -496,7 +518,7 @@ public class XMLSchemaDeserializer implements Deserializer
   public TypeSymbolTable load(InputStream stream)
   {
     String xsdPrefix;
-    TypeSymbolTable symbolTable = new DefaultTypeSymbolTable();
+    TypeSymbolTable symbolTable = new TypeSymbolTable();
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);
     DocumentBuilder db;
@@ -531,7 +553,7 @@ public class XMLSchemaDeserializer implements Deserializer
           NamedTypeReference namedType = (NamedTypeReference) typeRef;
           if (namedType.getTypeName()!=null)
           {
-            symbolTable.put(new QName(namedType.getTypeName()), typeRef);
+            symbolTable.put(namedType);
           }
         }
       }
@@ -560,8 +582,9 @@ public class XMLSchemaDeserializer implements Deserializer
     return true;
   }
 
-  /** Converts a facet value to an Object representation. */
-  protected static Object facetToObject(FacetData facetData, String name, String value)
+  /** Converts a facet value to an Object representation. 
+   * @throws ParseException */
+  protected static Object facetToObject(FacetData facetData, String name, String value) throws ParseException
   {
     /* nonNegativeInteger */
     if ((name.equals("length")) || (name.equals("minLength")) || (name.equals("maxLength"))
@@ -609,6 +632,27 @@ public class XMLSchemaDeserializer implements Deserializer
       }
       return new Integer((int) longValue);
     }
+    if (name.equals("enumeration"))
+    {
+      if (IntegralType.class.isAssignableFrom(facetData.classType))
+      {
+        Number v = new BigInteger(value); 
+        return v;
+      }
+      if (DecimalType.class.isAssignableFrom(facetData.classType))
+      {
+        Number v = new BigDecimal(value); 
+        return v;
+      }
+      if (StringType.class.isAssignableFrom(facetData.classType))
+      {
+        return value;
+      }
+      if (DateTimeType.class.isAssignableFrom(facetData.classType))
+      {
+        return DataValidator.validate((Datatype) DateTimeType.getInstance().getType(), value);
+      }
+    }
     /* pattern, enumeration are kept as strings. */
     return value;
   }
@@ -616,20 +660,19 @@ public class XMLSchemaDeserializer implements Deserializer
   /**
    * Parses all restrictions allowed for a simpleType of the specified type, and
    * creates a hashtable containing the following information: Key<String>
-   * representing the facet name. Value<String, or Vector<String>> in the case
+   * representing the facet name. Object, or List<Object>> in the case
    * of enumeration
    * 
-   * @param facetData
+   * @param facetData [in] The facet data.
    * @param restrictionElement
    * @return
    */
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  protected static Hashtable getRestrictions(FacetData facetData, Element restrictionElement)
+  protected static Map<String,Object> getRestrictions(FacetData facetData, Element restrictionElement) throws ParseException
   {
-    Hashtable restrictionsData = new Hashtable();
-    Vector enumerationValues = new Vector();
+    Map<String,Object> restrictionsData = new Hashtable<String,Object>();
     String value;
     NodeList facetElements = restrictionElement.getChildNodes();
+    List<Object> enumAttribute = new ArrayList<Object>();
     for (int j = 0; j < facetElements.getLength(); j++)
     {
       Node node = (Node) facetElements.item(j);
@@ -648,7 +691,8 @@ public class XMLSchemaDeserializer implements Deserializer
              */
             if (element.getLocalName().equals("enumeration"))
             {
-              enumerationValues.add(value);
+              Object valueObject = facetToObject(facetData, element.getLocalName(), value);
+              enumAttribute.add(valueObject);
             } else
             /* Replace old value */
             {
@@ -660,10 +704,10 @@ public class XMLSchemaDeserializer implements Deserializer
       }
     }
     /* Add all the enumeration values, if present. */
-    if (enumerationValues.size() > 0)
+    if (enumAttribute.size() > 0)
     {
       /* Internally the format is choices property */
-      restrictionsData.put("choices", enumerationValues.toArray());
+      restrictionsData.put("choices",enumAttribute);
     }
     return restrictionsData;
   }
@@ -679,7 +723,7 @@ public class XMLSchemaDeserializer implements Deserializer
     return qualifiedName.substring(index + 1);
   }
 
-  protected static Datatype createDataType(String datatype, String name, Hashtable restrictions,
+  protected static NamedTypeReference createDataType(String datatype, String name, Map<String,Object> restrictions,
       String comment)
   {
     Datatype datatypeInstance = null;
@@ -703,79 +747,49 @@ public class XMLSchemaDeserializer implements Deserializer
         {
           /* Create the correct object type. */
           datatypeInstance = (Datatype) facetInfo.classType.newInstance();
-          datatypeInstance.setName(name);
+//          datatypeInstance.setName(name);
           datatypeInstance.setComment(comment);
-          /* Set the facets. */
-          BeanInfo beanInfo = null;
-          try
+          /* Set Length */
+          Number minLengthAttr = (Number) restrictions.get("minLength"); 
+          Number maxLengthAttr = (Number) restrictions.get("maxLength");
+          Number minInclusiveAttr = (Number) restrictions.get("minInclusive");
+          Number maxInclusiveAttr = (Number) restrictions.get("maxInclusive");
+          List<Object> choicesAttr = (List<Object>) restrictions.get("choices");
+          
+          int minLength = 0;
+          int maxLength = Integer.MIN_VALUE;
+          if (minLengthAttr!=null)
           {
-            beanInfo = Introspector.getBeanInfo(facetInfo.classType);
-          } catch (IntrospectionException e)
-          {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            minLength = minLengthAttr.intValue();
           }
-
-          Enumeration e = restrictions.keys();
-          while (e.hasMoreElements())
+          if (maxLengthAttr!=null)
           {
-            String s = (String) e.nextElement();
-            if (BeanUtil.getPropertyDescriptor(s, facetInfo.classType) != null)
+            maxLength = maxLengthAttr.intValue();
+          }
+          if (datatypeInstance instanceof LengthFacet)
+          {
+            ((LengthFacet)datatypeInstance).setLength(minLength, maxLength);
+          }
+          
+          if ((minInclusiveAttr!=null) || (maxInclusiveAttr!=null))
+          {
+            if (datatypeInstance instanceof NumberRangeSetterFacet)
             {
-              try
-              {
-                //                System.out.println("Setting "+s);
-                BeanUtil.setObjectAttribute(datatypeInstance, s, restrictions.get(s));
-              } catch (IllegalArgumentException e1)
-              {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-              } catch (InvocationTargetException e1)
-              {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-              } catch (NoSuchMethodException e1)
-              {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-              }
+              ((NumberRangeSetterFacet)datatypeInstance).setRange(minInclusiveAttr, maxInclusiveAttr);
             }
           }
-
-          PropertyDescriptor[] descriptors = beanInfo.getPropertyDescriptors();
-
-          for (int i = 0; i < descriptors.length; i++)
+          
+          if (choicesAttr!=null)
           {
-            String propName = descriptors[i].getName();
-            Class<?> propType = descriptors[i].getPropertyType();
-//            System.out.println("Property with Name: " + propName + " and Type: " + propType);
+            if (datatypeInstance instanceof NumberEnumerationFacet)
+            {
+              ((NumberEnumerationFacet)datatypeInstance).setChoices(choicesAttr.toArray(new Number[0]));
+            }
+            if (datatypeInstance instanceof EnumerationFacet)
+            {
+              ((EnumerationFacet)datatypeInstance).setChoices(choicesAttr.toArray(new Object[0]));
+            }
           }
-
-          /*          Object value = restrictions.get("minInclusive");
-                    if (value != null)
-                    {
-                      try
-                      {
-                        BeanUtil.setObjectAttribute(o,"minInclusive",new Integer(Integer.parseInt((String) value)));
-                      } catch (NumberFormatException e)
-                      {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                      } catch (IllegalArgumentException e)
-                      {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                      } catch (InvocationTargetException e)
-                      {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                      } catch (NoSuchMethodException e)
-                      {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                      }
-                    };*/
-
         } catch (InstantiationException e)
         {
           // TODO Auto-generated catch block
@@ -787,7 +801,7 @@ public class XMLSchemaDeserializer implements Deserializer
         }
       }
     }
-    return datatypeInstance;
+    return new NamedTypeReference(name,datatypeInstance);
   }
 
 }

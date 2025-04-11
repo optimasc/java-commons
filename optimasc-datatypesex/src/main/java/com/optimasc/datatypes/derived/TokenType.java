@@ -5,6 +5,7 @@ import omg.org.astm.type.TypeReference;
 import com.optimasc.datatypes.defined.UCS2CharType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.datatypes.visitor.TypeVisitorEx;
+import com.optimasc.text.DataConverter;
 
 public class TokenType extends NormalizedStringType
 {
@@ -24,6 +25,13 @@ public class TokenType extends NormalizedStringType
   public TokenType()
   {
     super(0,Integer.MAX_VALUE,UCS2CharType.DEFAULT_TYPE_REFERENCE);
+    setWhitespace(WHITESPACE_COLLAPSE);
+  }
+  
+  
+  public  TokenType(DataConverter validator, TypeReference baseType)
+  {
+    super(validator,baseType);
     setWhitespace(WHITESPACE_COLLAPSE);
   }
   
