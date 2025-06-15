@@ -10,6 +10,8 @@ public class DateTimeEpochs
 {
    /** Standard Julian Day Number (JDN), without the fractional part. */
    public static final DateTimeFormat JULIAN_DAY = new DateTimeFormat(DateTimeFormat.TimeUnit.DAYS,-1721060L);
+   /** Standard time elapsed since Epoch which is equal to JDN 0 in milliseconds. */
+   public static final DateTimeFormat JULIAN_MILLISECONDS = new DateTimeFormat(DateTimeFormat.TimeUnit.MILLISECONDS,-1721060L*24L*3600L*1000L);
    /** UNIX/POSIX epoch which has a resolution of seconds since 1970-01-01 UTC Gregorian Calendar.
     *  The UNIX epoch is 719528 days after instance 0000-01-01. This has been verified
     *  against the JDK code */
