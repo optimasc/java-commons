@@ -19,8 +19,6 @@ import com.optimasc.date.DateTime;
  */  
 public class TimestampType extends DateTimeType
 {
-  public static final TimestampType DEFAULT_INSTANCE = new TimestampType();
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
 
   public TimestampType()
   {

@@ -10,6 +10,7 @@ import com.optimasc.datatypes.BoundedFacet;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.DateTimeEnumerationFacet;
+import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.defined.BinaryType;
 import com.optimasc.date.DateTime;
@@ -23,7 +24,7 @@ public class TimeTypeTest extends DatatypeTest
   protected void setUp() throws Exception
   {
     super.setUp();
-    defaultInstance = (TimeType) TimeType.getInstance().getType();
+    defaultInstance = (TimeType) TypeFactory.getDefaultInstance(TimeType.class).getType();
   }
 
   protected void tearDown() throws Exception

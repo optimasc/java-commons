@@ -21,6 +21,7 @@ import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.TypeUtilities;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.visitor.TypeVisitor;
+import com.optimasc.date.DateTime;
 import com.optimasc.date.DateTimeFormat;
 import com.optimasc.lang.Duration;
 import com.optimasc.lang.NumberComparator;
@@ -47,9 +48,6 @@ import com.optimasc.lang.NumberComparator;
  */
 public class DurationType extends PrimitiveType implements OrderedFacet, NumberRangeFacet, TimeUnitFacet, IntegerEnumerationFacet
 {
-  private static DurationType defaultTypeInstance;
-  private static TypeReference defaultTypeReference;
-  
   protected NumberRangeHelper rangeHelper;
   protected IntegerEnumerationHelper enumHelper;
   
@@ -345,16 +343,6 @@ public class DurationType extends PrimitiveType implements OrderedFacet, NumberR
     return enumHelper.validateChoice(value);
   }
   
-  public static TypeReference getInstance()
-  {
-    if (defaultTypeInstance == null)
-    {
-      defaultTypeInstance = new DurationType();
-      defaultTypeReference = new NamedTypeReference("timeinterval(second, 10, 3)" ,defaultTypeInstance);
-    }
-    return defaultTypeReference; 
-  }
-
   public boolean isNumeric()
   {
     return true;
@@ -392,6 +380,29 @@ public class DurationType extends PrimitiveType implements OrderedFacet, NumberR
   {
     timeUnit = accuracy;
   }
+
+  
+  public String getGPDName()
+  {
+    switch (this.timeUnit)
+    {
+       case DateTime.TimeAccuracy.YEAR:
+         return "timeinterval(year, 10, 1)";
+       case DateTime.TimeAccuracy.DAY:
+         return "timeinterval(day, 10, 1)";
+       case DateTime.TimeAccuracy.MINUTE:
+         return "timeinterval(minute, 10, 1)";
+       case DateTime.TimeAccuracy.SECOND:
+          return "timeinterval(second, 10, 1)";
+       case DateTime.TimeAccuracy.MILLISECOND:
+         return "timeinterval(second, 10, 3)";
+    default:
+      return null;
+    }
+  }
+  
+  
+  
 
   
 }

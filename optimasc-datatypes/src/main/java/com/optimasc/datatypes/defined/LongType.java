@@ -30,11 +30,6 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class LongType extends IntegralType
 {
-  public static final LongType DEFAULT_INSTANCE = new LongType();
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
-  
-  
-  
   public LongType()
   {
     super(BigInteger.valueOf(Long.MIN_VALUE),BigInteger.valueOf(Long.MAX_VALUE));

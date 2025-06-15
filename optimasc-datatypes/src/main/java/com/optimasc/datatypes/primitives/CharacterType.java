@@ -32,10 +32,6 @@ import com.optimasc.lang.CharacterSet;
  */
 public class CharacterType extends PrimitiveType implements CharacterSetEncodingFacet,OrderedFacet,BoundedFacet
 {
-  private static CharacterType defaultTypeInstance;
-  private static TypeReference defaultTypeReference;
-  
-  
   /** Character Set Repertoire list  */
   protected CharacterSet characterSet;
   
@@ -270,20 +266,16 @@ public class CharacterType extends PrimitiveType implements CharacterSetEncoding
     return characterSet.isValid(value.longValue());
   }
   
-  public static TypeReference getInstance()
-  {
-    if (defaultTypeInstance == null)
-    {
-      defaultTypeInstance = new CharacterType();
-      defaultTypeReference = new NamedTypeReference("character" ,defaultTypeInstance);
-    }
-    return defaultTypeReference; 
-  }
-
   public void setCharacterSet(CharacterSet charset)
   {
     this.characterSet = charset;
   }
+  
+  public String getGPDName()
+  {
+    return "character";
+  }
+  
 
 
 }

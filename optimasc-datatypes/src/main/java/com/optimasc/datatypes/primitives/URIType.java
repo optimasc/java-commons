@@ -31,11 +31,6 @@ import com.optimasc.util.Pattern;
 public class URIType extends PrimitiveType implements Convertable
 {
   protected Format formatter;
-
-  private static URIType defaultTypeInstance;
-  private static TypeReference defaultTypeReference;
-  
-  
   
   public URIType()
   {
@@ -191,17 +186,5 @@ public class URIType extends PrimitiveType implements Convertable
       return false;
     return true;
   }
-  
-  public static TypeReference getInstance()
-  {
-    if (defaultTypeInstance == null)
-    {
-      defaultTypeInstance = new URIType();
-      defaultTypeReference = new UnnamedTypeReference(defaultTypeInstance);
-    }
-    return defaultTypeReference; 
-  }
-
-  
   
 }

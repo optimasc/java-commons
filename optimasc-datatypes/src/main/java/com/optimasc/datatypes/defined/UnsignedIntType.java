@@ -27,9 +27,6 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class UnsignedIntType extends NonNegativeIntegerType
 {
-  public static final UnsignedIntType DEFAULT_INSTANCE = new UnsignedIntType();
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
-  
   public UnsignedIntType()
   {
     super(BigInteger.valueOf(4294967295L));

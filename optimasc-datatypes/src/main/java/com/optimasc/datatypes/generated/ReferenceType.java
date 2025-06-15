@@ -7,6 +7,7 @@ import omg.org.astm.type.TypeReference;
 import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
+import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.primitives.VoidType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
@@ -35,7 +36,7 @@ public class ReferenceType extends Datatype implements ConstructedSimple
   public ReferenceType()
   {
        super(false);
-       setBaseTypeReference(VoidType.getInstance());
+       setBaseTypeReference(TypeFactory.getDefaultInstance(VoidType.class));
   }
   
   public ReferenceType(TypeReference pointsTo)

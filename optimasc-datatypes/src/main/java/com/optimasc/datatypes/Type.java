@@ -278,5 +278,18 @@ public abstract class Type implements UserConfiguration
     }
     return true;
   }
+  
+  /** Return the ISO 11404 General Purpsoe Datatype name, or
+   *  <code>null</code> if this datatype has no name. This
+   *  should be implemented by derived class that have an
+   *  associated ISO 11404 official datatype name.
+   *  
+   * @return The datatype name.
+   */
+  public String getGPDName()
+  {
+    return null;
+  }
+
 
 }

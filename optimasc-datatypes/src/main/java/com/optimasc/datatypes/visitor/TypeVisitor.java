@@ -72,21 +72,21 @@ public interface TypeVisitor {
   
   public Object visit(BooleanType n, Object arg);
   
-  public Object visit(ByteType n, Object arg);
+//  public Object visit(ByteType n, Object arg);
   
   public Object visit(CharacterType n, Object arg);
   
   public Object visit(ClassType n, Object arg);
 
-  public Object visit(CurrencyType n, Object arg);
+//  public Object visit(CurrencyType n, Object arg);
   
-  public Object visit(DateType n, Object arg);
+//  public Object visit(DateType n, Object arg);
   
   public Object visit(DateTimeType n, Object arg);
   
   public Object visit(DecimalType n, Object arg);
   
-  public Object visit(DoubleType n, Object arg);
+//  public Object visit(DoubleType n, Object arg);
   
   public Object visit(DurationType n, Object arg);
   
@@ -100,13 +100,13 @@ public interface TypeVisitor {
 
   public Object visit(InterfaceType n, Object arg);
   
-  public Object visit(IntType n, Object arg);
+//  public Object visit(IntType n, Object arg);
 
-  public Object visit(LatinCharType n, Object arg);
+//  public Object visit(LatinCharType n, Object arg);
   
-  public Object visit(LatinStringType n, Object arg);
+//  public Object visit(LatinStringType n, Object arg);
   
-  public Object visit(LongType n, Object arg);
+//  public Object visit(LongType n, Object arg);
   
   public Object visit(NamedTypeReference n, Object arg);
   
@@ -125,22 +125,24 @@ public interface TypeVisitor {
   public Object visit(ReferenceType n, Object arg);
   
   public Object visit(SequenceType n, Object arg);
-
+  
   public Object visit(SetType n, Object arg);
 
-    public Object visit(ShortType n, Object arg);
+//    public Object visit(ShortType n, Object arg);
 
-    public Object visit(SingleType n, Object arg);
+//    public Object visit(SingleType n, Object arg);
+  
+  public Object visit(StringType n, Object arg);
     
     public Object visit(TableType n, Object arg);
 
-    public Object visit(TimestampType n, Object arg);
+//    public Object visit(TimestampType n, Object arg);
 
     public Object visit(TimeType n, Object arg);
 
 //    public Object visit(UCS2CharType n, Object arg);
 
-    public Object visit(UCS2StringType n, Object arg);
+//    public Object visit(UCS2StringType n, Object arg);
 
     public Object visit(UnionType n, Object arg);
     
@@ -150,13 +152,13 @@ public interface TypeVisitor {
     
     public Object visit(UnnamedTypeReference n, Object arg);
 
-    public Object visit(UnsignedByteType n, Object arg);
+//    public Object visit(UnsignedByteType n, Object arg);
     
-    public Object visit(UnsignedIntType n, Object arg);
+//    public Object visit(UnsignedIntType n, Object arg);
     
-    public Object visit(UnsignedShortType n, Object arg);
+//    public Object visit(UnsignedShortType n, Object arg);
     
-    public Object visit(VisibleCharType n, Object arg);
+//    public Object visit(VisibleCharType n, Object arg);
     
     public Object visit(VoidType n, Object arg);
     

@@ -17,9 +17,6 @@ import com.optimasc.date.DateTime;
  */
 public class YearType extends DateTimeType
 {
-  public static final YearType DEFAULT_INSTANCE = new YearType();
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
-  
   public YearType()
   {
     super(DateTime.TimeAccuracy.YEAR,false);

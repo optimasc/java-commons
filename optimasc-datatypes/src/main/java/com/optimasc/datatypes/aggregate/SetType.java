@@ -11,6 +11,7 @@ import com.optimasc.datatypes.Convertable;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.Type;
+import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.aggregate.ArrayType.Dimension;
 import com.optimasc.datatypes.defined.ASCIICharType;
 import com.optimasc.datatypes.defined.LatinCharType;
@@ -49,10 +50,6 @@ import com.optimasc.lang.Duration;
 */
 public class SetType extends Datatype implements ConstructedSimple
 {
-  public static final SetType DEFAULT_INSTANCE = new SetType();
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
-  
-  
   protected TypeReference baseType;
   
   public SetType(TypeReference baseType)
@@ -67,7 +64,7 @@ public class SetType extends Datatype implements ConstructedSimple
   public SetType()
   {
     super(false);
-    setBaseTypeReference(UnsignedByteType.getInstance());
+    setBaseTypeReference(TypeFactory.getDefaultInstance(UnsignedByteType.class));
   }
   
   

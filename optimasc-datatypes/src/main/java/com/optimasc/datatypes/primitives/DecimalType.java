@@ -7,6 +7,7 @@ import omg.org.astm.type.TypeReference;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.visitor.TypeVisitor;
+import com.optimasc.date.DateTime;
 
 /**
  * Datatype that represents a subset of numeric values which
@@ -31,7 +32,7 @@ public class DecimalType extends AbstractNumberType
 {
   private static DecimalType defaultTypeInstance;
   private static TypeReference defaultTypeReference;
-  
+ 
   
   /** Creates an unbounded scaled numeric type. */ 
   public DecimalType(int scale)
@@ -88,20 +89,16 @@ public class DecimalType extends AbstractNumberType
   {
     return BigDecimal.class;
   }
-
+  
   public Object accept(TypeVisitor v, Object arg)
   {
     return v.visit(this, arg);
   }
   
-  public static TypeReference getInstance()
+  public String getGPDName()
   {
-    if (defaultTypeInstance == null)
-    {
-      defaultTypeInstance = new DecimalType();
-      defaultTypeReference = new NamedTypeReference("scaled(10,4)" ,defaultTypeInstance);
-    }
-    return defaultTypeReference; 
+     return "scaled(10,"+Integer.toString(getScale())+")";
   }
-
+  
+  
 }

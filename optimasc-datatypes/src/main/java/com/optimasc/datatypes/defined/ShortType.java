@@ -29,9 +29,6 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class ShortType extends IntType
 {
-  public static final ShortType DEFAULT_INSTANCE = new ShortType();
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
-
   protected ShortType(int minValue, int maxValue)
   {
     super(minValue,maxValue);

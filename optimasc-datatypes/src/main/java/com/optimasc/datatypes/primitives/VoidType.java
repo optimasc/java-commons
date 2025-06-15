@@ -22,10 +22,6 @@ import com.optimasc.lang.GregorianDatetimeCalendar;
  */
 public class VoidType extends Type
 {
-  private static VoidType defaultTypeInstance;
-  private static TypeReference defaultTypeReference;
-
-  
   public VoidType()
   {
     super(false);
@@ -59,15 +55,12 @@ public class VoidType extends Type
       return true;
   }
   
-  public static TypeReference getInstance()
+  public String getGPDName()
   {
-    if (defaultTypeInstance == null)
-    {
-      defaultTypeInstance = new VoidType();
-      defaultTypeReference = new NamedTypeReference("void",defaultTypeInstance);
-    }
-    return defaultTypeReference; 
+    return "void";
   }
+  
+  
   
 
 }

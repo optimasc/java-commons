@@ -2,6 +2,7 @@ package com.optimasc.datatypes.defined;
 
 import omg.org.astm.type.UnnamedTypeReference;
 
+import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Datatype that represents a character string datatype from the Unicode
@@ -27,18 +28,15 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class UCS2StringType extends StringType
 {
-  public static final StringType INSTANCE = new UCS2StringType();
-  public static final UnnamedTypeReference TYPE_REFERENCE = new UnnamedTypeReference(INSTANCE);
-  
   
   public UCS2StringType()
   {
-      super(UCS2CharType.DEFAULT_TYPE_REFERENCE);
+      super(TypeFactory.getDefaultInstance(UCS2CharType.class));
   }
   
   public UCS2StringType(int minLength, int maxLength)
   {
-      super(minLength,maxLength,UCS2CharType.DEFAULT_TYPE_REFERENCE);
+      super(minLength,maxLength,TypeFactory.getDefaultInstance(UCS2CharType.class));
   }
   
   

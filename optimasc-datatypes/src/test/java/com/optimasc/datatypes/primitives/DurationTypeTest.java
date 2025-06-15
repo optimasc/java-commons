@@ -8,6 +8,7 @@ import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.DatatypeTest;
 import com.optimasc.datatypes.NumberEnumerationFacet;
 import com.optimasc.datatypes.NumberRangeFacet;
+import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.date.DateTimeFormat;
 
@@ -21,7 +22,7 @@ public class DurationTypeTest extends DatatypeTest
   protected void setUp() throws Exception
   {
     super.setUp();
-    defaultInstance = (DurationType) DurationType.getInstance().getType();
+    defaultInstance = (DurationType) TypeFactory.getDefaultInstance(DurationType.class).getType();
     
   }
 

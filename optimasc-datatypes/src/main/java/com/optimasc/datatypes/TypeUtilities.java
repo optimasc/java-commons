@@ -140,7 +140,7 @@ public class TypeUtilities
     {
       if (charSet.equals(LATIN1_CHARSETS[i]))
       {
-        return LatinCharType.DEFAULT_TYPE_REFERENCE;
+        return TypeFactory.getDefaultInstance(LatinCharType.class);
       }
     }
     
@@ -148,7 +148,7 @@ public class TypeUtilities
     {
       if (charSet.equals(BMP_CHARSETS[i]))
       {
-        return UCS2CharType.DEFAULT_TYPE_REFERENCE;
+        return TypeFactory.getDefaultInstance(UCS2CharType.class);
       }
     }
     throw new IllegalArgumentException("The character set "+charSet.toString()+" cannot be mapped to a supported type.");
@@ -250,6 +250,21 @@ public boolean isPrimitiveNumeric(Type type)
    int result = (int)Math.ceil(Math.log(x) / Math.log(2));
    return result;
  }
+ 
+ /** Returns the minimum number of bits to represent
+  *  the value as a two-complement binary value.
+  * 
+  * @param x The value to check
+  * @return The number of bits required to represent this
+  *   number.
+  */
+ public static int getBitsForNumber(Number x)
+ {
+   double v = x.doubleValue();
+   int result = (int)Math.ceil(Math.log(v) / Math.log(2));
+   return result;
+ }
+ 
 
  /** Represents <code>Long.MIN_VALUE</code>-1. */
  public static final String LONG_MIN_EXCLUSIVE = "-9223372036854775809";

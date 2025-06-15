@@ -31,9 +31,6 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class RealType extends AbstractNumberType
 {
-  private static RealType defaultTypeInstance;
-  private static TypeReference defaultTypeReference;
-  
     /** Creates a real type value with the specified 
      *  precision and scale.
      * 
@@ -113,16 +110,12 @@ public class RealType extends AbstractNumberType
         return null;
       }
       return new Double(ordinalValue);
+    }
+
+    public String getGPDName()
+    {
+      return "real";
     }  
     
-    public static TypeReference getInstance()
-    {
-      if (defaultTypeInstance == null)
-      {
-        defaultTypeInstance = new RealType();
-        defaultTypeReference = new NamedTypeReference("real" ,defaultTypeInstance);
-      }
-      return defaultTypeReference; 
-    }
 
 }

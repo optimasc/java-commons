@@ -10,6 +10,7 @@ import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Datatype;
+import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.primitives.VoidType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
@@ -31,9 +32,6 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class PointerType extends Datatype implements ConstructedSimple 
 {
-  public static final PointerType DEFAULT_INSTANCE = new PointerType();
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
-  
   protected TypeReference baseType;
 
    /** Creates a pointer type that points to <code>VoidType</code>.
@@ -42,7 +40,7 @@ public class PointerType extends Datatype implements ConstructedSimple
    public PointerType()
    {
         super(true);
-        setBaseTypeReference(VoidType.getInstance());
+        setBaseTypeReference(TypeFactory.getDefaultInstance(VoidType.class));
    }
    
    public PointerType(TypeReference pointerTo)
@@ -88,5 +86,12 @@ public class PointerType extends Datatype implements ConstructedSimple
       }
       return super.equals(obj);
     }
+
+    public String getGPDName()
+    {
+      return "pointer to ("+baseType.getType().getGPDName()+")";
+    }
+    
+    
 
 }

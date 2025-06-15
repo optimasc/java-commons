@@ -32,9 +32,6 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
 /** Represents an IEEE 754 64-bit floating point value */
 public class DoubleType extends RealType
 {
-    public static final DoubleType DEFAULT_INSTANCE = new DoubleType();
-    public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
-  
     public DoubleType()
     {
       super(53);

@@ -6,6 +6,7 @@ import omg.org.astm.type.NamedTypeReference;
 import omg.org.astm.type.TypeReference;
 import omg.org.astm.type.UnnamedTypeReference;
 
+import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.aggregate.SequenceType;
 import com.optimasc.datatypes.primitives.CharacterType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
@@ -32,10 +33,6 @@ import com.optimasc.lang.ByteArrayComparator;
  */
 public class BinaryType extends SequenceType 
 {
-  protected static BinaryType defaultTypeInstance;
-  protected static TypeReference defaultTypeReference;
-  
-  
   protected static final String REGEX_PATTERN = "([0-9a-fA-F][0-9a-fA-F])+";
   
   /** The arrays of choices. */
@@ -45,7 +42,7 @@ public class BinaryType extends SequenceType
   
   public BinaryType()
   {
-    super(UnsignedByteType.getInstance(), byte[].class);
+    super(TypeFactory.getDefaultInstance(UnsignedByteType.class), byte[].class);
   }
   
   /**
@@ -59,12 +56,12 @@ public class BinaryType extends SequenceType
    */
   public BinaryType(int minLength, int maxLength)
   {
-    super(minLength,maxLength,UnsignedByteType.getInstance(),byte[].class);
+    super(minLength,maxLength,TypeFactory.getDefaultInstance(UnsignedByteType.class),byte[].class);
   }
   
   public BinaryType(byte[] choices[])
   {
-    super(choices,UnsignedByteType.getInstance(),byte[].class);
+    super(choices,TypeFactory.getDefaultInstance(UnsignedByteType.class),byte[].class);
   }
 
   public Object accept(TypeVisitor v, Object arg)
@@ -136,15 +133,12 @@ public class BinaryType extends SequenceType
     return validateChoice((byte[])value);
   }*/
   
-  public static TypeReference getInstance()
+
+  public String getGPDName()
   {
-    if (defaultTypeInstance == null)
-    {
-      defaultTypeInstance = new BinaryType();
-      defaultTypeReference = new NamedTypeReference("octetstring" ,defaultTypeInstance);
-    }
-    return defaultTypeReference; 
+    return "octetstring";
   }
 
+  
 
 }

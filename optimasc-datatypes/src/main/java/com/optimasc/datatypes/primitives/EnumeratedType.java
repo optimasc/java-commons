@@ -52,10 +52,6 @@ import com.optimasc.lang.NumberComparator;
 public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
     BoundedFacet, OrderedFacet
 {
-  private static EnumeratedType defaultTypeInstance;
-  private static TypeReference defaultTypeReference;
-  
-  
   protected static final Object DEFAULT_CHOICES[] = new Object[0]; 
 
   /** Basic element type */
@@ -571,15 +567,22 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
     return true;
   }
   
-  public static TypeReference getInstance()
+  public String getGPDName()
   {
-    if (defaultTypeInstance == null)
+    StringBuffer buffer = new StringBuffer();
+    buffer.append("enumerated(");
+    if (choices.length > 0)
     {
-      defaultTypeInstance = new EnumeratedType();
-      defaultTypeReference = new NamedTypeReference("enumerated()" ,defaultTypeInstance);
+      for (int i=0; i < choices.length-1; i++)
+      {
+        buffer.append(choices[i].toString()+",");
+      }
+      buffer.append(choices[choices.length-1].toString());
     }
-    return defaultTypeReference; 
+    buffer.append(")");
+    return buffer.toString();
   }
 
 
+  
 }

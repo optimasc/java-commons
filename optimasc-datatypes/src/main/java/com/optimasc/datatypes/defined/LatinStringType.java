@@ -2,6 +2,7 @@ package com.optimasc.datatypes.defined;
 
 import omg.org.astm.type.UnnamedTypeReference;
 
+import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Datatype that represents a character string datatype from the ISO-8859-1 character
@@ -25,18 +26,14 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class LatinStringType extends StringType
 {
-  public static final StringType INSTANCE = new LatinStringType();
-  public static final UnnamedTypeReference TYPE_REFERENCE = new UnnamedTypeReference(INSTANCE);
-  
-  
   public LatinStringType()
   {
-      super(LatinCharType.DEFAULT_TYPE_REFERENCE);
+      super(TypeFactory.getDefaultInstance(LatinCharType.class));
   }
   
   public LatinStringType(int minLength, int maxLength)
   {
-      super(minLength,maxLength,LatinCharType.DEFAULT_TYPE_REFERENCE);
+      super(minLength,maxLength,TypeFactory.getDefaultInstance(LatinCharType.class));
   }
   
   

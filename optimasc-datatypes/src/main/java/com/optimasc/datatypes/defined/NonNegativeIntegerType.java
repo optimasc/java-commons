@@ -26,10 +26,6 @@ import com.optimasc.datatypes.primitives.IntegralType;
  */
 public class NonNegativeIntegerType extends IntegralType
 {
-  private static NonNegativeIntegerType defaultTypeInstance;
-  private static TypeReference defaultTypeReference;
-  
-  
   protected static final String REGEX_NONNEGATIVE_PATTERN = "[0-9]+";
 
   
@@ -47,16 +43,6 @@ public class NonNegativeIntegerType extends IntegralType
   protected NonNegativeIntegerType(BigInteger maxInclusive)
   {
     super(BigInteger.ZERO,maxInclusive);
-  }
-  
-  public static TypeReference getInstance()
-  {
-    if (defaultTypeInstance == null)
-    {
-      defaultTypeInstance = new NonNegativeIntegerType();
-      defaultTypeReference = new NamedTypeReference("naturalnumber" ,defaultTypeInstance);
-    }
-    return defaultTypeReference; 
   }
   
 }

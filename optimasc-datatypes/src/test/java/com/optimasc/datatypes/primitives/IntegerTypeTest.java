@@ -8,6 +8,7 @@ import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.NumberEnumerationFacet;
 import com.optimasc.datatypes.NumberRangeFacet;
+import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 
 import junit.framework.TestCase;
@@ -19,7 +20,7 @@ public class IntegerTypeTest extends AbstractNumberTest
   protected void setUp() throws Exception
   {
     super.setUp();
-    defaultInstance = (AbstractNumberType) IntegralType.getInstance().getType();  
+    defaultInstance = (IntegralType) TypeFactory.getDefaultInstance(IntegralType.class).getType();
   }
 
   protected void tearDown() throws Exception

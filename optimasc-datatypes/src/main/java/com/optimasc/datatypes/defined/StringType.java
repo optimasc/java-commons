@@ -12,6 +12,7 @@ import com.optimasc.datatypes.EnumerationFacet;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.aggregate.SequenceType;
 import com.optimasc.datatypes.primitives.CharacterType;
+import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.lang.CharacterSet;
 import com.optimasc.text.DataConverter;
 import com.optimasc.text.StringUtilities;
@@ -405,5 +406,9 @@ public class StringType extends SequenceType implements CharacterSetEncodingFace
     return ((CharacterType)elementType.getType()).getCharacterSet();
   }
 
+  public Object accept(TypeVisitor v, Object arg)
+  {
+      return v.visit(this,arg);
+  }
 
 }

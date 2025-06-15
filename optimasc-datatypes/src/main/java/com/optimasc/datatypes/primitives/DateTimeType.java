@@ -47,10 +47,6 @@ import com.optimasc.lang.GregorianDatetimeCalendar;
  */
 public class DateTimeType extends PrimitiveType implements BoundedFacet, TimeFacet, DateTimeEnumerationFacet
 {
- 
-  private static DateTimeType defaultTypeInstance;
-  private static TypeReference defaultTypeReference;
-  
   
   protected static final String REGEX_PATTERN = "([0-9][0-9][0-9][0-9])(?:(?:-(0[1-9]|1[0-2])(?:-([12]\\d|0[1-9]|3[01]))?)?(?:T(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(?:[\\.,](\\d+))?([zZ]|([\\+-])([01]\\d|2[0-3]):?([0-5]\\d)?)?)?)";
   protected static final String PATTERN_YEAR = "([0-9][0-9][0-9][0-9])";
@@ -96,10 +92,11 @@ public class DateTimeType extends PrimitiveType implements BoundedFacet, TimeFac
   }
   
   /** Creates a date time type with the specified 
-   *  accuracy and unlimited encoded range.
+   *  accuracy and unlimited encoded range.  
    * 
    * @param accuracy [in] The accuracy of this 
-   *   date and time value.
+   *   date and time value taken from 
+   *   DateTime.TimeAccuracy.
    * @param localTime [in] true if this is a local time,
    *   hence with no timezone.
    */
@@ -515,16 +512,6 @@ public class DateTimeType extends PrimitiveType implements BoundedFacet, TimeFac
   }
   
   
-  public static TypeReference getInstance()
-  {
-    if (defaultTypeInstance == null)
-    {
-      defaultTypeInstance = new DateTimeType();
-      defaultTypeReference = new NamedTypeReference("time(second)" ,defaultTypeInstance);
-    }
-    return defaultTypeReference; 
-  }
-
   public void setAccuracy(int accuracy)
   {
     validateAccuracy(accuracy);
@@ -540,5 +527,26 @@ public class DateTimeType extends PrimitiveType implements BoundedFacet, TimeFac
   {
     this.localTime = localTime;
   }
+  
+  public String getGPDName()
+  {
+    switch (this.accuracy)
+    {
+       case DateTime.TimeAccuracy.YEAR:
+         return "time(year)";
+       case DateTime.TimeAccuracy.DAY:
+         return "time(day)";
+       case DateTime.TimeAccuracy.MINUTE:
+         return "time(minute)";
+       case DateTime.TimeAccuracy.SECOND:
+          return "time(second)";
+       /* Not in standard except as a formal-parametric-value */
+       case DateTime.TimeAccuracy.MILLISECOND:
+         return "time(millisecond)";
+    default:
+      return null;
+    }
+  }
+  
   
 }

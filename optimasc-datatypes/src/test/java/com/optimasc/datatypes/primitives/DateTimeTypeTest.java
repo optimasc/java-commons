@@ -6,9 +6,11 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
+import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.DatatypeTest;
 import com.optimasc.datatypes.DateTimeEnumerationFacet;
+import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.date.DateTime;
 import com.optimasc.lang.GregorianDatetimeCalendar;
@@ -21,7 +23,7 @@ public class DateTimeTypeTest  extends DatatypeTest
   protected void setUp() throws Exception
   {
     super.setUp();
-    defaultInstance = (DateTimeType) DateTimeType.getInstance().getType();
+    defaultInstance = (DateTimeType) TypeFactory.getDefaultInstance(DateTimeType.class).getType();
   }
 
   protected void tearDown() throws Exception

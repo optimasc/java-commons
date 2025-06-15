@@ -41,9 +41,6 @@ import com.optimasc.lang.NumberComparator;
  */
 public class IntegralType extends DecimalType
 {
-  private static IntegralType defaultTypeInstance;
-  private static TypeReference defaultTypeReference;
-  
   protected static final String REGEX_INTEGER_PATTERN = "-?[0-9]+";
   
 
@@ -150,17 +147,12 @@ public class IntegralType extends DecimalType
       return null;
     }
     return BigInteger.valueOf(ordinalValue);
+  }
+
+  public String getGPDName()
+  {
+    return "integer";
   }  
   
 
-  public static TypeReference getInstance()
-  {
-    if (defaultTypeInstance == null)
-    {
-      defaultTypeInstance = new IntegralType();
-      defaultTypeReference = new NamedTypeReference("integer" ,defaultTypeInstance);
-    }
-    return defaultTypeReference; 
-  }
-  
 }

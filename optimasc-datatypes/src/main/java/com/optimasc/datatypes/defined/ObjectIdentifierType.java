@@ -22,14 +22,16 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class ObjectIdentifierType extends SequenceType implements Convertable
 {
+  private static final TypeReference TYPE_REFERENCE =  new UnnamedTypeReference(new NonNegativeIntegerType(Integer.MAX_VALUE));
+  
   public ObjectIdentifierType()
   {
-    super(1,Integer.MIN_VALUE, new UnnamedTypeReference(new NonNegativeIntegerType(Integer.MAX_VALUE)),int[].class);
+    super(1,Integer.MIN_VALUE, TYPE_REFERENCE,int[].class);
   }
   
   public ObjectIdentifierType(int[] choices[], TypeReference baseType)
   {
-    super(choices,UnsignedIntType.DEFAULT_TYPE_REFERENCE,int[].class);
+    super(choices,TYPE_REFERENCE,int[].class);
     enumeration = new long[choices.length][];
     System.arraycopy(choices, 0, enumeration, 0, choices.length);
   }
@@ -43,6 +45,11 @@ public class ObjectIdentifierType extends SequenceType implements Convertable
   public boolean validateChoice(Object value)
   {
     return validateChoice((long[])value);
+  }
+
+  public String getGPDName()
+  {
+    return "objectidentifier";
   }
   
 

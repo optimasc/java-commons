@@ -15,6 +15,7 @@ import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.Type;
+import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.aggregate.ClassType;
 import com.optimasc.datatypes.defined.BinaryType;
 import com.optimasc.datatypes.primitives.VoidType;
@@ -28,10 +29,6 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class ProcedureType extends Type
 {
-  public static final ProcedureType DEFAULT_INSTANCE = new ProcedureType();
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
-  
-  
   /** The return type of this routine */
   protected TypeReference returnType;
 
@@ -61,7 +58,7 @@ public class ProcedureType extends Type
   {
     super(false);
     this.formalParameters = new ArrayList();
-    this.returnType = new UnnamedTypeReference(new VoidType());
+    this.returnType = TypeFactory.getDefaultInstance(VoidType.class);
   }
   
   public ProcedureType(TypeReference returnType,FormalParameterType[] params)
@@ -158,6 +155,28 @@ public class ProcedureType extends Type
   public void setParameters(List formalParameters)
   {
     this.formalParameters = formalParameters;
+  }
+
+  public String getGPDName()
+  {
+    StringBuffer buffer = new StringBuffer();
+    buffer.append("procedure (");
+    if (formalParameters.size()>0)
+    {
+      FormalParameterType param;
+      for (int i=0; i < formalParameters.size()-1; i++)
+      {
+        param = (FormalParameterType) formalParameters.get(i);
+        buffer.append(param.getParameterType().toString()+" ");
+        buffer.append(param.getGPDName()+", ");
+      }
+      param = (FormalParameterType) formalParameters.get(formalParameters.size()-1);
+      buffer.append(param.getParameterType().toString()+" ");
+      buffer.append(param.getGPDName());
+    }
+    buffer.append(") ");
+    buffer.append("returns "+returnType.getGPDName());
+    return buffer.toString();
   }
   
   

@@ -29,9 +29,6 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class ByteType extends ShortType
 {
-  public static final ByteType DEFAULT_INSTANCE = new ByteType();
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
-  
   public ByteType()
   {
     super(Byte.MIN_VALUE, Byte.MAX_VALUE);

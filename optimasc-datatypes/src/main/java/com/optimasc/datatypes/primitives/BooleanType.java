@@ -44,12 +44,12 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
    *  where the type is <em>not</em> considered ordered.
    * 
    */
-  private static BooleanType defaultTypeInstance;
+//  private static BooleanType defaultTypeInstance;
   /** Type reference instance which is fully compatible with XMLSchema and  ISO/IEC 11404,
    *  where the type is <em>not</em> considered ordered.
    * 
    */
-  private static TypeReference defaultTypeReference;
+//  private static TypeReference defaultTypeReference;
   
   /** Boolean type definition, where the boolean value is considered an 
    *  ordered value.
@@ -251,15 +251,11 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
       return true;
     }
     
-    public static TypeReference getInstance()
+    public String getGPDName()
     {
-      if (defaultTypeInstance == null)
-      {
-        defaultTypeInstance = new BooleanType(false);
-        defaultTypeReference = new NamedTypeReference("boolean" ,defaultTypeInstance);
-      }
-      return defaultTypeReference; 
+      return "boolean";
     }
+    
 
 
 }

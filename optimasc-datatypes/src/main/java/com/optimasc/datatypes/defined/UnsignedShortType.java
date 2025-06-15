@@ -26,10 +26,6 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class UnsignedShortType extends NonNegativeIntegerType
 {
-  public static final UnsignedShortType DEFAULT_INSTANCE = new UnsignedShortType();
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
-  
-
   public UnsignedShortType()
   {
     super(65535);

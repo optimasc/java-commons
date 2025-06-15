@@ -31,10 +31,6 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class UnsignedByteType extends NonNegativeIntegerType
 {
-  private static UnsignedByteType defaultTypeInstance;
-  private static TypeReference defaultTypeReference;
-  
-  
   public UnsignedByteType()
   {
     super(255);
@@ -70,17 +66,13 @@ public class UnsignedByteType extends NonNegativeIntegerType
         return null;
       }
       return new Integer((short) ordinalValue);
+    }
+
+    public String getGPDName()
+    {
+      return "octet";
     }  
     
 
-    public static TypeReference getInstance()
-    {
-      if (defaultTypeInstance == null)
-      {
-        defaultTypeInstance = new UnsignedByteType();
-        defaultTypeReference = new NamedTypeReference("octet" ,defaultTypeInstance);
-      }
-      return defaultTypeReference; 
-    }
     
 }

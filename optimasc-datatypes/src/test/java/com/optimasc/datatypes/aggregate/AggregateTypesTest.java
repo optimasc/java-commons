@@ -7,6 +7,7 @@ import omg.org.astm.type.UnnamedTypeReference;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DefaultMemberObject;
 import com.optimasc.datatypes.MemberObject;
+import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.aggregate.ArrayType.Dimension;
 import com.optimasc.datatypes.defined.IntType;
 import com.optimasc.datatypes.defined.LatinCharType;
@@ -62,13 +63,13 @@ public class AggregateTypesTest extends TestCase
     assertEquals(null,datatype.getRanks());
     
     // It is required to define the base type of the arrays.
-    datatype.setBaseTypeReference(IntType.DEFAULT_TYPE_REFERENCE);
-    assertEquals(IntType.DEFAULT_TYPE_REFERENCE,datatype.getBaseTypeReference());
+    datatype.setBaseTypeReference(TypeFactory.getDefaultInstance(IntType.class));
+    assertEquals(TypeFactory.getDefaultInstance(IntType.class),datatype.getBaseTypeReference());
     assertEquals(datatype, datatype);
     assertFalse(otherDatatype.equals(datatype));
     
-    otherDatatype.setBaseTypeReference(LatinCharType.DEFAULT_TYPE_REFERENCE);
-    assertEquals(LatinCharType.DEFAULT_TYPE_REFERENCE,otherDatatype.getBaseTypeReference());
+    otherDatatype.setBaseTypeReference(TypeFactory.getDefaultInstance(LatinCharType.class));
+    assertEquals(TypeFactory.getDefaultInstance(LatinCharType.class),otherDatatype.getBaseTypeReference());
 
     assertFalse(otherDatatype.equals(datatype));
     // Now set ranks different for both
@@ -83,7 +84,7 @@ public class AggregateTypesTest extends TestCase
     otherDatatype.setRanks(dataTypeRanks);
     assertFalse(otherDatatype.equals(datatype));
     
-    otherDatatype.setBaseTypeReference(IntType.DEFAULT_TYPE_REFERENCE);
+    otherDatatype.setBaseTypeReference(TypeFactory.getDefaultInstance(IntType.class));
     assertEquals(otherDatatype,datatype);
     
   }
@@ -108,9 +109,9 @@ public class AggregateTypesTest extends TestCase
     // Now create some fields/columns
     MemberObject[] members = new MemberObject[] 
         {
-           new DefaultMemberObject("member0",IntType.DEFAULT_TYPE_REFERENCE),
-           new DefaultMemberObject("member1",UCS2StringType.TYPE_REFERENCE),
-           new DefaultMemberObject("member2",BooleanType.getInstance())
+           new DefaultMemberObject("member0",TypeFactory.getDefaultInstance(IntType.class)),
+           new DefaultMemberObject("member1",TypeFactory.getDefaultInstance(UCS2StringType.class)),
+           new DefaultMemberObject("member2",TypeFactory.getDefaultInstance(BooleanType.class))
         };
     for (int i=0; i < members.length; i++)
     {
@@ -131,9 +132,9 @@ public class AggregateTypesTest extends TestCase
     assertFalse(otherDatatype.equals(datatype));
     MemberObject[] otherMembers = new MemberObject[] 
         {
-           new DefaultMemberObject("member0",IntType.DEFAULT_TYPE_REFERENCE),
-           new DefaultMemberObject("member1",UCS2StringType.TYPE_REFERENCE),
-           new DefaultMemberObject("member2",ShortType.DEFAULT_TYPE_REFERENCE)
+           new DefaultMemberObject("member0",TypeFactory.getDefaultInstance(IntType.class)),
+           new DefaultMemberObject("member1",TypeFactory.getDefaultInstance(UCS2StringType.class)),
+           new DefaultMemberObject("member2",TypeFactory.getDefaultInstance(ShortType.class))
         };
     for (int i=0; i < otherMembers.length; i++)
     {
@@ -192,23 +193,23 @@ public class AggregateTypesTest extends TestCase
     assertEquals(true,datatype.isOrdered());
     assertEquals(null,datatype.lookupMember("member1",true));
     
-    TypeReference standardProcedure = ProcedureType.DEFAULT_TYPE_REFERENCE;
+    TypeReference standardProcedure = TypeFactory.getDefaultInstance(ProcedureType.class);
     FormalParameterType[] complexParams = 
     new FormalParameterType[]
         {
-          new FormalParameterType(ShortType.DEFAULT_TYPE_REFERENCE, ParameterType.ByValue),
-          new FormalParameterType(IntType.DEFAULT_TYPE_REFERENCE, ParameterType.ByValue)
+          new FormalParameterType(TypeFactory.getDefaultInstance(ShortType.class), ParameterType.ByValue),
+          new FormalParameterType(TypeFactory.getDefaultInstance(IntType.class), ParameterType.ByValue)
         };
-   TypeReference complexReturnType = VoidType.getInstance();          
+   TypeReference complexReturnType = TypeFactory.getDefaultInstance(VoidType.class);          
    TypeReference complexProcedure = new UnnamedTypeReference(new ProcedureType(complexReturnType,complexParams));
     
     
     // Now create some fields/columns
     MemberObject[] members = new MemberObject[] 
         {
-           new DefaultMemberObject("member0",IntType.DEFAULT_TYPE_REFERENCE),
-           new DefaultMemberObject("member1",UCS2StringType.TYPE_REFERENCE),
-           new DefaultMemberObject("member2",BooleanType.getInstance()),
+           new DefaultMemberObject("member0",TypeFactory.getDefaultInstance(IntType.class)),
+           new DefaultMemberObject("member1",TypeFactory.getDefaultInstance(UCS2StringType.class)),
+           new DefaultMemberObject("member2",TypeFactory.getDefaultInstance(BooleanType.class)),
            new DefaultMemberObject("member3",complexProcedure)
         };
     // Add some members
@@ -231,9 +232,9 @@ public class AggregateTypesTest extends TestCase
     assertFalse(otherDatatype.equals(datatype));
     MemberObject[] otherMembers = new MemberObject[] 
         {
-           new DefaultMemberObject("member0",IntType.DEFAULT_TYPE_REFERENCE),
-           new DefaultMemberObject("member1",UCS2StringType.TYPE_REFERENCE),
-           new DefaultMemberObject("member2",ShortType.DEFAULT_TYPE_REFERENCE),
+           new DefaultMemberObject("member0",TypeFactory.getDefaultInstance(IntType.class)),
+           new DefaultMemberObject("member1",TypeFactory.getDefaultInstance(UCS2StringType.class)),
+           new DefaultMemberObject("member2",TypeFactory.getDefaultInstance(ShortType.class)),
            new DefaultMemberObject("member3",standardProcedure)
         };
     
@@ -296,8 +297,8 @@ public class AggregateTypesTest extends TestCase
     SetType otherDatatype = new SetType();
     testBasicDataType(datatype);
     assertEquals(false, datatype.isOrdered());
-    assertEquals(UnsignedByteType.getInstance(),datatype.getBaseTypeReference());
-    assertEquals(UnsignedByteType.getInstance(),otherDatatype.getBaseTypeReference());
+    assertEquals(TypeFactory.getDefaultInstance(UnsignedByteType.class),datatype.getBaseTypeReference());
+    assertEquals(TypeFactory.getDefaultInstance(UnsignedByteType.class),otherDatatype.getBaseTypeReference());
     // Both based on unsignedByte reference
     assertEquals(otherDatatype, datatype);
     assertEquals(datatype, datatype);
@@ -323,7 +324,7 @@ public class AggregateTypesTest extends TestCase
     assertEquals(otherDatatype, datatype);
     
     // Make one of them equal to
-    TypeReference unnamedType = UnsignedByteType.getInstance();
+    TypeReference unnamedType = TypeFactory.getDefaultInstance(UnsignedByteType.class);
 
     // Make them difference, one on Enum and other on valid range
     otherDatatype.setBaseTypeReference(unnamedType);
@@ -342,7 +343,7 @@ public class AggregateTypesTest extends TestCase
     SetType datatype = new SetType();
     testBasicDataType(datatype);
     assertEquals(false, datatype.isOrdered());
-    assertEquals(UnsignedByteType.getInstance(),datatype.getBaseTypeReference());
+    assertEquals(TypeFactory.getDefaultInstance(UnsignedByteType.class),datatype.getBaseTypeReference());
     assertEquals(datatype, datatype);
     
     EnumeratedType enumType = new EnumeratedType();
@@ -384,7 +385,7 @@ public class AggregateTypesTest extends TestCase
     success = false;
     try { 
     
-      datatype.setBaseTypeReference(IntType.DEFAULT_TYPE_REFERENCE);
+      datatype.setBaseTypeReference(TypeFactory.getDefaultInstance(IntType.class));
     } catch (IllegalArgumentException e)
     {
       success = true;

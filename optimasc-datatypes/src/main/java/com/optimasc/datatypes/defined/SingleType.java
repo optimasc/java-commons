@@ -14,10 +14,6 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
 /** Represents an IEEE 754 32-bit floating point value */
 public class SingleType extends RealType
 {
-  public static final SingleType DEFAULT_INSTANCE = new SingleType();
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
-
-  
   public SingleType()
   {
     super(24);

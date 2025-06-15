@@ -143,10 +143,10 @@ public class DefaultTypeVisitor implements TypeVisitor {
     }
     
 
-    public Object visit(LatinCharType n, Object arg)
+/*    public Object visit(LatinCharType n, Object arg)
     {
         return n;
-    }
+    }*/
 
     public Object visit(RealType n, Object arg)
     {
@@ -217,16 +217,16 @@ public class DefaultTypeVisitor implements TypeVisitor {
       return n;
     }
     
-    public Object visit(VisibleCharType n, Object arg)
+/*    public Object visit(VisibleCharType n, Object arg)
     {
       return n;
-    }
+    }*/
     
 
-    public Object visit(ASCIICharType n, Object arg)
+/*    public Object visit(ASCIICharType n, Object arg)
     {
       return n;
-    }
+    }*/
     
     
     public Object visit(ObjectIdentifierType n, Object arg)
@@ -235,10 +235,10 @@ public class DefaultTypeVisitor implements TypeVisitor {
     }    
     
 
-    public Object visit(UCS2CharType n, Object arg)
+/*    public Object visit(UCS2CharType n, Object arg)
     {
       return n;
-    }
+    }*/
 
     public Object visit(UnknownType n, Object arg)
     {
@@ -246,7 +246,7 @@ public class DefaultTypeVisitor implements TypeVisitor {
     }
 
 
-    public Object visit(ByteType n, Object arg)
+/*    public Object visit(ByteType n, Object arg)
     {
       return n;
     }
@@ -306,7 +306,7 @@ public class DefaultTypeVisitor implements TypeVisitor {
     public Object visit(UCS2StringType n, Object arg)
     {
       return n;
-    }
+    }*/
     
 
     public Object visit(DurationType n, Object arg)
@@ -370,6 +370,11 @@ public class DefaultTypeVisitor implements TypeVisitor {
     }
 
     public Object visit(URIType n, Object arg)
+    {
+      return n;
+    }
+
+    public Object visit(StringType n, Object arg)
     {
       return n;
     }

@@ -28,9 +28,6 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class IntType extends IntegralType
 {
-  public static final IntType DEFAULT_INSTANCE = new IntType();
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
-
   protected IntType(int minValue, int maxValue)
   {
     super(minValue,maxValue);

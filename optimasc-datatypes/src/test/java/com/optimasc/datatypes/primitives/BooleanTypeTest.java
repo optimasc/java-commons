@@ -10,6 +10,7 @@ import com.optimasc.datatypes.BoundedFacet;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.OrderedFacet;
+import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 
 import junit.framework.TestCase;
@@ -22,7 +23,7 @@ public class BooleanTypeTest extends DatatypeTest
   protected void setUp() throws Exception
   {
     super.setUp();
-    defaultInstance = (Datatype) BooleanType.getInstance().getType();
+    defaultInstance = (Datatype) TypeFactory.getDefaultInstance(BooleanType.class).getType();
   }
 
   protected void tearDown() throws Exception

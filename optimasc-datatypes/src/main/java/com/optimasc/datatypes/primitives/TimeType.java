@@ -55,9 +55,6 @@ import com.optimasc.lang.GregorianDatetimeCalendar;
  */
 public class TimeType extends PrimitiveType implements TimeFacet, OrderedFacet, DateTimeEnumerationFacet
 {
-  private static TimeType defaultTypeInstance;
-  private static TypeReference defaultTypeReference;
-  
   
   /* TIME : (0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])([\.,]\d+)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)? */
   protected static final String REGEX_PATTERN = "(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(?:[\\.,](\\d+))?([zZ]|([\\+-])([01]\\d|2[0-3]):?([0-5]\\d)?)?";
@@ -535,15 +532,6 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedFacet, 
     return true;
   }
   
-  public static TypeReference getInstance()
-  {
-    if (defaultTypeInstance == null)
-    {
-      defaultTypeInstance = new TimeType();
-      defaultTypeReference = new UnnamedTypeReference(defaultTypeInstance);
-    }
-    return defaultTypeReference; 
-  }
 
   public void setLocalTime(boolean localTime)
   {

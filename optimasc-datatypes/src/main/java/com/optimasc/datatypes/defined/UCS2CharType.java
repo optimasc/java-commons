@@ -28,8 +28,6 @@ import com.optimasc.lang.CharacterSet;
  */
 public class UCS2CharType extends CharacterType 
 {
-  public static final UCS2CharType DEFAULT_INSTANCE = new UCS2CharType();
-  public static final UnnamedTypeReference DEFAULT_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_INSTANCE);
   
   public static final BigDecimal UCS2_MAX = BigDecimal.valueOf(65535);
   

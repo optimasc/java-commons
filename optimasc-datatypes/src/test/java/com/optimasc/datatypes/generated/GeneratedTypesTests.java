@@ -3,6 +3,7 @@ package com.optimasc.datatypes.generated;
 import omg.org.astm.type.TypeReference;
 
 import com.optimasc.datatypes.Datatype;
+import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.defined.IntType;
 import com.optimasc.datatypes.defined.LatinStringType;
 import com.optimasc.datatypes.defined.ShortType;
@@ -45,17 +46,17 @@ public class GeneratedTypesTests extends TestCase
     testBasicDataType(datatype);
     assertEquals(false, datatype.isOrdered());
     // Default is a generic pointer
-    assertEquals(VoidType.getInstance().getType(),datatype.getBaseTypeReference().getType());
+    assertEquals(TypeFactory.getDefaultInstance(VoidType.class).getType(),datatype.getBaseTypeReference().getType());
     assertEquals(datatype, datatype);
     assertEquals(otherDatatype, datatype);
     
-    datatype.setBaseTypeReference(LatinStringType.TYPE_REFERENCE);
-    assertEquals(LatinStringType.TYPE_REFERENCE,datatype.getBaseTypeReference());
+    datatype.setBaseTypeReference(TypeFactory.getDefaultInstance(LatinStringType.class));
+    assertEquals(TypeFactory.getDefaultInstance(LatinStringType.class),datatype.getBaseTypeReference());
     
     assertFalse(datatype.equals(otherDatatype));
     
     // Set same pointer type for equality check
-    otherDatatype.setBaseTypeReference(LatinStringType.TYPE_REFERENCE);
+    otherDatatype.setBaseTypeReference(TypeFactory.getDefaultInstance(LatinStringType.class));
     
     assertTrue(datatype.equals(otherDatatype));
   }
@@ -69,24 +70,24 @@ public class GeneratedTypesTests extends TestCase
     ProcedureType otherDatatype = new ProcedureType();
     assertEquals(false, datatype.isOrdered());
     assertEquals(0,datatype.getParameterCount());
-    assertEquals(VoidType.getInstance().getType(),datatype.getReturnType().getType());
+    assertEquals(TypeFactory.getDefaultInstance(VoidType.class).getType(),datatype.getReturnType().getType());
     assertEquals(null,datatype.getParent());
     
     
     FormalParameterType[] leftParams = 
         new FormalParameterType[]
             {
-              new FormalParameterType(ShortType.DEFAULT_TYPE_REFERENCE, ParameterType.ByValue),
-              new FormalParameterType(IntType.DEFAULT_TYPE_REFERENCE, ParameterType.ByValue)
+              new FormalParameterType(TypeFactory.getDefaultInstance(ShortType.class), ParameterType.ByValue),
+              new FormalParameterType(TypeFactory.getDefaultInstance(IntType.class), ParameterType.ByValue)
             };
-     TypeReference leftReturnType = VoidType.getInstance();          
+     TypeReference leftReturnType = TypeFactory.getDefaultInstance(VoidType.class);          
      FormalParameterType[] rightParams =
       new FormalParameterType[]
         {
-          new FormalParameterType(ShortType.DEFAULT_TYPE_REFERENCE, ParameterType.ByValue),
-          new FormalParameterType(IntType.DEFAULT_TYPE_REFERENCE, ParameterType.ByValue)
+          new FormalParameterType(TypeFactory.getDefaultInstance(ShortType.class), ParameterType.ByValue),
+          new FormalParameterType(TypeFactory.getDefaultInstance(IntType.class), ParameterType.ByValue)
         };
-     TypeReference rightReturnType = VoidType.getInstance();
+     TypeReference rightReturnType = TypeFactory.getDefaultInstance(VoidType.class);
      
      datatype.setReturnType(leftReturnType);
      assertEquals(leftReturnType,datatype.getReturnType());
@@ -113,17 +114,17 @@ public class GeneratedTypesTests extends TestCase
      leftParams = 
          new FormalParameterType[]
              {
-               new FormalParameterType(ShortType.DEFAULT_TYPE_REFERENCE, ParameterType.ByValue),
-               new FormalParameterType(IntType.DEFAULT_TYPE_REFERENCE, ParameterType.ByReference)
+               new FormalParameterType(TypeFactory.getDefaultInstance(ShortType.class), ParameterType.ByValue),
+               new FormalParameterType(TypeFactory.getDefaultInstance(IntType.class), ParameterType.ByReference)
              };
-      leftReturnType = VoidType.getInstance();          
+      leftReturnType = TypeFactory.getDefaultInstance(VoidType.class);          
       rightParams =
        new FormalParameterType[]
          {
-           new FormalParameterType(ShortType.DEFAULT_TYPE_REFERENCE, ParameterType.ByValue),
-           new FormalParameterType(IntType.DEFAULT_TYPE_REFERENCE, ParameterType.ByValue)
+           new FormalParameterType(TypeFactory.getDefaultInstance(ShortType.class), ParameterType.ByValue),
+           new FormalParameterType(TypeFactory.getDefaultInstance(IntType.class), ParameterType.ByValue)
          };
-      rightReturnType = VoidType.getInstance();
+      rightReturnType = TypeFactory.getDefaultInstance(VoidType.class);
       
       datatype.setReturnType(leftReturnType);
       assertEquals(leftReturnType,datatype.getReturnType());
@@ -149,17 +150,17 @@ public class GeneratedTypesTests extends TestCase
       leftParams = 
           new FormalParameterType[]
               {
-                new FormalParameterType(ShortType.DEFAULT_TYPE_REFERENCE, ParameterType.ByValue),
-                new FormalParameterType(IntType.DEFAULT_TYPE_REFERENCE, ParameterType.ByValue)
+                new FormalParameterType(TypeFactory.getDefaultInstance(ShortType.class), ParameterType.ByValue),
+                new FormalParameterType(TypeFactory.getDefaultInstance(IntType.class), ParameterType.ByValue)
               };
-       leftReturnType = VoidType.getInstance();          
+       leftReturnType = TypeFactory.getDefaultInstance(VoidType.class);          
        rightParams =
         new FormalParameterType[]
           {
-            new FormalParameterType(ShortType.DEFAULT_TYPE_REFERENCE, ParameterType.ByValue),
-            new FormalParameterType(IntType.DEFAULT_TYPE_REFERENCE, ParameterType.ByValue)
+            new FormalParameterType(TypeFactory.getDefaultInstance(ShortType.class), ParameterType.ByValue),
+            new FormalParameterType(TypeFactory.getDefaultInstance(IntType.class), ParameterType.ByValue)
           };
-       rightReturnType = BooleanType.getInstance();
+       rightReturnType = TypeFactory.getDefaultInstance(BooleanType.class);
        
        datatype.setReturnType(leftReturnType);
        assertEquals(leftReturnType,datatype.getReturnType());
@@ -189,17 +190,17 @@ public class GeneratedTypesTests extends TestCase
     testBasicDataType(datatype);
     assertEquals(true, datatype.isOrdered());
     // Default is a generic pointer
-    assertEquals(VoidType.getInstance().getType(),datatype.getBaseTypeReference().getType());
+    assertEquals(TypeFactory.getDefaultInstance(VoidType.class).getType(),datatype.getBaseTypeReference().getType());
     assertEquals(datatype, datatype);
     assertEquals(otherDatatype, datatype);
     
-    datatype.setBaseTypeReference(LatinStringType.TYPE_REFERENCE);
-    assertEquals(LatinStringType.TYPE_REFERENCE,datatype.getBaseTypeReference());
+    datatype.setBaseTypeReference(TypeFactory.getDefaultInstance(LatinStringType.class));
+    assertEquals(TypeFactory.getDefaultInstance(LatinStringType.class),datatype.getBaseTypeReference());
     
     assertFalse(datatype.equals(otherDatatype));
     
     // Set same pointer type for equality check
-    otherDatatype.setBaseTypeReference(LatinStringType.TYPE_REFERENCE);
+    otherDatatype.setBaseTypeReference(TypeFactory.getDefaultInstance(LatinStringType.class));
     
     assertTrue(datatype.equals(otherDatatype));
   }
