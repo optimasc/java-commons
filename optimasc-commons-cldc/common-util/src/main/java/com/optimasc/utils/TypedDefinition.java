@@ -6,7 +6,7 @@ public interface TypedDefinition extends Definition
    * Key to get the string representation syntax or type 
    * name associated with this definition. This value
    * is usually an OBJECT IDENTIFIER but this implementation
-   * allowed other string values. This value 
+   * allows other string values. This value 
    * is optional and is equivalent to LDAP-SYNTAX in X.501 and
    * represents the type of the attribute.
    */
