@@ -6,8 +6,10 @@ import java.util.List;
 import com.optimasc.util.BasicRegexPattern;
 import com.optimasc.util.SetExpressionFormatter;
 import com.optimasc.util.SetExpressionFormatter.SelectingExpression;
-import com.optimasc.lang.OrdinalSelecting;
-import com.optimasc.lang.OrdinalSelecting.*;
+import com.optimasc.lang.OrdinalSelectItem;
+import com.optimasc.lang.OrdinalSelectItems.OrdinalSelectRange;
+import com.optimasc.lang.OrdinalSelectItems.OrdinalSelectValue;
+import com.optimasc.lang.OrdinalSelectItem.*;
 
 import junit.framework.TestCase;
 
@@ -34,11 +36,11 @@ public class SetExpressionFormatterTest extends TestCase
 
     assertEquals(3,selections.size());
     OrdinalSelectValue v = (OrdinalSelectValue) selections.get(0);
-    assertEquals('0',v.value);
+    assertEquals('0',v.getValue().intValue());
     v = (OrdinalSelectValue) selections.get(1);
-    assertEquals('1',v.value);
+    assertEquals('1',v.getValue().intValue());
     v = (OrdinalSelectValue) selections.get(2);
-    assertEquals('2',v.value);
+    assertEquals('2',v.getValue().intValue());
     assertEquals(5,pos.getIndex());
     assertEquals(-1,pos.getErrorIndex());
     
@@ -47,8 +49,8 @@ public class SetExpressionFormatterTest extends TestCase
     selections = (SelectingExpression) formatter.parseObject("[0-2]",pos);
     assertEquals(1,selections.size());
     OrdinalSelectRange range = (OrdinalSelectRange) selections.get(0);
-    assertEquals('0',range.minInclusive);
-    assertEquals('2',range.maxInclusive);
+    assertEquals('0',range.getMinInclusive().intValue());
+    assertEquals('2',range.getMaxInclusive().intValue());
     assertEquals(5,pos.getIndex());
     assertEquals(-1,pos.getErrorIndex());
     
@@ -57,8 +59,8 @@ public class SetExpressionFormatterTest extends TestCase
     selections = (SelectingExpression) formatter.parseObject("[A-Z]",pos);
     assertEquals(1,selections.size());
     range = (OrdinalSelectRange) selections.get(0);
-    assertEquals('A',range.minInclusive);
-    assertEquals('Z',range.maxInclusive);
+    assertEquals('A',range.getMinInclusive().intValue());
+    assertEquals('Z',range.getMaxInclusive().intValue());
     assertEquals(5,pos.getIndex());
     assertEquals(-1,pos.getErrorIndex());
     
@@ -67,11 +69,11 @@ public class SetExpressionFormatterTest extends TestCase
     selections = (SelectingExpression) formatter.parseObject("[A-Za-z]",pos);
     assertEquals(2,selections.size());
     range = (OrdinalSelectRange) selections.get(0);
-    assertEquals('A',range.minInclusive);
-    assertEquals('Z',range.maxInclusive);
+    assertEquals('A',range.getMinInclusive().intValue());
+    assertEquals('Z',range.getMaxInclusive().intValue());
     range = (OrdinalSelectRange) selections.get(1);
-    assertEquals('a',range.minInclusive);
-    assertEquals('z',range.maxInclusive);
+    assertEquals('a',range.getMinInclusive().intValue());
+    assertEquals('z',range.getMaxInclusive().intValue());
     assertEquals(8,pos.getIndex());
     assertEquals(-1,pos.getErrorIndex());
     
@@ -80,13 +82,13 @@ public class SetExpressionFormatterTest extends TestCase
     selections = (SelectingExpression) formatter.parseObject("[A-Z0a-z]",pos);
     assertEquals(3,selections.size());
     range = (OrdinalSelectRange) selections.get(0);
-    assertEquals('A',range.minInclusive);
-    assertEquals('Z',range.maxInclusive);
+    assertEquals('A',range.getMinInclusive().intValue());
+    assertEquals('Z',range.getMaxInclusive().intValue());
     v = (OrdinalSelectValue) selections.get(1);
-    assertEquals('0',v.value);
+    assertEquals('0',v.getValue().intValue());
     range = (OrdinalSelectRange) selections.get(2);
-    assertEquals('a',range.minInclusive);
-    assertEquals('z',range.maxInclusive);
+    assertEquals('a',range.getMinInclusive().intValue());
+    assertEquals('z',range.getMaxInclusive().intValue());
     assertEquals(9,pos.getIndex());
     assertEquals(-1,pos.getErrorIndex());
     

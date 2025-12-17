@@ -4,9 +4,13 @@ import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.optimasc.lang.OrdinalSelecting;
+import com.optimasc.lang.OrdinalSelectItem;
 import com.optimasc.util.SetExpressionFormatter;
-import com.optimasc.util.SetExpressionFormatter.SelectingExpression;;
+import com.optimasc.util.SetExpressionFormatter.SelectingExpression;
+import com.optimasc.lang.OrdinalSelectItems.OrdinalSelectRange;
+import com.optimasc.lang.OrdinalSelectItems.OrdinalSelectValue;
+import com.optimasc.lang.OrdinalSelectItems.OrdinalAnyValue;
+
 
 
 /** Basic class for pattern matching algorithms. This
@@ -18,7 +22,7 @@ import com.optimasc.util.SetExpressionFormatter.SelectingExpression;;
  *   <li>Match of any character using the <code>"."</code> pattern.</li>
  *   <li>Match of any combination of characters (wildcard) using the <code>".*"</code> pattern.</li>
  *   <li>Match a character from a set (bracketed expression), such as <code>"[A-Za]"</code>.</li>
- *   <li>Match the previous element one or more times (option) using the <code>"?"</code> postfix operator.</li>
+ *   <li>Match the previous element zero or one times (option) using the <code>"?"</code> postfix operator.</li>
  *  </ul>  
  * 
  * @author Carl Eric Codere
@@ -75,7 +79,7 @@ public class BasicRegexPattern extends BasePattern
           } else
           if (pattern.startsWith(anyChar, i))
           {
-            OrdinalSelecting items[] = new OrdinalSelecting[]{new OrdinalSelecting.OrdinalAnyValue()};
+            OrdinalSelectItem items[] = new OrdinalSelectItem[]{new OrdinalAnyValue()};
             SelectingExpression expr = new SelectingExpression(false,items);
             localPatternItems.add(expr);
             i = i + anyChar.length();
@@ -92,13 +96,13 @@ public class BasicRegexPattern extends BasePattern
           // Escape the next character  
           if (pattern.startsWith("\\", i))
           {
-            OrdinalSelecting items[] = new OrdinalSelecting[]{new OrdinalSelecting.OrdinalSelectValue(pattern.charAt(i+1))};
+            OrdinalSelectItem items[] = new OrdinalSelectItem[]{new OrdinalSelectValue(pattern.charAt(i+1))};
             SelectingExpression expr = new SelectingExpression(false,items);
             localPatternItems.add(expr);
             i = i + 2;
           } else
           {
-            OrdinalSelecting items[] = new OrdinalSelecting[]{new OrdinalSelecting.OrdinalSelectValue(pattern.charAt(i))};
+            OrdinalSelectItem items[] = new OrdinalSelectItem[]{new OrdinalSelectValue(pattern.charAt(i))};
             SelectingExpression expr = new SelectingExpression(false,items);
             localPatternItems.add(expr);
             i++;

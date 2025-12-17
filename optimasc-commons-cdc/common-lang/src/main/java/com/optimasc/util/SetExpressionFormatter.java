@@ -7,9 +7,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.optimasc.lang.OrdinalSelecting;
-import com.optimasc.lang.OrdinalSelecting.OrdinalSelectRange;
-import com.optimasc.lang.OrdinalSelecting.OrdinalSelectValue;
+import com.optimasc.lang.OrdinalSelectItem;
+import com.optimasc.lang.OrdinalSelectItems.OrdinalSelectRange;
+import com.optimasc.lang.OrdinalSelectItems.OrdinalSelectValue;
 
 /** Parses a bracket expression, as defined in the Opengroup POSX 2004 
  *  specification (Basic Regular expression), hence it is a subset of the PERL expressions.
@@ -24,13 +24,13 @@ public class SetExpressionFormatter extends Format
   {
     /** Matches all values NOT in the selection list. */
     public boolean invertSelection;
-    protected OrdinalSelecting selectItems[];
+    protected OrdinalSelectItem selectItems[];
     // Minimum number of repetitions
     protected int minCount;
     // Maximum number of repetitions
     protected int maxCount;
     
-    public SelectingExpression(boolean invertSelection, OrdinalSelecting selectItems[])
+    public SelectingExpression(boolean invertSelection, OrdinalSelectItem selectItems[])
     {
       super();
       this.invertSelection=invertSelection;
@@ -39,7 +39,7 @@ public class SetExpressionFormatter extends Format
       this.maxCount = 1;
     }
     
-    public SelectingExpression(boolean invertSelection, OrdinalSelecting selectItems[], int minCount, int maxCount)
+    public SelectingExpression(boolean invertSelection, OrdinalSelectItem selectItems[], int minCount, int maxCount)
     {
       super();
       this.invertSelection=invertSelection;
@@ -48,12 +48,12 @@ public class SetExpressionFormatter extends Format
       this.maxCount = maxCount;
     }
     
-    public OrdinalSelecting[] get()
+    public OrdinalSelectItem[] get()
     {
       return selectItems; 
     }
     
-    public OrdinalSelecting get(int index)
+    public OrdinalSelectItem get(int index)
     {
       return selectItems[index]; 
     }
@@ -92,20 +92,20 @@ public class SetExpressionFormatter extends Format
     {
       toAppendTo.append('^');
     }
-    OrdinalSelecting[] items = select.get();
+    OrdinalSelectItem[] items = select.get();
     
     for (int i = 0; i < items.length; i++)
     {
-      OrdinalSelecting item = items[i];
+      OrdinalSelectItem item = items[i];
       if (item instanceof OrdinalSelectValue)
       {
-        toAppendTo.append(printChar((char) ((OrdinalSelectValue)item).value));
+        toAppendTo.append(printChar((char) ((OrdinalSelectValue)item).getValue().intValue()));
       } else
       if (item instanceof OrdinalSelectRange)
       {
-        toAppendTo.append(printChar((char) ((OrdinalSelectRange)item).minInclusive));
+        toAppendTo.append(printChar((char) ((OrdinalSelectRange)item).getMinInclusive().intValue()));
         toAppendTo.append('-');
-        toAppendTo.append(printChar((char) ((OrdinalSelectRange)item).maxInclusive));
+        toAppendTo.append(printChar((char) ((OrdinalSelectRange)item).getMaxInclusive().intValue()));
       } else
       {
         throw new IllegalArgumentException("Unsupported type in bracket expression.");
@@ -118,7 +118,7 @@ public class SetExpressionFormatter extends Format
   /** Parses a bracket expression, as defined in the Opengroup POSX 2004 
    *  specification (Basic Regular expression), hence it is a subset of the PERL expressions.
    *  
-   *  <p>An empty bracket expression will be considered an error conditions.</p> 
+   *  <p>An empty bracket expression will be considered an error condition.</p> 
    * 
    * @param value [in] The bracket expression
    * @param pos [in] The position where to start the parsing
@@ -126,7 +126,7 @@ public class SetExpressionFormatter extends Format
    */
   public Object parseObject(String source, ParsePosition pos)
   {
-    OrdinalSelecting selectValue;
+    OrdinalSelectItem selectValue;
     boolean invert = true;
     pos.setErrorIndex(-1);
     int i=pos.getIndex();
@@ -160,7 +160,7 @@ public class SetExpressionFormatter extends Format
           pos.setErrorIndex(i);
           return null;
         }
-        selectValue = new OrdinalSelecting.OrdinalSelectValue(']');
+        selectValue = new OrdinalSelectValue(']');
         selectingItems.add(selectValue);
       }
       else
@@ -169,7 +169,7 @@ public class SetExpressionFormatter extends Format
       // considered a literal.
       if (((firstChar) || (i==source.length()-1)) && (c=='-'))
       {
-        selectValue = new OrdinalSelecting.OrdinalSelectValue('-');
+        selectValue = new OrdinalSelectValue('-');
         selectingItems.add(selectValue);
       }
       else
@@ -179,24 +179,24 @@ public class SetExpressionFormatter extends Format
         {
           i++;
           pos.setIndex(i);
-          return new SelectingExpression(invert,(OrdinalSelecting[]) selectingItems.toArray(new OrdinalSelecting[]{}));
+          return new SelectingExpression(invert,(OrdinalSelectItem[]) selectingItems.toArray(new OrdinalSelectItem[]{}));
         }
         if (source.charAt(i+1)=='-')
         {
           int endRange = source.charAt(i+2);
-          selectValue = new OrdinalSelecting.OrdinalSelectRange(c,endRange);
+          selectValue = new OrdinalSelectRange(c,endRange);
           selectingItems.add(selectValue);
           i = i + 2;
         } else
         {
-          selectValue = new OrdinalSelecting.OrdinalSelectValue(c);
+          selectValue = new OrdinalSelectValue(c);
           selectingItems.add(selectValue);
         }
       }
       i++;
     }
     pos.setIndex(i);
-    return new SelectingExpression(invert,(OrdinalSelecting[]) selectingItems.toArray(new OrdinalSelecting[]{}));
+    return new SelectingExpression(invert,(OrdinalSelectItem[]) selectingItems.toArray(new OrdinalSelectItem[]{}));
   }
 
 }

@@ -2,10 +2,11 @@ package com.optimasc.util;
 
 import java.text.ParsePosition;
 
-import com.optimasc.lang.OrdinalSelecting;
-import com.optimasc.lang.OrdinalSelecting.OrdinalAnyValue;
-import com.optimasc.lang.OrdinalSelecting.OrdinalSelectRange;
-import com.optimasc.lang.OrdinalSelecting.OrdinalSelectValue;
+import com.optimasc.lang.OrdinalSelectItem;
+import com.optimasc.lang.OrdinalSelectItems.OrdinalAnyValue;
+import com.optimasc.lang.OrdinalSelectItems.OrdinalSelectRange;
+import com.optimasc.lang.OrdinalSelectItems.OrdinalSelectValue;
+import com.optimasc.lang.SelectItem;
 import com.optimasc.util.SetExpressionFormatter.SelectingExpression;
 
 /** Implementation of a basic expression evaluation
@@ -27,10 +28,10 @@ public abstract class BasePattern extends Pattern
   
   protected static boolean matchChars(SelectingExpression expr, int value, ParsePosition pos)
   {
-    OrdinalSelecting selectItems[] = expr.get();
+    OrdinalSelectItem selectItems[] = expr.get();
     for (int i=0; i < selectItems.length; i++)
     {
-      OrdinalSelecting rawItem = selectItems[i];
+      SelectItem rawItem = selectItems[i];
       // Any value is allowed
       if (rawItem instanceof OrdinalAnyValue)
       {
@@ -41,7 +42,7 @@ public abstract class BasePattern extends Pattern
       if (rawItem instanceof OrdinalSelectValue)
       {
         OrdinalSelectValue item = (OrdinalSelectValue) rawItem;
-        if (value == item.value)
+        if (value == item.getValue().intValue())
         {
           if (expr.maxCount == 1)
           {
@@ -60,7 +61,7 @@ public abstract class BasePattern extends Pattern
         // Compare the values.
         // this.minInclusive <= other.minInclusive AND 
         // this.maxInclusive >= other.maxInclusive
-        if ((value >= item.minInclusive) && (value <= item.maxInclusive))
+        if ((value >= item.getMinInclusive().intValue()) && (value <= item.getMaxInclusive().intValue()))
         {
           if (expr.maxCount == 1)
           {
