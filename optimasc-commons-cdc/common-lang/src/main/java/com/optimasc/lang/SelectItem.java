@@ -1,6 +1,6 @@
 package com.optimasc.lang;
 
-public interface Selecting
+public interface SelectItem
 {
 
 }

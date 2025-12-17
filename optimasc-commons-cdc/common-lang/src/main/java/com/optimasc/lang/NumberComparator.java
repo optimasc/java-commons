@@ -53,10 +53,17 @@ public class NumberComparator implements Comparator
     {
       return ((BigDecimal) n).scale();
     } else
-    if ((n instanceof Double) || (n instanceof Float))
+    if ((n instanceof Double))
     {
-        return (new BigDecimal(n.doubleValue())).scale();
+        // Hard coded value approximation 
+        return 15;
     } else
+    if ((n instanceof Float))
+    {
+       // Hard coded value approximation 
+       return 7;
+     }
+    else
     {
       return 0;
     }

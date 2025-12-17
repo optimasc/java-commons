@@ -1,6 +1,7 @@
 package com.optimasc.lang;
 
-import com.optimasc.lang.OrdinalSelecting.OrdinalSelectRange;
+import com.optimasc.lang.OrdinalSelectItems.OrdinalSelectRange;
+import com.optimasc.lang.OrdinalSelectItems.OrdinalSelectValue;
 
 /** Represents a character set repertoire used 
  *  to identify character sets. A character set
@@ -32,30 +33,48 @@ public class CharacterSet
   public static class Blocks
   {
     /** Control characters group C0 defined by ISO 6429.*/
-    public static OrdinalSelecting CONTROL_CHARACTERS_C0 = 
+    public static OrdinalSelectItem CONTROL_CHARACTERS_C0 = 
         new OrdinalSelectRange(0x0000,0x001F);
     /** Control characters group C1 defined by ISO 6429.*/
-    public static OrdinalSelecting CONTROL_CHARACTERS_C1 = 
+    public static OrdinalSelectItem CONTROL_CHARACTERS_C1 = 
         new OrdinalSelectRange(0x007F,0x009F);
     
     /** Graphic characters defined by ISO-646:IRV. The
      *  block name is the one defined in the Unicode standard */
-    public static OrdinalSelecting BASIC_LATIN =
+    public static OrdinalSelectItem BASIC_LATIN =
         new OrdinalSelectRange(0x0020,0x007F);
     
     /** Extended Latin characters defined by Unicode. */
-    public static OrdinalSelecting LATIN_1_SUPPLEMENT = 
+    public static OrdinalSelectItem LATIN_1_SUPPLEMENT = 
         new OrdinalSelectRange(0x00A0,0x00FF);
+    
+    
+    /** Printable string as defined in ASN.1 */
+    public static OrdinalSelectItem PRINTABLE_CHARACTERS[] = new OrdinalSelectItem[]
+    {
+      new OrdinalSelectRange(0x0030,0x0039),
+      new OrdinalSelectRange(0x0041,0x005A),
+      new OrdinalSelectRange(0x0061,0x007A),
+      new OrdinalSelectValue(0x0020),
+      new OrdinalSelectValue(0x0027),
+      new OrdinalSelectValue(0x0028),
+      new OrdinalSelectValue(0x0029),
+      new OrdinalSelectRange(0x002B,0x002F),
+      new OrdinalSelectValue(0x003A),
+      new OrdinalSelectValue(0x003D),
+      new OrdinalSelectValue(0x003F)
+    };    
+    
 
     /** Unicode basic multilanguage plane definition */
-    public static OrdinalSelecting BMP[] = new OrdinalSelecting[]
+    public static OrdinalSelectItem BMP[] = new OrdinalSelectItem[]
     {
       new OrdinalSelectRange(0x0000,0xD7FF),
       new OrdinalSelectRange(0xE000,0xFFFD),
     };    
     
     /** Full Unicode  definition */
-    public static OrdinalSelecting UNICODE[] = new OrdinalSelecting[]
+    public static OrdinalSelectItem UNICODE[] = new OrdinalSelectItem[]
     {    
         new OrdinalSelectRange(0x0000,0xFDCF),
         new OrdinalSelectRange(0xFDF0,0xFFFD),
@@ -204,32 +223,40 @@ public class CharacterSet
   /** ISO 8859-1 character set repertoire, with the control characters (C0,C1). This is equivalent
    *  to the <code>ISO8BIT</code> SQL2003 character repertoire. */ 
   public static final CharacterSet ISO8BIT = new CharacterSet(ISO_8859_1_OID,BMP,ISO_8859_1_IANA_NAME,
-      ISO_8859_1_ID,new OrdinalSelecting[]{Blocks.CONTROL_CHARACTERS_C0,Blocks.BASIC_LATIN, Blocks.CONTROL_CHARACTERS_C1,
+      ISO_8859_1_ID,new OrdinalSelectItem[]{Blocks.CONTROL_CHARACTERS_C0,Blocks.BASIC_LATIN, Blocks.CONTROL_CHARACTERS_C1,
       Blocks.LATIN_1_SUPPLEMENT});
+  
+
   
   
   /** ISO 8859-1 character set repertoire, without the control characters (C0,C1). This is equivalent
    *  to the ISO/IEC 8859-1 standard and <code>LATIN1<code> SQL2003 character repertoire. */ 
   public static final CharacterSet LATIN1 = new CharacterSet(LATIN1_OID,ISO8BIT,LATIN1_IANA_NAME,
-      LATIN1_ID,new OrdinalSelecting[]{Blocks.BASIC_LATIN, Blocks.LATIN_1_SUPPLEMENT});
+      LATIN1_ID,new OrdinalSelectItem[]{Blocks.BASIC_LATIN, Blocks.LATIN_1_SUPPLEMENT});
   
   
   /** US-ASCII based on ISO 646 character set repertoire, with control characters (C0,C1).
    *  This is equivalent to ASN.1 <code>IA5String</code>
    */
   public static final CharacterSet ASCII = new CharacterSet(US_ASCII_OID,LATIN1,US_ASCII_IANA_NAME,
-      US_ASCII_ID, new OrdinalSelecting[]{Blocks.CONTROL_CHARACTERS_C0,Blocks.BASIC_LATIN});
+      US_ASCII_ID, new OrdinalSelectItem[]{Blocks.CONTROL_CHARACTERS_C0,Blocks.BASIC_LATIN});
+  
+  /** Printable character set repertoire. This is equivalent
+   *  to the <code>PrintableString</code> ASN.1 character repertoire. */
+  public static final CharacterSet PRINTABLE = new CharacterSet(PRINTABLE_STRING_OID,ASCII,null,
+      null,Blocks.PRINTABLE_CHARACTERS);
+  
   
   /** ISO 646 IRV / US-ASCII character set repertoire, without the control characters.
    *  This is equivalent to ASN.1 <code>VisibleString</code> and SQL2003 <code>GRAPHIC_IRV</code>
    *  character repertoire.
    */
   public static final CharacterSet GRAPHIC_IRV = new CharacterSet(VISIBLE_STRING_OID,ASCII,VISIBLE_STRING_NAME,
-      VISIBLE_STRING_ID,new OrdinalSelecting[]{Blocks.BASIC_LATIN});
+      VISIBLE_STRING_ID,new OrdinalSelectItem[]{Blocks.BASIC_LATIN});
   
-  protected OrdinalSelecting[] selectingItems;
+  protected OrdinalSelectItem[] selectingItems;
   
-  public CharacterSet(String oid, CharacterSet parent, String name, Integer id, OrdinalSelecting[] items)
+  public CharacterSet(String oid, CharacterSet parent, String name, Integer id, OrdinalSelectItem[] items)
   {
     super();
     this.oid = oid;
@@ -281,7 +308,7 @@ public class CharacterSet
    */
   public boolean isValid(long codePoint)
   {
-    return OrdinalSelecting.isValid(selectingItems, codePoint);
+    return NumberedSelectItems.validateValue(selectingItems, new Long(codePoint));
   }
 
 
@@ -371,7 +398,7 @@ public class CharacterSet
    */
   public long getMinInclusive()
   {
-    return OrdinalSelecting.getMinInclusive(selectingItems);
+    return NumberedSelectItems.getMinInclusive(selectingItems).longValue();
   }
   
   /** Returns the highest range of the allowed codepoint
@@ -381,7 +408,16 @@ public class CharacterSet
    */
   public long getMaxInclusive()
   {
-    return OrdinalSelecting.getMaxInclusive(selectingItems);
+    return NumberedSelectItems.getMaxInclusive(selectingItems).longValue();
+  }
+
+  /** Return the list of exact unicode code points associated
+   *  with this character set definition.
+   *  
+   */
+  public OrdinalSelectItem[] getSelectingItems()
+  {
+    return selectingItems;
   }
   
 
