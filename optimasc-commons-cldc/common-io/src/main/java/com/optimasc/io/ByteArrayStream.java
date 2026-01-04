@@ -125,7 +125,7 @@ public class ByteArrayStream extends SeekableDataStream
   {
     if (newPosition > Integer.MAX_VALUE)
     {
-      throw new IOException(ByteArrayStream.class.getName()+" seek position is out of range.");
+      throw new IOException(this.getClass().getName()+" seek position is out of range.");
     }
     streamPos = (int)newPosition;
   }
