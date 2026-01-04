@@ -14,7 +14,7 @@ public class DefaultItemDefinition extends AbstractAttributeSet implements ItemD
    * 
    * @param displayName
    *          [in] The friendly name of this item when it should be displayed to
-   *          the user.
+   *          the user. This value must be non-null.
    * @param oid
    *          [in] The identifier for this attribute. This is an OBJECT IDENTIFIER.
    * @param namespaceURI
@@ -26,10 +26,10 @@ public class DefaultItemDefinition extends AbstractAttributeSet implements ItemD
    *          is mandatory.
    * @param description
    *          [in] The human readable description associated with this named
-   *          item.
+   *          item. This implementation accepts <code>null</code> for this value.
    * @param typeName
    *          [in] The type name or syntax which represents the type associated
-   *          with this item's value.
+   *          with this item's value. This value is mandatory and must be non-null.
    * @param singleValue
    *          [in] Indicates if this named item can contain a single value or
    *          more than one value.
@@ -45,10 +45,40 @@ public class DefaultItemDefinition extends AbstractAttributeSet implements ItemD
     if (oid != null)
     {
       validateObjectIdentifier(oid,false);
-      attributes.put(KEY_ID, oid);
+      put(KEY_ID,oid);
     }
-
   }
+  
+  
+  /**
+   * Creates a named item definition with only required values.. 
+   * The following are the defaults:
+   * 
+   * <ul>
+   * <li>{@link Definition#KEY_OBSOLETE}: <code>Boolean.FALSE</code></li>
+   * <li>{@link Definition#KEY_SINGLEVALUE}: <code>Boolean.FALSE</code></li>
+   * <li>{@link Definition#KEY_READONLY}: <code>Boolean.FALSE</code></li>
+   * <li><code>null</code> namespace</li>
+   * <li><code>null</code> description</li>
+   * </ul>
+   * 
+   * @param displayName
+   *          [in] The friendly name of this item when it should be displayed to
+   *          the user. This value must be non-null.
+   * @param qualifiedName
+   *          [in] The qualified name of this of this named item. This is
+   *          similar to to the descriptor in the LDAP specification and
+   *          is mandatory.
+   * @param typeName
+   *          [in] The type name or syntax which represents the type associated
+   *          with this item's value. This value is mandatory and must be non-null.
+   */
+  public DefaultItemDefinition(String displayName, 
+      String qualifiedName, String typeName)
+  {
+    this(displayName, null, qualifiedName, null, typeName, false, false);
+  }
+  
   
   /**
    * Creates a named item definition with an internally named <code>KEY_ID</code>. 
@@ -63,7 +93,7 @@ public class DefaultItemDefinition extends AbstractAttributeSet implements ItemD
    * 
    * @param displayName
    *          [in] The friendly name of this item when it should be displayed to
-   *          the user.
+   *          the user. This value must be non-null.
    * @param namespaceURI
    *          [in] The namespace URI associated with this named item. This
    *          implementation accepts <code>null</code> for this value.           
@@ -73,10 +103,10 @@ public class DefaultItemDefinition extends AbstractAttributeSet implements ItemD
    *          is mandatory.
    * @param description
    *          [in] The human readable description associated with this named
-   *          item.
+   *          item. This implementation accepts <code>null</code> for this value.
    * @param typeName
    *          [in] The type name or syntax which represents the type associated
-   *          with this item's value.
+   *          with this item's value. This value is mandatory and must be non-null.
    * @param singleValue
    *          [in] Indicates if this named item can contain a single value or
    *          more than one value.
@@ -88,62 +118,106 @@ public class DefaultItemDefinition extends AbstractAttributeSet implements ItemD
       String qualifiedName, String description, String typeName, boolean singleValue,
       boolean readOnly)
   {
-    if ((qualifiedName == null)
-        || ((qualifiedName != null) && (qualifiedName.length() == 0)))
+    put(KEY_NAME,qualifiedName);
+    put(KEY_DESC,description);
+    put(KEY_DISPLAY_NAME,displayName);
+    put(KEY_TYPE_NAME,typeName);
+    put(KEY_ID, qualifiedName+"-OID");
+    put(KEY_SINGLEVALUE,new Boolean(singleValue));
+    put(KEY_READONLY,new Boolean(readOnly));
+    put(KEY_OBSOLETE, Boolean.FALSE);
+  }
+  
+  /** Sets the specified attribute with the specified
+   *  value. This method does checking on standard
+   *  attributes to verify if they are valid.
+   * 
+   * @param attrID [in] The attribute ID.
+   * @param value [in] The attribute value.
+   * 
+   * @throws IllegalArgumentException if
+   *   the attribute value or item is not valid.
+   */
+  protected void put(String attrID, Object value)
+  {
+    if (attrID.equals(KEY_NAME))
     {
-      throw new IllegalArgumentException("Invalid name of attribute.");
-    }
-    if (qualifiedName.length() > NAME_MAX_LENGTH)
-    {
-      throw new IllegalArgumentException("Name of attribute is more than "
-          + Integer.toString(NAME_MAX_LENGTH) + " characters.");
-    }
-
-    if ((description != null) && (description.length() > DESC_MAX_LENGTH))
-    {
-      throw new IllegalArgumentException("Description of attribute is more than "
-          + Integer.toString(DESC_MAX_LENGTH) + " characters.");
+      String qualifiedName = (String)value;
+      if ((qualifiedName == null)
+          || ((qualifiedName != null) && (qualifiedName.length() == 0)))
+      {
+        throw new IllegalArgumentException("Invalid name of attribute.");
+      }
+      if (qualifiedName.length() > NAME_MAX_LENGTH)
+      {
+        throw new IllegalArgumentException("Name of attribute is more than "
+            + Integer.toString(NAME_MAX_LENGTH) + " characters.");
+      }
+      attributes.put(KEY_NAME, qualifiedName);
+      return;
     }
     
-    attributes.put(KEY_NAME, qualifiedName);
-    if (description != null)
-      attributes.put(KEY_DESC, description);
-
-
-    if ((displayName == null) || ((displayName != null) && (displayName.length() == 0)))
+    if (attrID.equals(KEY_DESC))
     {
-      throw new IllegalArgumentException("Invalid displayName of attribute.");
+      String description = (String)value;
+      if ((description != null) && (description.length() > DESC_MAX_LENGTH))
+      {
+        throw new IllegalArgumentException("Description of attribute is more than "
+            + Integer.toString(DESC_MAX_LENGTH) + " characters.");
+      }
+      if (description != null)
+        attributes.put(KEY_DESC, description);
+      return;
     }
-    if ((typeName == null) || ((typeName != null) && (typeName.length() == 0)))
-    {
-      throw new IllegalArgumentException(
-          "Invalid syntax, it is mandatory and class must be specified.");
-    }
-    attributes.put(KEY_TYPE_NAME, typeName);
-    attributes.put(KEY_ID, qualifiedName+"-OID");
     
-    if (displayName != null)
-      attributes.put(KEY_DISPLAY_NAME, displayName);
+    if (attrID.equals(KEY_DISPLAY_NAME))
+    {
+      String displayName = (String)value;
+      if ((displayName == null) || ((displayName != null) && (displayName.length() == 0)))
+      {
+        throw new IllegalArgumentException("Invalid displayName of attribute.");
+      }
+      if (displayName != null)
+        attributes.put(KEY_DISPLAY_NAME, displayName);
+      return;
+    }    
 
-    // Boolean values are always present
-    if (singleValue == true)
+    if (attrID.equals(KEY_TYPE_NAME))
     {
-      attributes.put(KEY_SINGLEVALUE, Boolean.TRUE);
-    }
-    else
+      String typeName = (String)value;
+      if ((typeName == null) || ((typeName != null) && (typeName.length() == 0)))
+      {
+        throw new IllegalArgumentException(
+            "Invalid syntax, it is mandatory and class must be specified.");
+      }
+      attributes.put(KEY_TYPE_NAME, typeName);
+      return;
+    }    
+
+    if (attrID.equals(KEY_SINGLEVALUE))
     {
-      attributes.put(KEY_SINGLEVALUE, Boolean.FALSE);
+      Boolean b = (Boolean)value;
+      attributes.put(KEY_SINGLEVALUE, b);
+      return;
     }
-    if (readOnly == true)
+    
+    if (attrID.equals(KEY_READONLY))
     {
-      attributes.put(KEY_READONLY, Boolean.TRUE);
+      Boolean b = (Boolean)value;
+      attributes.put(KEY_READONLY, b);
+      return;
     }
-    else
+    
+    if (attrID.equals(KEY_OBSOLETE))
     {
-      attributes.put(KEY_READONLY, Boolean.FALSE);
+      Boolean b = (Boolean)value;
+      attributes.put(KEY_OBSOLETE, b);
+      return;
     }
-    attributes.put(KEY_OBSOLETE, Boolean.FALSE);
-       
+
+    /* None of the above, then simply add it */
+    put(attrID,value);
+    
   }
   
 
