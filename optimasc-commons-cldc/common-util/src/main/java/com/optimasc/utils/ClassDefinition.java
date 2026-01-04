@@ -53,7 +53,9 @@ public interface ClassDefinition extends Definition
   /**
    * Return mandatory attributes required for this class. It 
    * does not return the mandatory attributes defined in 
-   * the parent hierarchy of this class.
+   * the parent hierarchy of this class. In the case
+   * there are no mandatory attributes, this shall return
+   * an empty array.
    * 
    * @throws NamingException
    */
@@ -61,7 +63,9 @@ public interface ClassDefinition extends Definition
   
   /** Returns the class names that are allowed to be children of this
    *  specified class.  It does not return the children defined
-   *  in the parent hierarchy of this class.
+   *  in the parent hierarchy of this class. In the case
+   *  there are no allowed children, this shall return
+   *  an empty array.
    * 
    * @return The list of class names allowed that can become 
    *   subcontexts of this context.
