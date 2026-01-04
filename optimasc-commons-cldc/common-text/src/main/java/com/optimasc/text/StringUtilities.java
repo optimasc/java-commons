@@ -356,6 +356,34 @@ public final class StringUtilities
     return FALSE;
 
   }
+  
+  
+  /**
+   * Converts the string to its boolean representation.
+   * 
+   * <p>This method is added here since it is available in 
+   * Java 1.4 SDK but not in the JSR 219 CLDC Foundation profile</p>
+   * 
+   * <p>The value returned is true if the string is equal to "true"
+   * independent of the case, the value returned is false if the
+   * the string is equal to "false" independent of the case. Otherwise
+   * an exception is throw.
+   * 
+   * @param value
+   *            the boolean to convert as a string representation.
+   * @return The converted boolean value
+   * @throws IllegalArgumentException If the value cannot be converted
+   *   to a boolean.
+   */  
+  public static boolean stringToBoolean(String value)
+  {
+    if (value.equalsIgnoreCase(TRUE))
+      return true;
+    if (value.equalsIgnoreCase(FALSE))
+      return false;
+    throw new IllegalArgumentException("Value '"+value+"' cannot be converted to a boolean,");
+  }
+  
 
   /**
    * Converts a numeric value to its string representation by also left-padding
