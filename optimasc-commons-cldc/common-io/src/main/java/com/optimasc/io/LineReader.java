@@ -27,6 +27,8 @@ public class LineReader
    *
    * There is no limitation on the size of the line.
    *
+   * @return The next line of text from the input stream, or <code>null</code> 
+   *  if the end of file is encountered before a byte can be read. 
    * @throws java.io.IOException if an exception occurs when reading the
    * line
    */
@@ -60,14 +62,16 @@ public class LineReader
    * It supports the following line encodings:
    *   \r\n (Windows format)
    *   \n (UNIX format)
-   * The maximum line length is limited to MAX_LINE_LENGTH bytes.
+   * There is no limitation on the size of the line.
    *
+   * @return The next line of text from the input stream, or <code>null</code> 
+   *  if the end of file is encountered before a byte can be read. 
    * @throws java.io.IOException if an exception occurs when reading the
    * line
    */
-  public static String readUTF8Line(InputStream reader) throws IOException {
-      byte[] buffer = new byte[MAX_LINE_LENGTH];
-      int index = 0;
+  public static String readUTF8Line(InputStream reader) throws IOException 
+  {
+      java.io.ByteArrayOutputStream bis = new java.io.ByteArrayOutputStream(MAX_LINE_LENGTH);
       // Test whether the end of file has been reached. If so, return null.
       int readChar = reader.read();
       if (readChar == -1) {
@@ -81,12 +85,11 @@ public class LineReader
           // and therefore an exception that should not be appended to the
           // string.
           if (readChar != '\r') {
-              buffer[index] = (byte)(readChar & 0xFF);
-              index++;
+              bis.write((byte)(readChar & 0xFF));               
           }
           // Read the next character
           readChar = reader.read();
       }
-      return new String(buffer, 0, index, "UTF-8");
+      return new String(bis.toByteArray(), 0, bis.size(), "UTF-8");
   }
 }
