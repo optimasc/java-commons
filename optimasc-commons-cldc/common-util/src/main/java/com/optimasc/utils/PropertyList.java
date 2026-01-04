@@ -10,7 +10,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 import com.optimasc.io.LineReader;
-import com.optimasc.text.BaseISO8601Date;
+import com.optimasc.text.PrintfFormat;
 import com.optimasc.text.StringUtilities;
 
 /**
@@ -304,7 +304,13 @@ public class PropertyList
       out.write(comment.getBytes("UTF-8"));
     }
     cal.setTime(new Date());
-    String s = new String("# " + BaseISO8601Date.toString(cal, true, false)+NEWLINE);
+    
+    PrintfFormat pf = new PrintfFormat("%04d-%02d-%02d");
+    Object[] objs = new Integer[3];
+    objs[0] = new Integer(cal.get(Calendar.YEAR));
+    objs[1] = new Integer(cal.get(Calendar.MONTH)+1);
+    objs[2] = new Integer(cal.get(Calendar.DAY_OF_MONTH));
+    String s = new String("# " + pf.sprintf(objs)+NEWLINE);
     out.write(s.getBytes("UTF-8"));
     
     synchronized (this) {
