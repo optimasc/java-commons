@@ -1,21 +1,40 @@
 package com.optimasc.utils;
 
 
-/** Represents a class definition that may contain attributes.
- * 
+/** Represents the schema of a class that may
+ *  contains named items. A class could represent
+ *  a simple LDAP class, an structured document, where
+ *  each element is represented as an attribute,
+ *  or a SQL table definition where each named item
+ *  is a column definition.
+ *  
+ *  <p>The following attributes are associated with a class, on top of
+ *  those which are inherited:</p>
+ *  
+ *  <table>
+ *    <tr><th>Attribute name</th><th>Mandatory</th><th>Type</th><th>Description</th></tr>
+ *    <tr><td>{@link #KEY_KIND}</td><td>TRUE</td><td><code>String</code></td><td>Indicates the type of class this represents, either abstract or concrete ("structural"). By 
+ *       default the value is {@link #CLASS_STRUCTURAL} if this is not explicitly set.</td></tr>
+ *    <tr><td>{@link #KEY_MANDATORY_ATTRIBS}</td><td>FALSE</td><td><code>String[]</code></td><td>Represents the mandatory named items (attributes, properties, columns) associated with this class. By default the value is <code>null</code></td></tr>
+ *    <tr><td>{@link #KEY_OPTIONAL_ATTRIBS}</td><td>FALSE</td><td><code>String[]</code></td><td>Represents the optional named items (attributes, properties, columns) associated with this class. By default the value is <code>null</code></td></td></tr>
+ *    <tr><td>{@link #KEY_RESTRICTED}</td><td>TRUE</td><td><code>Boolean</code></td><td>Indicates if the instances of this class cannot be directly modified by user applications.
+ *      By default, this value is <code>FALSE</code> if not explicitly set.</td></tr>
+ *    <tr><td>{@link #KEY_SUPERCLASS}</td><td>FALSE</td><td><code>String</code></td><td>
+ *       Represents the super class name, or <code>null</code> if it is not defined.</td></tr>
+ *  </table>
+ *  
+ *  
  * @author Carl Eric Codere
  *
  */
 public interface ClassDefinition extends Definition
 {
   /**
-   * Key for the name of this class. This is equivalent to LDAP-NAME in ITU-T
-   * X.501. This value is the actual short name of an object class. This is the
-   * same definition as the <code>upnp:class</code> property in the
-   * <code>ContentDirectory:v4</code> UPnP specification.
+   * Key for the type of this class. This is equivalent to KIND in
+   * ITU-T X.501. This value is mandatory. Internally it can have
+   * the value {@link ClassDefinition#CLASS_STRUCTURAL} or 
+   * {@link ClassDefinition#CLASS_ABSTRACT}.
    */
-//  public static final String KEY_NAME = Definition.KEY_NAME;
-  /** Type of class enumeration */
   public static final String KEY_KIND = "KIND";
 
   /**
@@ -32,7 +51,7 @@ public interface ClassDefinition extends Definition
    * Key for the optional attributes of this object. This is equivalent to MAY
    * CONTAIN in ITU-T X.501. This value is optional.
    */
-  public static final String KEY_OPTIONALS_ATTRIBS = "MAY";
+  public static final String KEY_OPTIONAL_ATTRIBS = "MAY";
   /**
    * Key for an array representing the allowed children nodes of this class or
    * <code>null</code> if this objectClass does not allow any children. This is
@@ -49,6 +68,14 @@ public interface ClassDefinition extends Definition
    * 
    */
   public static final String KEY_RESTRICTED = "restricted";
+  
+  
+  /** Standard class kind. Default class definition */
+  public static final String CLASS_STRUCTURAL = "structural";
+  /** Abstract class kind. A class that cannot directly
+   *  be instantiated */
+  public static final String CLASS_ABSTRACT = "abstract";
+  
   
   /**
    * Return mandatory attributes required for this class. It 
@@ -81,7 +108,8 @@ public interface ClassDefinition extends Definition
   public String getParent();
   
   /** Return true if this class definitions represents
-   *  an abstract class.
+   *  an abstract class. This is done by verifying
+   *  that {@link #KEY_KIND} is equal to {@link #CLASS_ABSTRACT}.
    * 
    */
   public boolean isAbstract();
