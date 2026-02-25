@@ -5,6 +5,8 @@ import java.util.Hashtable;
 
 import omg.org.astm.type.TypeReference;
 
+import com.optimasc.datatypes.MemberObject;
+import com.optimasc.datatypes.aggregate.RecordType;
 import com.optimasc.datatypes.defined.IntType;
 import com.optimasc.datatypes.defined.StringType;
 import com.optimasc.datatypes.io.XMLSchemaDeserializer;
@@ -30,6 +32,7 @@ public class DeserializerTest extends TestCase
   public void testNormal01()
   {
     TypeReference typeRef;
+    RecordType recordType;
     InputStream stream = getClass().getClassLoader().getResourceAsStream("res/schemas.xsd");
     XMLSchemaDeserializer input = new XMLSchemaDeserializer();
     TypeSymbolTable dataTypes = input.load(stream);
@@ -51,7 +54,7 @@ public class DeserializerTest extends TestCase
     assertEquals(0, stringType.getMinLength());
     assertEquals(1024, stringType.getMaxLength());
 /*    assertEquals(null, stringType.getPatterns()); */
-    assertEquals(null, stringType.getChoices());
+    assertEquals(null, stringType.getAllowedValues());
 
     typeRef = dataTypes.get("shortNormalizedString");
     assertNotNull(typeRef);
@@ -59,13 +62,13 @@ public class DeserializerTest extends TestCase
     assertEquals(0, stringType.getMinLength());
     assertEquals(250, stringType.getMaxLength());
 /*    assertEquals(null, stringType.getPatterns()); */
-    assertEquals(null, stringType.getChoices());
+    assertEquals(null, stringType.getAllowedValues());
 
     typeRef = dataTypes.get("DCMITYPE");
     assertNotNull(typeRef);
     stringType = (StringType)typeRef.getType();
 /*    assertEquals(null, stringType.getPatterns()); */
-    Object[] choices = stringType.getChoices();
+    Object[] choices = stringType.getAllowedValues();
     assertEquals(12, choices.length);
 
 
@@ -79,7 +82,7 @@ public class DeserializerTest extends TestCase
     assertNotNull(typeRef);
     stringType = (StringType)typeRef.getType();
 /*    assertEquals(null, stringType.getPatterns()); */
-    choices = stringType.getChoices();
+    choices = stringType.getAllowedValues();
     assertEquals(7, choices.length);
 
 
@@ -92,8 +95,28 @@ public class DeserializerTest extends TestCase
     stringType = (StringType)typeRef.getType();
     assertEquals(0, integerType.getMinInclusive().intValue());
 /*    assertEquals(LANGUAGE_TAG_PATTERN, stringType.getPatterns()); */
-    choices = stringType.getChoices();
-    assertEquals(8, stringType.getChoices().length);
+    choices = stringType.getAllowedValues();
+    assertEquals(8, stringType.getAllowedValues().length);
+    
+    
+    MemberObject field;
+    typeRef = dataTypes.get("mySequence");
+    assertNotNull(typeRef);
+    recordType = (RecordType)typeRef.getType();
+    assertEquals(3,recordType.getMemberCount());
+    field = recordType.getMember(0);
+//    name="intField" type="xs:integer"/>
+//    name="BooleanFeidl" type="xs:boolean"/>
+    
+    assertEquals("intField",field.getIdentifier());
+    assertTrue(field.getDefinitionType().getType() instanceof IntegralType);
+    field = recordType.getMember(1);
+    assertEquals("BooleanField",field.getIdentifier());
+    assertTrue(field.getDefinitionType().getType() instanceof BooleanType);
+    field = recordType.getMember(2);
+    assertEquals("LanguageField",field.getIdentifier());
+    assertTrue(field.getDefinitionType().getType() instanceof StringType);
+    
   }
 
 

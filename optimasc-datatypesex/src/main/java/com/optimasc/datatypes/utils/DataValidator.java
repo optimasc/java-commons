@@ -33,8 +33,9 @@ import com.optimasc.datatypes.primitives.RealType;
 import com.optimasc.datatypes.primitives.URIType;
 import com.optimasc.lang.GregorianDatetimeCalendar;
 import com.optimasc.lang.MediaType;
+import com.optimasc.text.DateConverter;
 import com.optimasc.text.NumericFormatters;
-import com.optimasc.text.StandardDateFormats;
+import com.optimasc.text.StandardDateFormatters;
 import com.optimasc.text.StandardFormatters;
 import com.optimasc.text.StandardFormatters.Latin1StringConverter;
 
@@ -99,9 +100,9 @@ public class DataValidator
 
     map.put(GregorianDatetimeCalendar.class, new ValidationData(
         GregorianDatetimeCalendar.class, new Format[] {
-            StandardDateFormats.DATE_ISO_8824, StandardDateFormats.DATE_EXIF,
-            StandardDateFormats.W3C_DATETIME, StandardDateFormats.ISO8601_DATE,
-            StandardDateFormats.ASN1_GENERALIZEDTIME }));
+            StandardDateFormatters.DATE_ISO_8824, StandardDateFormatters.DATE_EXIF,
+            new StandardDateFormatters.W3CDateTimeConverter(), new StandardDateFormatters.ISO8601DateConverter(),
+            new StandardDateFormatters.GeneralizedTimeConverter() }));
 
     /*    new ValidationData(ShortType.class,
             new Format[]{new NumericFormatters.ShortConverter()},

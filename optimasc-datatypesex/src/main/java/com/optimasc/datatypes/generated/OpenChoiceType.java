@@ -5,9 +5,9 @@ import omg.org.astm.type.TypeReference;
 import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.EnumerationFacet;
 import com.optimasc.datatypes.EnumerationHelper;
 import com.optimasc.datatypes.Type;
+import com.optimasc.datatypes.facets.EnumerationFacet;
 
 /** Represents a choice between different elements all of
  *  the same datatype. It is possible to have another
@@ -37,12 +37,12 @@ public class OpenChoiceType extends UnionType implements EnumerationFacet, Const
     elementType = value; 
   }
 
-  public Object[] getChoices()
+  public Object[] getAllowedValues()
   {
-    return enumHelper.getChoices();
+    return enumHelper.getAllowedValues();
   }
 
-  public void setChoices(Object[] choices)
+  public void setAllowedValues(Object[] choices)
   {
     int i;
     for (i = 0; i < choices.length; i++)
@@ -52,11 +52,18 @@ public class OpenChoiceType extends UnionType implements EnumerationFacet, Const
         throw new IllegalArgumentException("Choice values are not of a valid type");
       }
     }
-    enumHelper.setChoices(choices);
+    enumHelper.setAllowedValues(choices);
   }
 
-  public boolean validateChoice(Object value)
+  public boolean isValid(Object value)
   {
     return false;
   }
+
+  public Class getAllowedValuesClass()
+  {
+    return enumHelper.getAllowedValuesClass();
+  }
+  
+  
 }

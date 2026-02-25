@@ -1,5 +1,6 @@
 package com.optimasc.datatypes.derived;
 
+import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.defined.StringType;
 import com.optimasc.datatypes.defined.UCS2CharType;
 
@@ -30,7 +31,7 @@ public class NormalizedStringType extends StringType
   
   public NormalizedStringType()
   {
-    super(0, Integer.MAX_VALUE, UCS2CharType.DEFAULT_TYPE_REFERENCE);
+    super(0, Integer.MAX_VALUE, TypeFactory.getDefaultInstance(UCS2CharType.class));
     setWhitespace(WHITESPACE_REPLACE);
   }
   

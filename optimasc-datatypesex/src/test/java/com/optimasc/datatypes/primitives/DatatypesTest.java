@@ -13,13 +13,13 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.Datatype;
-import com.optimasc.datatypes.EnumerationFacet;
-import com.optimasc.datatypes.LengthFacet;
-import com.optimasc.datatypes.PatternFacet;
 import com.optimasc.datatypes.aggregate.SequenceType;
 import com.optimasc.datatypes.defined.LatinCharType;
 import com.optimasc.datatypes.defined.LatinStringType;
 import com.optimasc.datatypes.defined.UCS2CharType;
+import com.optimasc.datatypes.facets.EnumerationFacet;
+import com.optimasc.datatypes.facets.LengthFacet;
+import com.optimasc.datatypes.facets.PatternFacet;
 
 import junit.framework.TestCase;
 
@@ -48,6 +48,11 @@ public class DatatypesTest extends TestCase
     //assertEquals(SAMPLE_NAME, datatype.getName());
     datatype.setComment(SAMPLE_COMMENT);
     assertEquals(SAMPLE_COMMENT, datatype.getComment());
+  }
+  
+  public void testOne()
+  {
+    
   }
 
 

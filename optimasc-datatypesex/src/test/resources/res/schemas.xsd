@@ -119,5 +119,16 @@
     		</xsd:pattern>
     	</xsd:restriction>
     </xsd:simpleType>
+    
+    
+<xsd:complexType name="mySequence">
+  <xsd:sequence>
+    <xsd:element name="intField" type="xsd:integer"/>
+    <xsd:element name="BooleanField" type="xsd:boolean"/>
+    <xsd:element name="LanguageField" type="LanguageTag"/>
+    <!-- and so on ... -->
+  </xsd:sequence>
+</xsd:complexType>
+    
 </xsd:schema>
  

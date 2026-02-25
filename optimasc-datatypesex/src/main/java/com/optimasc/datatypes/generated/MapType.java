@@ -14,6 +14,8 @@ import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.Type;
+import com.optimasc.datatypes.TypeFactory;
+import com.optimasc.datatypes.defined.UCS2CharType;
 import com.optimasc.datatypes.defined.UCS2StringType;
 import com.optimasc.datatypes.utils.VisualMap;
 import com.optimasc.datatypes.visitor.TypeVisitor;
@@ -36,8 +38,8 @@ public class MapType extends Datatype implements ConstructedSimple
   public MapType()
   {
       super(false);
-      setBaseTypeReference(UCS2StringType.TYPE_REFERENCE);
-      setKeyDatatype(UCS2StringType.TYPE_REFERENCE);
+      setBaseTypeReference(TypeFactory.getDefaultInstance(UCS2StringType.class));
+      setKeyDatatype(TypeFactory.getDefaultInstance(UCS2StringType.class));
   }
 
   public TypeReference getBaseTypeReference()

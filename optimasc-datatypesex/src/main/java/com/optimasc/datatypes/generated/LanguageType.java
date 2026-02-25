@@ -7,9 +7,9 @@ import java.util.regex.Pattern;
 import com.optimasc.datatypes.Convertable;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.EnumerationFacet;
 import com.optimasc.datatypes.EnumerationHelper;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
+import com.optimasc.datatypes.facets.EnumerationFacet;
 import com.optimasc.datatypes.primitives.PrimitiveType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.text.Parsers;
@@ -46,17 +46,17 @@ public class LanguageType extends PrimitiveType implements EnumerationFacet, Con
 
   public Object[] getChoices()
   {
-    return enumHelper.getChoices();
+    return enumHelper.getAllowedValues();
   }
 
-  public void setChoices(Object[] choices)
+  public void setAllowedValues(Object[] choices)
   {
-    enumHelper.setChoices(choices);
+    enumHelper.setAllowedValues(choices);
   }
 
-  public boolean validateChoice(Object value)
+  public boolean isValid(Object value)
   {
-    return enumHelper.validateChoice(value);
+    return enumHelper.isValid(value);
   }
 
   public boolean isRestrictionOf(Datatype value)
@@ -107,7 +107,7 @@ public class LanguageType extends PrimitiveType implements EnumerationFacet, Con
     }
     if (locale != null)
     {
-    if (validateChoice(locale) == false)
+    if (isValid(locale) == false)
     {
       conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"The Locale does not match the datatype specification");
       return null;
@@ -116,6 +116,16 @@ public class LanguageType extends PrimitiveType implements EnumerationFacet, Con
     }
     conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Unsupported value of class '"+value.getClass().getName()+"'.");
     return null;
+  }
+
+  public Object[] getAllowedValues()
+  {
+    return enumHelper.getAllowedValues();
+  }
+
+  public Class getAllowedValuesClass()
+  {
+    return enumHelper.getAllowedValuesClass();
   }
 
 
