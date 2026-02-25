@@ -70,8 +70,18 @@ public class TypeSymbolTable
     return values.put(getID(name), typ);
   }*/
 
+  /**
+   * 
+   * @param name
+   * @param value [in] The type, must not be a NamedTypeReference
+   * @return
+   */
   public NamedTypeReference put(QName name, Type value)
   {
+    if (value instanceof NamedTypeReference)
+    {
+      throw new IllegalArgumentException("Unexpected 'NamedTypeReference'");
+    }
     String n = name.getPrefix()+":"+name.getLocalPart();
     registerNamespace(name.getPrefix(),name.getNamespaceURI());
     NamedTypeReference typ = new NamedTypeReference(n,value);

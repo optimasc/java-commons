@@ -2,6 +2,7 @@ package com.optimasc.datatypes.derived;
 
 import omg.org.astm.type.TypeReference;
 
+import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.defined.UCS2CharType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.datatypes.visitor.TypeVisitorEx;
@@ -24,7 +25,7 @@ public class TokenType extends NormalizedStringType
 
   public TokenType()
   {
-    super(0,Integer.MAX_VALUE,UCS2CharType.DEFAULT_TYPE_REFERENCE);
+    super(0,Integer.MAX_VALUE,TypeFactory.getDefaultInstance(UCS2CharType.class));
     setWhitespace(WHITESPACE_COLLAPSE);
   }
   

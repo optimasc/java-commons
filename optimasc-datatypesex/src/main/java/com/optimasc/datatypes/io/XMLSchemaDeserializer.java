@@ -44,15 +44,15 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.optimasc.datatypes.AccessKind;
 import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Datatype;
-import com.optimasc.datatypes.EnumerationFacet;
-import com.optimasc.datatypes.LengthFacet;
-import com.optimasc.datatypes.NumberEnumerationFacet;
-import com.optimasc.datatypes.NumberRangeFacet;
-import com.optimasc.datatypes.NumberRangeSetterFacet;
+import com.optimasc.datatypes.DefaultMemberObject;
+import com.optimasc.datatypes.MemberObject;
 import com.optimasc.datatypes.Type;
+import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.aggregate.BagType;
+import com.optimasc.datatypes.aggregate.RecordType;
 import com.optimasc.datatypes.aggregate.SequenceType;
 import com.optimasc.datatypes.defined.BinaryType;
 import com.optimasc.datatypes.defined.ByteType;
@@ -72,6 +72,10 @@ import com.optimasc.datatypes.defined.YearType;
 import com.optimasc.datatypes.derived.NameType;
 import com.optimasc.datatypes.derived.NormalizedStringType;
 import com.optimasc.datatypes.derived.TokenType;
+import com.optimasc.datatypes.facets.EnumerationFacet;
+import com.optimasc.datatypes.facets.LengthFacet;
+import com.optimasc.datatypes.facets.NumberEnumerationFacet;
+import com.optimasc.datatypes.facets.NumberRangeSetterFacet;
 import com.optimasc.datatypes.generated.AltLangMapType;
 import com.optimasc.datatypes.generated.LanguageType;
 import com.optimasc.datatypes.generated.MapType;
@@ -87,7 +91,6 @@ import com.optimasc.datatypes.primitives.URIType;
 import com.optimasc.datatypes.utils.DataValidator;
 import com.optimasc.text.NumericFormatters;
 import com.optimasc.text.NumericFormatters.IntegerConverter;
-import com.optimasc.text.StandardDateFormats;
 import com.optimasc.text.StandardFormatters;
 import com.sapient.BeanUtil;
 
@@ -95,12 +98,23 @@ import com.sapient.BeanUtil;
  * 
  *  It currently supports a subset of the full XMLSchema specification:
  *  
+ *  <p><code>simpleType</code> is supported with the following
+ *    constraints:</p>  
  *  <ul>
  *   <li>unions are supported as anonymous types in a simpletype only and only 1 level deep.</li>
  *   <li>lists are supported only with the listType attribute and only 1 level deep</li>
  *   <li>restrictions on simple types are generally supported as defined in the specification.</li>
  *  </ul>
  *  
+ *  <p><code>complexType</code> is supported with the following
+ *    constraints:</p>
+ *  <ul>
+ *   <li>sequence or all elements are supported 1 level deep in a complex type.</li>
+ *   <li>elements within a sequence or all elements must specify a type, and may not 
+ *     contain any other elements.</li>
+ *  </ul>
+ *    
+ *      
  *  It is not permitted to mix lists and unions in this implementation.
  *  
  * */
@@ -309,6 +323,110 @@ public class XMLSchemaDeserializer implements Deserializer
     return elements;
   }
   
+  /** Parses an XMLSchema element and returns its associated
+   *  field representation.
+   * 
+   * @param symbolTable
+   * @param element
+   * @param xsdPrefix
+   * @param nameRequired
+   * @return
+   */
+  protected MemberObject parseElement(TypeSymbolTable symbolTable, Element element, String xsdPrefix, boolean nameRequired)
+  {
+    Element elem = element;
+    String fieldName = elem.getAttribute("name");
+    String dataTypeName;
+    String attr;
+    if ((fieldName == null) && (nameRequired == true))
+    {
+      throw new IllegalArgumentException("'name' attribute is required for an 'element'.");
+    }
+    dataTypeName = elem.getAttribute("type");
+    if (dataTypeName == null)
+    {
+      throw new IllegalArgumentException("'type' attribute is required for an 'element' in this implementation.");
+    }
+    attr = elem.getAttribute("minOccurs");
+    if ((elem.hasAttribute("minOccurs")) && ((attr.equals("1")==false)))
+    {
+      throw new IllegalArgumentException("'minOccurs' attribute must be 1 in this implementation.");
+    }
+    attr = elem.getAttribute("maxOccurs");
+    if (elem.hasAttribute("maxOccurs") && ((attr.equals("1")==false)))
+    {
+      throw new IllegalArgumentException("'maxOccurs' attribute must be 1 in this implementation.");
+    }
+    NamedTypeReference ref = symbolTable.get(dataTypeName);
+    if (ref==null)
+    {
+      throw new IllegalArgumentException("'"+dataTypeName+"' type name not found, was it already defined?.");
+    }
+    return new DefaultMemberObject(fieldName,ref,AccessKind.Public,false);
+  }
+  
+  /** Parses an XMLSchema complexType structure and returns its 
+   *  datatype representation. Currently this implementation
+   *  supports only the <code>sequence</code> inner element and
+   *  it returns a <code>RecordType</code>.
+   *  
+   * @param element The root element of the complex type.
+   * @param nameRequired true if the complexType name must be
+   *   specified, otherwise, false.
+   * @return Type Reference information
+   */
+  protected TypeReference parseComplexType(TypeSymbolTable symbolTable, Element element, String xsdPrefix, boolean nameRequired)
+  {
+    String typeDocumentation;
+    boolean ordered;
+    Datatype listType;
+    Element elem = element;
+    typeDocumentation = null;
+    Hashtable<String, String> annotationElements = null;
+    String dataTypeName = elem.getAttribute("name");
+    if ((dataTypeName == null) && (nameRequired == true))
+    {
+      throw new IllegalArgumentException("'name' attribute is required for complexType element.");
+    }
+
+    /** Parse annotations and documentation. */
+    annotationElements = parseAnnotation(elem);
+    if (annotationElements != null)
+    {
+      typeDocumentation = annotationElements.get(ANNOTATION_DOCUMENTATION);
+    }
+    /*** Is this a sequence or all ***/
+    Vector<Element> children = getChildren(elem,XSD_NAMESPACE, "sequence");
+    ordered = true;
+    if (children.size()==0)
+    {
+      children = getChildren(elem,XSD_NAMESPACE, "all");
+      if (children.size()!=1)
+      {
+        throw new IllegalArgumentException("complexType only supports 1 embedded 'sequence' or 'all' element");
+      }
+      ordered = false;
+    } else
+    if (children.size()!=1)
+    {
+      throw new IllegalArgumentException("complexType only supports 1 embedded 'sequence' or 'all' element");
+    }
+    /* We only support 'element' children. */
+    Element sequenceRoot = children.get(0);
+    Vector<Element> elements = getChildren(sequenceRoot,XSD_NAMESPACE, "element");
+    Vector<MemberObject> fields = new Vector<MemberObject>();
+    RecordType recordType = new RecordType();
+    recordType.setOrdered(ordered);
+    recordType.setComment(typeDocumentation);
+    for (int i = 0; i < elements.size(); i++)
+    {
+      MemberObject field = parseElement(symbolTable,(Element) elements.get(i),xsdPrefix,true);
+      recordType.addMember(field);
+    }
+    return new NamedTypeReference(dataTypeName,recordType);
+  }
+  
+  
   
   /** Parses an XMLSchema simpleType structure and returns its 
    *  datatype representation.
@@ -507,7 +625,7 @@ public class XMLSchemaDeserializer implements Deserializer
         }
         if (datatype != null)
         {
-          symbolTable.put(new QName(XSD_NAMESPACE,facetInfo.baseType,xsdPrefix),new NamedTypeReference(facetInfo.baseType, datatype));
+          symbolTable.put(new QName(XSD_NAMESPACE,facetInfo.baseType,xsdPrefix),datatype);
         }
       }
     }
@@ -557,6 +675,24 @@ public class XMLSchemaDeserializer implements Deserializer
           }
         }
       }
+      
+      /*** For each complexType ***/
+      Vector<Element> complexTypeList = getChildren(rootElement, XSD_NAMESPACE, "complexType");
+      
+      for (int i = 0; i < complexTypeList.size(); i++)
+      {
+        TypeReference typeRef = parseComplexType(symbolTable,(Element) complexTypeList.get(i),xsdPrefix,true);
+        if (typeRef instanceof NamedTypeReference)
+        {
+          NamedTypeReference namedType = (NamedTypeReference) typeRef;
+          if (namedType.getTypeName()!=null)
+          {
+            symbolTable.put(namedType);
+          }
+        }
+      }
+      
+      
     } catch (ParserConfigurationException e)
     {
       // TODO Auto-generated catch block
@@ -650,7 +786,9 @@ public class XMLSchemaDeserializer implements Deserializer
       }
       if (DateTimeType.class.isAssignableFrom(facetData.classType))
       {
-        return DataValidator.validate((Datatype) DateTimeType.getInstance().getType(), value);
+        
+        
+        return DataValidator.validate((Datatype) TypeFactory.getDefaultInstance(DateTimeType.class).getType(), value);
       }
     }
     /* pattern, enumeration are kept as strings. */
@@ -783,11 +921,11 @@ public class XMLSchemaDeserializer implements Deserializer
           {
             if (datatypeInstance instanceof NumberEnumerationFacet)
             {
-              ((NumberEnumerationFacet)datatypeInstance).setChoices(choicesAttr.toArray(new Number[0]));
+              ((NumberEnumerationFacet)datatypeInstance).setAllowedValues(choicesAttr.toArray(new Number[0]));
             }
             if (datatypeInstance instanceof EnumerationFacet)
             {
-              ((EnumerationFacet)datatypeInstance).setChoices(choicesAttr.toArray(new Object[0]));
+              ((EnumerationFacet)datatypeInstance).setAllowedValues(choicesAttr.toArray(new Object[0]));
             }
           }
         } catch (InstantiationException e)
