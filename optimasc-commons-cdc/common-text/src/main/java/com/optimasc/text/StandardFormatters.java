@@ -1,6 +1,7 @@
 package com.optimasc.text;
 
 import java.math.BigInteger;
+import com.optimasc.utils.BaseTypeUtilities;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.FieldPosition;
@@ -54,29 +55,27 @@ public class StandardFormatters
   {
 
   }
-
+  
   /**
-   * String type converter. Utility class for other data types that are kept as
-   * strings. It supports all non-control characters. In <code>lenient</code>
-   * mode, illegal characters are simply ignored and removed and an empty string
-   * is allowed, while when <code>lenient</code> is <code>false</code> an
-   * exception will be thrown when an illegal character is found or if the
-   * string is empty.
+   * Normalized String type converter. 
    * 
-   * When <code>lenient</code> is <code>false</code> the converter is compliant
-   * with the following syntaxes:
+   * The parsing does the following operations:
+   * 
    * <ul>
-   * <li>W3C XML Schema Second Edition (2004) string built-in datatype canonical
-   * representation</li>
-   * <li>
+   *    <li>Verifies that string does not contains surrogate characters (General category "Cs")</li>
+   *    <li>Verifies that string does not contain private use characters (General category "Co")</li>
+   *    <li>Verifies that string does not contain non-characters (PropList "# Cn" category)</li>
+   *    <li>Verifies that string does not contain bidirectional markers or deprecated charters</li>
+   *    <li>Convert all other characters to Unicode normalization form C (NFC)</li>   
    * </ul>
    * 
+   * The converter is stricter but similar to the the following syntaxes:
+   * <ul>
+   * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>string</code> canonical representation</li>
+   * </ul>
    */
   public static class StringConverter extends DataConverter
   {
-    public static int CHAR_LINEFEED = 0x0A;
-    public static int CHAR_TAB = 0x09;
-    public static int CHAR_RETURN = 0x0D;
     private static DataConverter instance;
     
 
@@ -88,28 +87,15 @@ public class StandardFormatters
     public Object parseObject(CharSequence value) throws ParseException
     {
       int inLength = value.length();
+
       if ((inLength == 0) && (lenient == false))
       {
         throw new ParseException("Empty string are not allowed.", 0);
       }
-
-      int outIndex = 0;
-      char[] out = new char[inLength];
-      for (int i = 0; i < inLength; i++)
-      {
-        int v = value.charAt(i);
-        // Valid characters
-        if ((v == CHAR_TAB) || (v == CHAR_LINEFEED) || (v == CHAR_RETURN)
-            || ((v >= 0x20) && (v <= 0xD7FF)) || ((v >= 0xE000) && (v <= 0xFFFD))
-            || ((v >= 0x10000) && (v <= 0x10FFFF)))
-        {
-          out[outIndex++] = (char) v;
-          continue;
-        }
-        if (lenient == false)
-          throw new ParseException("String is composed of non-characters.", i);
-      }
-      return new String(out, 0, outIndex);
+      
+      StringNormalizer.verifyProhibited(value);
+      String resultString = StringNormalizer.toNFC(value);
+      return resultString;
     }
 
     public Object parseObject(String value) throws ParseException
@@ -143,20 +129,27 @@ public class StandardFormatters
   }
 
   /**
-   * Normalized String type converter. A normalized string is a
-   * {@link StandardFormatters.StringConverter} that does not contain the
-   * carriage return (#xD), line feed (#xA) nor tab (#x9) characters. If lenient
-   * mode is <code>true</code>, any of the above characters will be replaced by
-   * a space character. All other control characters will be removed from the
-   * output. If these characters are found when lenient mode is disabled, an
-   * exception will be thrown.
+   * Normalized String type converter. 
    * 
-   * When <code>lenient</code> is <code>false</code> the converter is compliant
-   * with the following syntaxes:
+   * The parsing does the following operations:
+   * 
    * <ul>
-   * <li>W3C XML Schema Second Edition (2004) normalizedString built-in datatype
-   * canonical representation</li>
-   * <li>
+   *    <li>Verifies that string does not contains surrogate characters (General category "Cs")</li>
+   *    <li>Verifies that string does not contain private use characters (General category "Co")</li>
+   *    <li>Verifies that string does not contain non-characters (PropList "# Cn" category)</li>
+   *    <li>Verifies that string does not contain bidirectional markers or deprecated charters</li>
+   *    <li>Removes all control characters </li>
+   *    <li>All other control code (e.g., Cc) points or code points with a control function (e.g., Cf) are ignored and removed.</li>
+   *    <li>ZERO WIDTH SPACE (U+200B) is ignored and removed.</li>
+   *    <li>All other code points with Separator (space, line, or paragraph) property (e.g., Zs, Zl, or Zp) are converted to SPACE (U+0020)</li>
+   *      <li>CHARACTER TABULATION (U+0009), LINE FEED (LF) (U+000A), LINE TABULATION (U+000B), FORM FEED (FF) (U+000C), CARRIAGE RETURN (CR) (U+000D), and NEXT
+   *       LINE (NEL) (U+0085) are converted to SPACE (U+0020).</li>
+   *    <li>Convert all other characters to Unicode normalization form C (NFC)</li>   
+   * </ul>
+   * 
+   * The converter is stricter but similar to the the following syntaxes:
+   * <ul>
+   * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>normalizedString</code> canonical representation</li>
    * </ul>
    */
   public static class NormalizedStringConverter extends StringConverter
@@ -195,53 +188,37 @@ public class StandardFormatters
         throw new ParseException("Empty string are not allowed.", 0);
       }
 
-      int outIndex = 0;
-      char[] out = new char[inLength];
-      for (int i = 0; i < inLength; i++)
-      {
-        int v = value.charAt(i);
-        if ((v == CHAR_TAB) || (v == CHAR_LINEFEED) || (v == CHAR_RETURN))
-        {
-          if (lenient == false)
-            throw new ParseException("String contains a CR/Newline/Tab.", i);
-          // Replace by a space
-          out[outIndex++] = (char) ' ';
-          continue;
-        }
-        // Valid characters
-        if (((v >= 0x20) && (v <= 0xD7FF)) || ((v >= 0xE000) && (v <= 0xFFFD))
-            || ((v >= 0x10000) && (v <= 0x10FFFF)))
-        {
-          out[outIndex++] = (char) v;
-          continue;
-        }
-        if (lenient == false)
-          throw new ParseException("String is composed of non-characters.", i);
-      }
-      return new String(out, 0, outIndex);
+      String resultString = StringNormalizer.mapAndVerifyString(value,false);
+      resultString = StringNormalizer.toNFC(resultString);
+      return resultString;
     }
   }
 
   /**
-   * Token type converter. A token is a string that does not contain the
-   * carriage return (#xD), line feed (#xA) nor tab (#x9) characters nor any
-   * control characters, that have no leading or trailing spaces (#x20) and that
-   * have no internal sequences of two or more spaces.
+   * Token String type converter. 
    * 
-   * <p>
-   * When lenient mode is <code>true</code> the following will occur:
+   * The parsing does the following operations:
+   * 
    * <ul>
-   * <li>carriage return (#xD), line feed (#xA) or tab (#x9) are replaced by a
-   * single space character.</li>
-   * <li>leading and trailing spaces are removed.</li>.
-   * <li>consecutive space characters are removed.</li>
-   * <li>control characters are removed.</li>
+   *    <li>Verifies that string does not contains surrogate characters (General category "Cs")</li>
+   *    <li>Verifies that string does not contain private use characters (General category "Co")</li>
+   *    <li>Verifies that string does not contain non-characters (PropList "# Cn" category)</li>
+   *    <li>Verifies that string does not contain bidirectional markers or deprecated charters</li>
+   *    <li>Removes all control characters </li>
+   *    <li>All other control code (e.g., Cc) points or code points with a control function (e.g., Cf) are ignored and removed.</li>
+   *    <li>ZERO WIDTH SPACE (U+200B) is ignored and removed.</li>
+   *    <li>All other code points with Separator (space, line, or paragraph) property (e.g., Zs, Zl, or Zp) are converted to SPACE (U+0020)</li>
+   *      <li>CHARACTER TABULATION (U+0009), LINE FEED (LF) (U+000A), LINE TABULATION (U+000B), FORM FEED (FF) (U+000C), CARRIAGE RETURN (CR) (U+000D), and NEXT
+   *       LINE (NEL) (U+0085) are converted to SPACE (U+0020).</li>
+   *    <li>Convert all other characters to Unicode normalization form C (NFC)</li>   
+   *    <li>Removes all contiguous SPACE characters</li>   
+   *    <li>Removes all leading and trailing SPACE characters</li>   
    * </ul>
-   * <p>
-   * When lenient mode is disabled, an error will be thrown if any of the above
-   * characters are encountered.
-   * </p>
    * 
+   * The converter is stricter but similar to the the following syntaxes:
+   * <ul>
+   * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>token</code> canonical representation</li>
+   * </ul>
    */
   public static class TokenConverter extends NormalizedStringConverter
   {
@@ -260,85 +237,16 @@ public class StandardFormatters
 
     public Object parseObject(CharSequence value) throws ParseException
     {
-      int outIndex = 0;
       int inLength = value.length();
 
       if ((inLength == 0) && (lenient == false))
       {
         throw new ParseException("Empty string are not allowed.", 0);
       }
-
-      if (lenient)
-      {
-        value = Parsers.trimChar(value, ' ');
-        inLength = value.length();
-      }
-      else
-      {
-      }
-
-      char[] out = new char[inLength];
-
-      // Replace some control characters by spaces.
-      for (int i = 0; i < inLength; i++)
-      {
-        int v = value.charAt(i);
-        // These control characters need to be replaced by a space in 
-        // lenient mode, otherwise in strict mode checking, an error
-        // is thrown.
-        if ((v == CHAR_TAB) || (v == CHAR_LINEFEED) || (v == CHAR_RETURN))
-        {
-          if (lenient == false)
-            throw new ParseException("String contains a CR/Newline/Tab.", i);
-          // Replace by a space
-          v = ' ';
-        }
-        out[i] = (char) v;
-      }
-
-      String input = new String(out);
-      inLength = input.length();
-
-      // Now redo the exercise and merge all multiple consecutive spaces
-      // together.
-
-      {
-        int i = 0;
-        while (i < inLength)
-        {
-          int v = input.charAt(i);
-
-          if (v == ' ')
-          {
-            char cd = input.charAt(i + 1);
-            if (cd == ' ')
-            {
-              if (lenient == false)
-                throw new ParseException("String contains contiguous spaces.", i);
-              // Ignore all spaces
-              while ((input.charAt(i) == ' ') && (i < inLength))
-              {
-                i++;
-              }
-              i--;
-            }
-          }
-
-          // Valid characters
-          if (((v >= 0x20) && (v <= 0xD7FF)) || ((v >= 0xE000) && (v <= 0xFFFD))
-              || ((v >= 0x10000) && (v <= 0x10FFFF)))
-          {
-            out[outIndex++] = (char) v;
-            i++;
-            continue;
-          }
-
-          if (lenient == false)
-            throw new ParseException("String is composed of non-characters", i);
-          i++;
-        }
-        return new String(out, 0, outIndex);
-      }
+      
+      String resultString = StringNormalizer.mapAndVerifyString(value,false);
+      resultString = StringNormalizer.toNFC(resultString);
+      return StringNormalizer.collapseWhitespace(resultString.trim());
     }
     
     
@@ -361,26 +269,24 @@ public class StandardFormatters
    * hexBinary type converter that converts to a <code>byte[]</code>. The
    * standard syntax accepted is where each binary octet is encoded as a
    * character tuple, consisting of two hexadecimal digits ([0-9a-fA-F])
-   * representing the octet.
+   * representing the octet. Converting to string will always output
+   * using the canonical representation.
    * 
    * <p>
-   * When <code>strictCheck</code> is enabled, then it represents the canonical
+   * When <code>lenient</code> is <code>false</code>, then it represents the canonical
    * representation where the lower case hexadecimal digits ([a-f]) are not
    * allowed.
    *
-   * When <code>strictCheck</code> is <code>false</code>, which is the default,
+   * When <code>lenient</code> is <code>true</code>, which is the default,
    * the syntax is compliant with the following formats:
    * <ul>
-   * <li>W3C XML Schema Second Edition (2004) hexBinary built-in datatype
-   * lexical representation</li>
-   * <li>LDAP Ping directory hexadecimal string (OID: 1.3.6.1.4.1.30221.2.3.3)</li>
+   * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>hexBinary</code> lexical representation</li>
    * </ul>
    * 
-   * When <code>strictCheck</code> is <code>true</code>, the syntax is compliant
+   * When <code>lenient</code> is <code>false</code>, the syntax is compliant
    * with the following formats:
    * <ul>
-   * <li>W3C XML Schema Second Edition (2004) hexBinary built-in datatype
-   * canonical representation</li>
+   * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>hexBinary</code> canonical representation</li>
    * <li>IETF RFC 4648 base16 or hex encoding.</li>
    * </ul>
    **/
@@ -880,7 +786,18 @@ public class StandardFormatters
     }
   }
 
-  /** Type converter to native Java Objects for an URI. */
+  /** Type converter to native Java Objects for an URI. This 
+   *  returns a <code>java.Net.URI</code> instance 
+   *  
+   * This is equivalent to the following syntax:
+   * 
+   * <ul> 
+   *  <li>XMLSchema 1.1 <code>anyURI</code></li>
+   *  <li>LDAP IETF RFC <code>URI</code></li>
+   * </ul>
+   *   
+   *   
+   *   */
   public static class URIConverter extends DataConverter
   {
     private static DataConverter instance;
@@ -935,7 +852,7 @@ public class StandardFormatters
   
   
   /** Type converter to native Java Objects for an ASN.1 OBJECT IDENTIFIER. An <code>OID</code> 
-   * is represented by a Java Object of type <code>int[]</code>. 
+   * is represented by a Java Object of type <code>String</code>. 
    * 
    * This formatter only supports the NumberForm of the OBJECT IDENTIFIER syntax. */
   public static class OIDConverter extends DataConverter
@@ -944,7 +861,7 @@ public class StandardFormatters
 
     public OIDConverter()
     {
-      super(int[].class, true);
+      super(String.class, true);
     }
 
     public static DataConverter getInstance()
@@ -962,18 +879,20 @@ public class StandardFormatters
 
     public StringBuffer format(Object value, StringBuffer toAppendTo, FieldPosition pos)
     {
-      if ((value instanceof int[]) == false)
+      if ((value instanceof int[]))
       {
-        throw new IllegalArgumentException("Object value is not instance of '"
-            + clz.getName() + "'");
-      }
-      int[] v = (int[]) value;
-      for (int i=0; i < v.length-1; i++)
+        int[] v = (int[]) value;
+        for (int i=0; i < v.length-1; i++)
+        {
+          toAppendTo.append(Integer.toString(v[i]));
+          toAppendTo.append(".");
+        }
+        toAppendTo.append(Integer.toString(v[v.length-1]));
+      } else
+      if ((value instanceof String))
       {
-        toAppendTo.append(Integer.toString(v[i]));
-        toAppendTo.append(".");
+        BaseTypeUtilities.validateObjectIdentifier((String)value,false);
       }
-      toAppendTo.append(Integer.toString(v[v.length-1]));
       return toAppendTo;
     }
 
@@ -1000,12 +919,14 @@ public class StandardFormatters
         pos.setErrorIndex(pos.getIndex());
         throw new ParseException("Expecting positive number but found another character",pos.getIndex());
       }
-      int result[] = new int[list.size()];
-      for (int i=0; i < result.length; i++)
+      StringBuffer buffer = new StringBuffer();
+      for (int i=0; i < list.size()-1; i++)
       {
-        result[i] = ((Integer)list.get(i)).intValue();
+        buffer.append(((Integer)list.get(i)).intValue());
+        buffer.append(".");
       }
-      return result;
+      buffer.append(((Integer)list.get(list.size()-1)).intValue());
+      return buffer.toString();
     }
 
     public Object parseObject(String value) throws ParseException
@@ -1172,7 +1093,7 @@ public class StandardFormatters
   
   
   /**
-   * Type converter to native Java Objects for NCName definition is a strict subet
+   * Type converter to native Java Objects for NCName definition is a strict subset
    * of the XMLSchema datatype specification. A <code>NCName</code> is represented by a
    * Java Object of type <code>String</code>.
    * 
@@ -1339,8 +1260,8 @@ public class StandardFormatters
   
   
   /**
-   * Type converter to native Java Objects for QualifiedName definition is a strict subet
-   * of the XMLSchema datatype specification. A <code>QName</code> is represented by a
+   * Type converter to native Java Objects for QualifiedName definition is a strict subset
+   * of the XML Namespaces specification. A <code>QName</code> is represented by a
    * Java Object of type <code>String</code>.
    * 
    * <p>
@@ -1518,6 +1439,13 @@ public class StandardFormatters
    * When in <code>lenient</code> mode, all control characters are automatically
    * removed and empty strings are allowed. By default parsing is lenient. In
    * all whatever the mode non US-ASCII characters will cause an exception.
+   * 
+   * This is equivalent to the following syntax:
+   * 
+   * <ul> 
+   *  <li>ASN.1 <code>VisibleString</code></li>
+   *  <li>LDAP IETF RFC  <code>VisibleString</code> syntax</li>
+   * </ul>
    * 
    * */
   public static class VisibleStringConverter extends DataConverter
@@ -1821,7 +1749,7 @@ public class StandardFormatters
    * When <code>lenient</code> is <code>false</code> the converter is compliant
    * with the following syntaxes when using default tokens":
    * <ul>
-   * <li>ASN.1 ITU X.680</li>
+   * <li>ASN.1 ITU X.680 <code>BOOLEAN</code></li>
    * <li>LDAP IETF RFC 4517 (OID: 1.3.6.1.4.1.1466.115.121.1.7)</li>
    * <li>SQL99 Boolean syntax</li>
    * </ul>
@@ -1830,10 +1758,10 @@ public class StandardFormatters
    * additionally compliant with the following syntaxes when using default
    * tokens:
    * <ul>
-   * <li>W3C XML Schema Second Edition (2004) integer built-in datatype
-   * canonical representation</li>
+   * <li></li>
    * <li>ISO/IEC 11404 General purpose datatypes.</li>
    * <li>vCard IETF RFC 6350 BOOLEAN type</li>
+   * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>boolean</code> canonical representation</li>
    * </ul>
    */
   public static class BooleanConverter extends DataConverter
@@ -1936,5 +1864,7 @@ public class StandardFormatters
     }
     
   }
+  
+  
 
 }

@@ -47,6 +47,11 @@
 		</dependency>
 		<dependency>
 			<groupId>com.optimasc.commons</groupId>
+			<artifactId>optimasc-commons-util-cldc</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.optimasc.commons</groupId>
 			<artifactId>optimasc-commons-text-cldc</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
