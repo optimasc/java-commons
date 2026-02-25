@@ -1,10 +1,12 @@
 package com.optimasc.datatypes;
 
+import com.optimasc.datatypes.facets.Facet;
+
 /** Interface for data types that are bounded, 
  *  such as with ranges of values.
  *
  */
-public interface BoundedFacet
+public interface BoundedProperty extends Facet
 {
   /** Returns if this datatype is bounded with
    *  minimal and/or maximal ranges.

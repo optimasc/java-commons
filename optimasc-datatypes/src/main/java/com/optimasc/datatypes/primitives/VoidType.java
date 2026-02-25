@@ -55,7 +55,7 @@ public class VoidType extends Type
       return true;
   }
   
-  public String getGPDName()
+  public String toString()
   {
     return "void";
   }

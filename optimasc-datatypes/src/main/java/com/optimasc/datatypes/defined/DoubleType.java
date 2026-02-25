@@ -34,7 +34,7 @@ public class DoubleType extends RealType
 {
     public DoubleType()
     {
-      super(53);
+      super(15);
     }
 
     public Object accept(TypeVisitor v, Object arg)

@@ -10,6 +10,8 @@ import com.optimasc.datatypes.aggregate.ClassType;
 import com.optimasc.datatypes.aggregate.DerivableAggregateType;
 import com.optimasc.datatypes.defined.LatinCharType;
 import com.optimasc.datatypes.defined.UCS2CharType;
+import com.optimasc.datatypes.facets.LengthFacet;
+import com.optimasc.datatypes.facets.NumberEnumerationFacet;
 import com.optimasc.datatypes.primitives.IntegralType;
 import com.optimasc.datatypes.primitives.RealType;
 import com.optimasc.lang.CharacterSet;
@@ -76,7 +78,7 @@ public class TypeUtilities
    * @param right The right type that is the source of the value.
    * @return true if an out of range value may occur.
    */
-  public static boolean isOutOfBounds(NumberRangeFacet left, NumberRangeFacet right)
+  public static boolean isOutOfBounds(NumberEnumerationFacet left, NumberEnumerationFacet right)
   {
     // Compare the values.
     // this.minInclusive <= other.minInclusive AND 
@@ -390,7 +392,4 @@ public static boolean isIntegerValueExact(BigDecimal value)
 }
 
 
-
- 
- 
 }

@@ -68,7 +68,7 @@ public class UnsignedByteType extends NonNegativeIntegerType
       return new Integer((short) ordinalValue);
     }
 
-    public String getGPDName()
+    public String toString()
     {
       return "octet";
     }  

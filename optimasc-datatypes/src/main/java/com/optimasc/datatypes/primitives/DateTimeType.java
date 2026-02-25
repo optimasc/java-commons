@@ -1,21 +1,16 @@
 package com.optimasc.datatypes.primitives;
 
-import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import omg.org.astm.type.NamedTypeReference;
-import omg.org.astm.type.TypeReference;
-import omg.org.astm.type.UnnamedTypeReference;
-
-import com.optimasc.datatypes.BoundedFacet;
+import com.optimasc.datatypes.BoundedProperty;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.DateTimeEnumerationFacet;
 import com.optimasc.datatypes.DateTimeEnumerationHelper;
-import com.optimasc.datatypes.TimeFacet;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
+import com.optimasc.datatypes.facets.DateTimeEnumerationFacet;
+import com.optimasc.datatypes.facets.TimeFacet;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.date.DateTime;
 import com.optimasc.date.DateTimeComparator;
@@ -40,12 +35,11 @@ import com.optimasc.lang.GregorianDatetimeCalendar;
  * </p>
  * 
  * <p>Internally, values of this type are represented as 
- * {@link GregorianDatetimeCalendar} objects or as an integer value
- * that represents the number of resolution units elapsed from epoch.</p>
+ * {@link GregorianDatetimeCalendar} objects.</p>
  * 
  * @author Carl Eric Codère
  */
-public class DateTimeType extends PrimitiveType implements BoundedFacet, TimeFacet, DateTimeEnumerationFacet
+public class DateTimeType extends PrimitiveType implements BoundedProperty, TimeFacet, DateTimeEnumerationFacet
 {
   
   protected static final String REGEX_PATTERN = "([0-9][0-9][0-9][0-9])(?:(?:-(0[1-9]|1[0-2])(?:-([12]\\d|0[1-9]|3[01]))?)?(?:T(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(?:[\\.,](\\d+))?([zZ]|([\\+-])([01]\\d|2[0-3]):?([0-5]\\d)?)?)?)";
@@ -72,8 +66,6 @@ public class DateTimeType extends PrimitiveType implements BoundedFacet, TimeFac
   /** Is this a local time or is this a date-time with a timezone */
   protected boolean localTime;
   protected DateTimeEnumerationHelper enumHelper;
-  protected Calendar minInclusive;
-  protected Calendar maxInclusive;
   protected DateTimeComparator comparator;
 
 
@@ -124,16 +116,10 @@ public class DateTimeType extends PrimitiveType implements BoundedFacet, TimeFac
     this.accuracy = accuracy;
     this.localTime = localTime;
     this.comparator= new DateTimeComparator(accuracy,localTime);
-    this.enumHelper = new DateTimeEnumerationHelper(GregorianCalendar.class,comparator);
+    this.enumHelper = new DateTimeEnumerationHelper(comparator);
     if (choices != null)
     {
-      enumHelper.setChoices(choices);
-    }
-    Calendar sortedEnumeration[] = enumHelper.getChoices();
-    if (sortedEnumeration != null)
-    {
-      minInclusive = sortedEnumeration[0];
-      maxInclusive = sortedEnumeration[sortedEnumeration.length-1];
+      enumHelper.setAllowedValues(choices);
     }
   }
   
@@ -158,16 +144,12 @@ public class DateTimeType extends PrimitiveType implements BoundedFacet, TimeFac
     this.accuracy = accuracy;
     this.localTime = localTime;
     this.comparator= new DateTimeComparator(accuracy,localTime);
-    this.enumHelper = new DateTimeEnumerationHelper(GregorianCalendar.class,comparator);
-    this.minInclusive = minInclusive;
-    this.maxInclusive = maxInclusive;
-    if ((minInclusive != null) && (maxInclusive != null))
+    this.enumHelper = new DateTimeEnumerationHelper(comparator);
+    if ((comparator.compare(minInclusive, maxInclusive)==1))
     {
-      if (comparator.compare(maxInclusive, minInclusive)==-1)
-      {
-        throw new IllegalArgumentException("'maxInclusive' points to a point in time before 'minInclusive'");
-      }
+      throw new IllegalArgumentException("minInclusive range is greater than maxInclusive.");
     }
+    setAllowedValues(new Calendar[]{minInclusive,maxInclusive});
   }
   
   /** Verifies the validity of the accuracy for this time type.
@@ -363,12 +345,12 @@ public class DateTimeType extends PrimitiveType implements BoundedFacet, TimeFac
         cal.set(Calendar.SECOND, inputCalendar.get(Calendar.SECOND));
         cal.set(Calendar.MILLISECOND, inputCalendar.get(Calendar.MILLISECOND));
       }      
-      if (validateChoice(cal)==false)
+      if (isValid(cal)==false)
       {
         conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Value is not one of the values allowed by enumeration.");
         return null;
       }
-      if (validateRange(cal)==false)
+      if (isValid(cal)==false)
       {
         conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Value is not one of the values allowed by enumeration.");
         return null;
@@ -413,8 +395,8 @@ public class DateTimeType extends PrimitiveType implements BoundedFacet, TimeFac
         return true;
       }
       
-      Object[] choices = enumHelper.getChoices();
-      Object[] otherChoices = otherTimeType.getChoices();
+      Object[] choices = enumHelper.getAllowedValuesAsCalendars();
+      Object[] otherChoices = otherTimeType.getAllowedValuesAsCalendars();
       if ((choices!=null) && (otherChoices==null))
       {
         return true;
@@ -455,9 +437,9 @@ public class DateTimeType extends PrimitiveType implements BoundedFacet, TimeFac
       long rangeValue = Long.MAX_VALUE;
       long otherRangeValue = Long.MAX_VALUE;
       
-      if ((minInclusive != null) && (maxInclusive!=null))
+      if ((getMinInclusive() != null) && (getMaxInclusive()!=null))
       {
-        rangeValue = maxInclusive.getTimeInMillis()-minInclusive.getTimeInMillis();
+        rangeValue = getMaxInclusive().getTimeInMillis()-getMinInclusive().getTimeInMillis();
       }
       if ((minOtherValue != null) && (maxOtherValue!=null))
       {
@@ -472,43 +454,32 @@ public class DateTimeType extends PrimitiveType implements BoundedFacet, TimeFac
       
   }
 
-  public Calendar[] getChoices()
+  public void setAllowedValues(Calendar[] choices)
   {
-    return enumHelper.getChoices();
+    enumHelper.setAllowedValues(choices);
   }
 
-  public boolean validateChoice(Calendar value)
-  {
-    return enumHelper.validateChoice(value);
-  }
-  
-  
   public Calendar getMinInclusive()
   {
-    return minInclusive;
+    return enumHelper.getMinInclusive();
   }
 
   public Calendar getMaxInclusive()
   {
-    return maxInclusive;
+    return enumHelper.getMaxInclusive();
   }
 
-  public boolean validateRange(Calendar value)
+  public boolean isValid(Object value)
   {
-    if ((minInclusive != null) && (comparator.compare(value, minInclusive)==-1))
+    if (enumHelper==null)
     {
-      return false;
     }
-    if ((maxInclusive != null) &&  (comparator.compare(value,maxInclusive)==1))
-    {
-      return false;
-    }
-    return true;
+    return enumHelper.isValid(value);
   }
   
   public boolean isBounded()
   {
-    return (minInclusive != null) || (maxInclusive != null);
+    return (enumHelper.getMinInclusive() != null) || (enumHelper.getMaxInclusive() != null);
   }
   
   
@@ -518,17 +489,12 @@ public class DateTimeType extends PrimitiveType implements BoundedFacet, TimeFac
     this.accuracy = accuracy;
   }
 
-  public void setChoices(Calendar[] choices)
-  {
-    enumHelper.setChoices(choices);
-  }
-
   public void setLocalTime(boolean localTime)
   {
     this.localTime = localTime;
   }
   
-  public String getGPDName()
+  public String toString()
   {
     switch (this.accuracy)
     {
@@ -546,6 +512,26 @@ public class DateTimeType extends PrimitiveType implements BoundedFacet, TimeFac
     default:
       return null;
     }
+  }
+
+  public Calendar[] getAllowedValuesAsCalendars()
+  {
+    return enumHelper.getAllowedValuesAsCalendars();
+  }
+
+  public Object[] getAllowedValues()
+  {
+    return enumHelper.getAllowedValues();
+  }
+
+  public void setAllowedValues(Object[] choices)
+  {
+    enumHelper.setAllowedValues(choices);
+  }
+
+  public Class getAllowedValuesClass()
+  {
+    return enumHelper.getAllowedValuesClass();
   }
   
   

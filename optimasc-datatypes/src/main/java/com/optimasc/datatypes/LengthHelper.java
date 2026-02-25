@@ -1,9 +1,11 @@
 package com.optimasc.datatypes;
 
+import com.optimasc.datatypes.facets.LengthFacet;
+
 public class LengthHelper implements LengthFacet
 {
-  protected int minLength;
-  protected int maxLength;
+  protected long minLength;
+  protected long maxLength;
 
   
   /** Constructs a length helper instance 
@@ -12,44 +14,44 @@ public class LengthHelper implements LengthFacet
   public LengthHelper()
   {
     super();
-    minLength = Integer.MIN_VALUE;
-    maxLength = Integer.MIN_VALUE;
+    minLength = 0;
+    maxLength = UNBOUNDED;
   }
   
   /** Constructs a length helper instance 
-   *  with no length bounds.
+   *  with a lower bound and an unlimited upper bound.
    */
-  public LengthHelper(int minLength)
+  public LengthHelper(long minLength)
   {
     super();
     if (minLength < 0)
     {
-      throw new IllegalArgumentException("Length constraint must be a non-negative number but it was "+Integer.toString(minLength));
+      throw new IllegalArgumentException("Length constraint must be a non-negative number but it was "+Long.toString(minLength));
     }
     this.minLength = minLength;
-    maxLength = Integer.MIN_VALUE;
+    maxLength = UNBOUNDED;
   }  
 
-  public void setLength(int minValue, int maxValue)
+  public void setLength(long minValue, long maxValue)
   {
     if (minValue < 0)
     {
-      throw new IllegalArgumentException("Length constraint must be a non-negative number but it was "+Integer.toString(minValue));
+      throw new IllegalArgumentException("Length constraint must be a non-negative number but it was "+Long.toString(minValue));
     }
     minLength = minValue;
-    if ((maxValue != Integer.MIN_VALUE) && (maxValue < minValue))
+    if ((maxValue != UNBOUNDED) && (maxValue < minValue))
     {
       throw new IllegalArgumentException("Length constraint 'maxLength' is smaller in value then 'minLength'");
     }
     maxLength = maxValue;
   }
 
-  public int getMinLength()
+  public long getMinLength()
   {
     return minLength;
   }
 
-  public int getMaxLength()
+  public long getMaxLength()
   {
     return maxLength;
   }
@@ -61,14 +63,29 @@ public class LengthHelper implements LengthFacet
       throw new IllegalArgumentException("Types are not compatible");
     }
     
-    int thisMinLength = (minLength < 0)? 0: minLength;
-    int otherMinLength = (value.getMinLength() < 0)? 0: value.getMinLength();
+    long thisMinLength = (minLength < 0)? 0: minLength;
+    long otherMinLength = (value.getMinLength() < 0)? 0: value.getMinLength();
     
-    int thisMaxLength = (maxLength < 0)? Integer.MAX_VALUE: maxLength;
-    int otherMaxLength = (value.getMaxLength() < 0)? Integer.MAX_VALUE: value.getMaxLength();
+    long thisMaxLength = maxLength;
+    long otherMaxLength = value.getMaxLength();
     
-    int thisTotalLength = thisMaxLength - thisMinLength; 
-    int otherTotalLength = otherMaxLength - otherMinLength; 
+    if ((thisMaxLength == UNBOUNDED) && (otherMaxLength != UNBOUNDED))
+    {
+      return false;
+    }
+    
+    if ((otherMaxLength == UNBOUNDED) && (thisMaxLength != UNBOUNDED))
+    {
+      return true;
+    }
+    if ((otherMaxLength == UNBOUNDED) && (thisMaxLength == UNBOUNDED))
+    {
+      return false;
+    }
+    
+    
+    long thisTotalLength = thisMaxLength - thisMinLength; 
+    long otherTotalLength = otherMaxLength - otherMinLength; 
     
     if (thisTotalLength < otherTotalLength)
     {
@@ -88,7 +105,7 @@ public class LengthHelper implements LengthFacet
     {
       return false;
     }
-    if ((maxLength != Integer.MIN_VALUE) && (length > maxLength))
+    if ((maxLength != UNBOUNDED) && (length > maxLength))
     {
       return false;
     }
@@ -102,18 +119,22 @@ public class LengthHelper implements LengthFacet
    */
   public String toString()
   {
-    String minLengthStr = Integer.toString(minLength);
-    String maxLengthStr = Integer.toString(maxLength);
-    if (minLength == Integer.MIN_VALUE)
+    String minLengthStr = Long.toString(minLength);
+    String maxLengthStr = Long.toString(maxLength);
+    if (minLength == UNBOUNDED)
     {
       minLengthStr = "*";
     }
-    if (maxLength == Integer.MIN_VALUE)
+    if (maxLength == UNBOUNDED)
     {
       maxLengthStr = "*";
     }
-    
-    return "Size("+minLengthStr + ".."+maxLengthStr+ ")";
+    if (minLength == maxLength)
+    {
+      return "size("+minLengthStr+")";
+      
+    }
+    return "size("+minLengthStr + ".."+maxLengthStr+ ")";
   }
 
 }

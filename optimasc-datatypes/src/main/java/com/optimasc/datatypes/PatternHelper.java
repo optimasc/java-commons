@@ -2,6 +2,7 @@ package com.optimasc.datatypes;
 
 import java.util.Arrays;
 
+import com.optimasc.datatypes.facets.PatternFacet;
 import com.optimasc.util.Pattern;
 
 public class PatternHelper implements PatternFacet
@@ -29,7 +30,7 @@ public class PatternHelper implements PatternFacet
     return patterns;
   }
 
-  public boolean validatePatterns(CharSequence value)
+  public boolean isValid(CharSequence value)
   {
     if (patterns == null)
     {

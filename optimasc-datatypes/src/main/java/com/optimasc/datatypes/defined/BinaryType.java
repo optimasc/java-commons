@@ -54,7 +54,7 @@ public class BinaryType extends SequenceType
    * @param maxLength
    *          The maximum length of the bytes associated with this datatype.
    */
-  public BinaryType(int minLength, int maxLength)
+  public BinaryType(long minLength, long maxLength)
   {
     super(minLength,maxLength,TypeFactory.getDefaultInstance(UnsignedByteType.class),byte[].class);
   }
@@ -106,7 +106,7 @@ public class BinaryType extends SequenceType
   /** {@inheritDoc} 
    * 
    */
-  public Object[] getChoices()
+  public Object[] getAllowedValues()
   {
     return  enumeration;
   }
@@ -134,9 +134,14 @@ public class BinaryType extends SequenceType
   }*/
   
 
-  public String getGPDName()
+  public String toString()
   {
-    return "octetstring";
+    String lengthString = "";
+    if (lengthHelper!=null)
+    {
+      lengthString = " "+lengthHelper.toString();
+    }
+    return "octetstring"+lengthString;
   }
 
   

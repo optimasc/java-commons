@@ -157,7 +157,7 @@ public class ProcedureType extends Type
     this.formalParameters = formalParameters;
   }
 
-  public String getGPDName()
+  public String toString()
   {
     StringBuffer buffer = new StringBuffer();
     buffer.append("procedure (");
@@ -168,14 +168,14 @@ public class ProcedureType extends Type
       {
         param = (FormalParameterType) formalParameters.get(i);
         buffer.append(param.getParameterType().toString()+" ");
-        buffer.append(param.getGPDName()+", ");
+        buffer.append(param.toString()+", ");
       }
       param = (FormalParameterType) formalParameters.get(formalParameters.size()-1);
       buffer.append(param.getParameterType().toString()+" ");
-      buffer.append(param.getGPDName());
+      buffer.append(param.toString());
     }
     buffer.append(") ");
-    buffer.append("returns "+returnType.getGPDName());
+    buffer.append("returns "+returnType.toString());
     return buffer.toString();
   }
   

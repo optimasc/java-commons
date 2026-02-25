@@ -8,6 +8,7 @@ import omg.org.astm.type.UnnamedTypeReference;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.defined.StringType;
+import com.optimasc.datatypes.facets.LengthFacet;
 import com.optimasc.datatypes.primitives.CharacterType;
 import com.optimasc.datatypes.primitives.IntegralType;
 import com.optimasc.lang.CharacterSet;
@@ -46,18 +47,18 @@ public class SequenceTypeTest extends TestCase
     SequenceType datatype = new SequenceType(choices,new UnnamedTypeReference(new IntegralType()),int[].class);
     
     int emptyArray[] = new int[0];  
-    assertEquals(false,datatype.validateChoice(emptyArray));
+    assertEquals(false,datatype.isValid(emptyArray));
     int choice1[] = new int[]{0,1,2};
-    assertEquals(true,datatype.validateChoice(choice1));
+    assertEquals(true,datatype.isValid(choice1));
     int choice2[] = new int[]{2,3,4,5};
-    assertEquals(true,datatype.validateChoice(choice2));
+    assertEquals(true,datatype.isValid(choice2));
 
     boolean success;
     
     success = false;
     try
     {
-      assertEquals(false,datatype.validateChoice("Choice3"));
+      assertEquals(false,datatype.isValid("Choice3"));
     } catch (IllegalArgumentException e)
     {
       success = true;
@@ -78,8 +79,8 @@ public class SequenceTypeTest extends TestCase
     SequenceType datatype = new SequenceType(new UnnamedTypeReference(octet),byte[].class);
     // No bounds defined
     assertEquals(0,datatype.getMinLength());
-    assertEquals(Integer.MIN_VALUE,datatype.getMaxLength());
-    assertEquals(null,datatype.getChoices());
+    assertEquals(LengthFacet.UNBOUNDED,datatype.getMaxLength());
+    assertEquals(null,datatype.getAllowedValues());
     assertEquals(true,datatype.isBounded());
     assertEquals(false,datatype.isOrdered());
     assertEquals(false,datatype.isNumeric());
@@ -137,7 +138,7 @@ public class SequenceTypeTest extends TestCase
     // No bounds defined
     assertEquals(4,datatype.getMinLength());
     assertEquals(5,datatype.getMaxLength());
-    assertTrue(Arrays.equals(choices,datatype.getChoices()));
+    assertTrue(Arrays.equals(choices,datatype.getAllowedValues()));
     assertEquals(true,datatype.isBounded());
     assertEquals(false,datatype.isOrdered());
     assertEquals(false,datatype.isNumeric());
@@ -164,8 +165,8 @@ public class SequenceTypeTest extends TestCase
     SequenceType datatype = new SequenceType(new UnnamedTypeReference(intType),int[].class);
     // No bounds defined
     assertEquals(0,datatype.getMinLength());
-    assertEquals(Integer.MIN_VALUE,datatype.getMaxLength());
-    assertEquals(null,datatype.getChoices());
+    assertEquals(LengthFacet.UNBOUNDED,datatype.getMaxLength());
+    assertEquals(null,datatype.getAllowedValues());
     assertEquals(true,datatype.isBounded());
     assertEquals(false,datatype.isOrdered());
     assertEquals(false,datatype.isNumeric());
@@ -204,7 +205,7 @@ public class SequenceTypeTest extends TestCase
     // No bounds defined
     assertEquals(4,datatype.getMinLength());
     assertEquals(5,datatype.getMaxLength());
-    assertTrue(Arrays.equals(choices,datatype.getChoices()));
+    assertTrue(Arrays.equals(choices,datatype.getAllowedValues()));
     assertEquals(true,datatype.isBounded());
     assertEquals(false,datatype.isOrdered());
     assertEquals(false,datatype.isNumeric());
@@ -232,8 +233,8 @@ public class SequenceTypeTest extends TestCase
     
     // No bounds defined
     assertEquals(0,datatype.getMinLength());
-    assertEquals(Integer.MIN_VALUE,datatype.getMaxLength());
-    assertEquals(null,datatype.getChoices());
+    assertEquals(LengthFacet.UNBOUNDED,datatype.getMaxLength());
+    assertEquals(null,datatype.getAllowedValues());
     assertEquals(true,datatype.isBounded());
     assertEquals(false,datatype.isOrdered());
     assertEquals(false,datatype.isNumeric());
@@ -269,7 +270,7 @@ public class SequenceTypeTest extends TestCase
     // Bounds defined
     assertEquals(1,datatype.getMinLength());
     assertEquals(11,datatype.getMaxLength());
-    assertEquals(null,datatype.getChoices());
+    assertEquals(null,datatype.getAllowedValues());
     assertEquals(true,datatype.isBounded());
     assertEquals(false,datatype.isOrdered());
     assertEquals(false,datatype.isNumeric());
@@ -315,7 +316,7 @@ public class SequenceTypeTest extends TestCase
     // Bounds defined
     assertEquals(7,datatype.getMinLength());
     assertEquals(7,datatype.getMaxLength());
-    assertTrue(Arrays.equals(choices,datatype.getChoices()));
+    assertTrue(Arrays.equals(choices,datatype.getAllowedValues()));
     assertEquals(true,datatype.isBounded());
     assertEquals(false,datatype.isOrdered());
     assertEquals(false,datatype.isNumeric());

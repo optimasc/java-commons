@@ -131,15 +131,15 @@ public class CharacterTypeTest extends DatatypeTest
     assertEquals(new Long(0),ordered01.getMinInclusive());
     assertEquals(new Long(127),ordered01.getMaxInclusive());
     
-    assertEquals(false,ordered01.validateRange(128));
-    assertEquals(false,ordered01.validateRange(-1));
-    assertEquals(true,ordered01.validateRange(127));
-    assertEquals(true,ordered01.validateRange(0));
+    assertEquals(false,ordered01.isValid(128));
+    assertEquals(false,ordered01.isValid(-1));
+    assertEquals(true,ordered01.isValid(127));
+    assertEquals(true,ordered01.isValid(0));
 
-    assertEquals(false,ordered01.validateRange(BigDecimal.valueOf(200)));
-    assertEquals(false,ordered01.validateRange(BigDecimal.valueOf(-1)));
-    assertEquals(true,ordered01.validateRange(BigDecimal.valueOf(127)));
-    assertEquals(true,ordered01.validateRange(BigDecimal.valueOf(54)));
+    assertEquals(false,ordered01.isValid(BigDecimal.valueOf(200)));
+    assertEquals(false,ordered01.isValid(BigDecimal.valueOf(-1)));
+    assertEquals(true,ordered01.isValid(BigDecimal.valueOf(127)));
+    assertEquals(true,ordered01.isValid(BigDecimal.valueOf(54)));
     
   }
   

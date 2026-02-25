@@ -10,13 +10,13 @@ import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Convertable;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.EnumerationFacet;
-import com.optimasc.datatypes.LengthFacet;
 import com.optimasc.datatypes.LengthHelper;
 import com.optimasc.datatypes.Restriction;
 import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.defined.BinaryType;
+import com.optimasc.datatypes.facets.EnumerationFacet;
+import com.optimasc.datatypes.facets.LengthFacet;
 import com.optimasc.datatypes.primitives.TimeType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.lang.OctetSequence;
@@ -94,7 +94,7 @@ public class SequenceType extends Datatype implements LengthFacet,Restriction,
    * @param resultType [in] The expected class type of 
    *  the values space for this type.
    */
-  public SequenceType(int minLength, int maxLength, TypeReference baseType, Class resultType)
+  public SequenceType(long minLength, long maxLength, TypeReference baseType, Class resultType)
   {
     super(false);
     if (checkClassType(baseType.getType().getClassType(),resultType)==false)
@@ -158,12 +158,12 @@ public class SequenceType extends Datatype implements LengthFacet,Restriction,
     return elementType;
   }
 
-  public int getMinLength()
+  public long getMinLength()
   {
     return lengthHelper.getMinLength();
   }
 
-  public int getMaxLength()
+  public long getMaxLength()
   {
     return lengthHelper.getMaxLength();
   }
@@ -229,12 +229,12 @@ public class SequenceType extends Datatype implements LengthFacet,Restriction,
    *          [in] The expected class of each choice.
    * @return The minimum array length of the choices.
    */
-  private int getMinLength(Object choices[], Class expectedObject)
+  private long getMinLength(Object choices[], Class expectedObject)
   {
-    int minLength = Integer.MAX_VALUE;
+    long minLength = Long.MAX_VALUE;
     for (int i = 0; i < choices.length; i++)
     {
-      int arrayLength = getLength(choices[i]);
+      long arrayLength = getLength(choices[i]);
       if (arrayLength < minLength)
         minLength = arrayLength;
     }
@@ -251,13 +251,13 @@ public class SequenceType extends Datatype implements LengthFacet,Restriction,
    *          [in] The expected class of each choice.
    * @return The maximum array length of the choices.
    */
-  private int getMaxLength(Object choices[], Class expectedObject)
+  private long getMaxLength(Object choices[], Class expectedObject)
   {
-    int maxLength = 0;
+    long maxLength = 0;
 
     for (int i = 0; i < choices.length; i++)
     {
-      int arrayLength = getLength(choices[i]);
+      long arrayLength = getLength(choices[i]);
       if (arrayLength > maxLength)
         maxLength = arrayLength;
     }
@@ -341,7 +341,7 @@ public class SequenceType extends Datatype implements LengthFacet,Restriction,
         return value;
 
       // We need to do this check first, since choices update the minLength..maxLength values
-      if (validateChoice(value) == false)
+      if (isValid(value) == false)
       {
         conversionResult.error = new DatatypeException(
             DatatypeException.ERROR_DATA_TYPE_MISMATCH,
@@ -615,7 +615,7 @@ public class SequenceType extends Datatype implements LengthFacet,Restriction,
     return false;
   }
 
-  public boolean validateChoice(Object value)
+  public boolean isValid(Object value)
   {
     if (enumeration==null)
         return true;
@@ -648,7 +648,7 @@ public class SequenceType extends Datatype implements LengthFacet,Restriction,
    * @param value [in] The value to get the length from.
    * @return
    */
-  protected int getLength(Object value)
+  protected long getLength(Object value)
   {
     if (value instanceof CharSequence)
     {
@@ -683,7 +683,7 @@ public class SequenceType extends Datatype implements LengthFacet,Restriction,
    */
   protected boolean validateLength(Object value)
   {
-    int length = getLength(value);
+    long length = getLength(value);
     if (lengthHelper.validateLength(length) == false)
     {
       return false;
@@ -779,20 +779,43 @@ public class SequenceType extends Datatype implements LengthFacet,Restriction,
     return false;*/
   }
 
-  public void setLength(int minLength, int maxLength)
+  public void setLength(long minLength, long maxLength)  
   {
     lengthHelper.setLength(minLength, maxLength);
   }
 
-  public Object[] getChoices()
+  public Object[] getAllowedValues()
   {
     return enumeration;
   }
 
-  public void setChoices(Object[] choices)
+  public void setAllowedValues(Object[] choices)
   {
     enumeration = choices;
   }
+
+  public int getChoicesLength()
+  {
+    if (enumeration == null)
+      return 0;
+    return enumeration.length;
+  }
+
+  public Class getAllowedValuesClass()
+  {
+    return getClassType();
+  }
+
+  public String toString()
+  {
+    String lengthString = "";
+    if (lengthHelper!=null)
+    {
+      lengthString = " "+lengthHelper.toString();
+    }
+    return "sequence of ("+elementType.toString()+")"+lengthString;
+  }
+  
   
   
 

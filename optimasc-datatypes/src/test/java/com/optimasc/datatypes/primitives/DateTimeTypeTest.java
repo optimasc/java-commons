@@ -9,9 +9,9 @@ import java.util.TimeZone;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.DatatypeTest;
-import com.optimasc.datatypes.DateTimeEnumerationFacet;
 import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
+import com.optimasc.datatypes.facets.DateTimeEnumerationFacet;
 import com.optimasc.date.DateTime;
 import com.optimasc.lang.GregorianDatetimeCalendar;
 
@@ -53,7 +53,7 @@ public class DateTimeTypeTest  extends DatatypeTest
     assertEquals(true,instance.isOrdered());
     assertEquals(false,instance.isNumeric());
     assertEquals(false,instance.isBounded());
-    assertEquals(null,instance.getChoices());
+    assertEquals(null,instance.getAllowedValuesAsCalendars());
   }
   
   /*------------------ Accuracy/Timezone functionality ----------------*/
@@ -625,7 +625,7 @@ public class DateTimeTypeTest  extends DatatypeTest
     DateTimeType timeType = defaultInstance;
     
     DateTimeEnumerationFacet enumFacet = (DateTimeEnumerationFacet)timeType; 
-    assertEquals(null,enumFacet.getChoices());
+    assertEquals(null,enumFacet.getAllowedValuesAsCalendars());
     
     Calendar calendarValue = Calendar.getInstance();
     calendarValue.set(Calendar.HOUR_OF_DAY,12);
@@ -634,7 +634,7 @@ public class DateTimeTypeTest  extends DatatypeTest
     calendarValue.set(Calendar.MILLISECOND,0);
     
     
-    assertEquals(true,enumFacet.validateChoice(calendarValue));
+    assertEquals(true,enumFacet.isValid(calendarValue));
   }
   
   
@@ -649,24 +649,24 @@ public class DateTimeTypeTest  extends DatatypeTest
     
     DateTimeType timeType = new DateTimeType(DateTime.TimeAccuracy.MINUTE,true,choices);
     DateTimeEnumerationFacet enumFacet = (DateTimeEnumerationFacet)timeType; 
-    assertNotNull(enumFacet.getChoices());
+    assertNotNull(enumFacet.getAllowedValuesAsCalendars());
     
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampRataDieEpoch));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampUNIXEpoch));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampJulianDayEpoch ));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampRataDieEpoch));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampUNIXEpoch));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampJulianDayEpoch ));
     
     
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampSputnik));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampEndWWII));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampMoon));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampSputnik));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampEndWWII));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampMoon));
     
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timestampMinuteMoon));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timestampMinuteSputnik));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timestampMinuteMoon));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timestampMinuteSputnik));
 
     // This is ALSO valid ,since these are considered local values, since timezones
     // are not compared.
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampMoonUTC));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampSputnikUTC));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampMoonUTC));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampSputnikUTC));
     
   }
   
@@ -682,30 +682,30 @@ public class DateTimeTypeTest  extends DatatypeTest
     
     DateTimeType timeType = new DateTimeType(DateTime.TimeAccuracy.SECOND,true,choices);
     DateTimeEnumerationFacet enumFacet = (DateTimeEnumerationFacet)timeType; 
-    assertNotNull(enumFacet.getChoices());
+    assertNotNull(enumFacet.getAllowedValuesAsCalendars());
     
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampRataDieEpoch));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampUNIXEpoch));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampJulianDayEpoch ));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampRataDieEpoch));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampUNIXEpoch));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampJulianDayEpoch ));
     
     
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampSputnik));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampEndWWII));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampMoon));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampSputnik));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampEndWWII));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampMoon));
     
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampSputnikUTC));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampMoonUTC));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampSputnikUTC));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampMoonUTC));
     
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timestampMinuteMoon));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timestampMinuteSputnik));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timestampMinuteMoon));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timestampMinuteSputnik));
 
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampMoonUTC));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampSputnikUTC));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampMoonUTC));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampSputnikUTC));
     
     // With only the year ,these should fail
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.yearSputnik));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.yearEndWWII));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.yearMoon));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.yearSputnik));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.yearEndWWII));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.yearMoon));
     
   }
   
@@ -721,30 +721,30 @@ public class DateTimeTypeTest  extends DatatypeTest
     
     DateTimeType timeType = new DateTimeType(DateTime.TimeAccuracy.YEAR,true,choices);
     DateTimeEnumerationFacet enumFacet = (DateTimeEnumerationFacet)timeType; 
-    assertNotNull(enumFacet.getChoices());
+    assertNotNull(enumFacet.getAllowedValuesAsCalendars());
     
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampRataDieEpoch));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampUNIXEpoch));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampJulianDayEpoch ));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampRataDieEpoch));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampUNIXEpoch));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampJulianDayEpoch ));
     
     
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampSputnik));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampEndWWII));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampMoon));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampSputnik));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampEndWWII));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampMoon));
     
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampSputnikUTC));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampMoonUTC));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampSputnikUTC));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampMoonUTC));
     
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timestampMinuteMoon));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timestampMinuteSputnik));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timestampMinuteMoon));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timestampMinuteSputnik));
 
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampMoonUTC));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampSputnikUTC));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampMoonUTC));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampSputnikUTC));
     
 
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.yearSputnik));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.yearEndWWII));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.yearMoon));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.yearSputnik));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.yearEndWWII));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.yearMoon));
     
   }
   
@@ -759,35 +759,35 @@ public class DateTimeTypeTest  extends DatatypeTest
     
     DateTimeType timeType = new DateTimeType(DateTime.TimeAccuracy.DAY,true,choices);
     DateTimeEnumerationFacet enumFacet = (DateTimeEnumerationFacet)timeType; 
-    assertNotNull(enumFacet.getChoices());
+    assertNotNull(enumFacet.getAllowedValuesAsCalendars());
     
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampRataDieEpoch));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampUNIXEpoch));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampJulianDayEpoch ));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampRataDieEpoch));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampUNIXEpoch));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampJulianDayEpoch ));
     
     
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampSputnik));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampEndWWII));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampMoon));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampSputnik));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampEndWWII));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampMoon));
     
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampSputnikUTC));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampMoonUTC));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampSputnikUTC));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampMoonUTC));
     
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timestampMinuteMoon));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timestampMinuteSputnik));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timestampMinuteMoon));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timestampMinuteSputnik));
 
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampMoonUTC));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampSputnikUTC));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampMoonUTC));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampSputnikUTC));
     
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.dateSputnik));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.dateEndWWII));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.dateStampMoon));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.dateSputnik));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.dateEndWWII));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.dateStampMoon));
 
     
     // These should fail, since only the year is specified
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.yearSputnik));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.yearEndWWII));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.yearMoon));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.yearSputnik));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.yearEndWWII));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.yearMoon));
   }
   
   /*----------------------------- ranges --------------------------------*/
@@ -816,10 +816,10 @@ public class DateTimeTypeTest  extends DatatypeTest
     assertEquals(DateTimeConstants.timeStampJulianDayEpoch,rangeType.getMinInclusive());
     assertEquals(DateTimeConstants.timeStampRataDieEpoch,rangeType.getMaxInclusive());
 
-    assertEquals(true,rangeType.validateRange(DateTimeConstants.timeStampJulianDayEpoch));
-    assertEquals(true,rangeType.validateRange(DateTimeConstants.timeStampRataDieEpoch));
-    assertEquals(false,rangeType.validateRange(DateTimeConstants.timeStampMoon));
-    assertEquals(false,rangeType.validateRange(DateTimeConstants.dateUNIXEpoch));
+    assertEquals(true,rangeType.isValid(DateTimeConstants.timeStampJulianDayEpoch));
+    assertEquals(true,rangeType.isValid(DateTimeConstants.timeStampRataDieEpoch));
+    assertEquals(false,rangeType.isValid(DateTimeConstants.timeStampMoon));
+    assertEquals(false,rangeType.isValid(DateTimeConstants.dateUNIXEpoch));
     
 
     rangeType = new DateTimeType(DateTime.TimeAccuracy.DAY,true,
@@ -827,12 +827,12 @@ public class DateTimeTypeTest  extends DatatypeTest
         DateTimeConstants.dateUNIXEpoch);
     assertEquals(true,rangeType.isBounded());
 
-    assertEquals(false,rangeType.validateRange(DateTimeConstants.timeStampJulianDayEpoch));
-    assertEquals(false,rangeType.validateRange(DateTimeConstants.dateJulianDayEpoch));
-    assertEquals(true,rangeType.validateRange(DateTimeConstants.timeStampRataDieEpoch));
-    assertEquals(true,rangeType.validateRange(DateTimeConstants.timeStampMoon));
-    assertEquals(true,rangeType.validateRange(DateTimeConstants.dateUNIXEpoch));
-    assertEquals(true,rangeType.validateRange(DateTimeConstants.dateSputnik));
+    assertEquals(false,rangeType.isValid(DateTimeConstants.timeStampJulianDayEpoch));
+    assertEquals(false,rangeType.isValid(DateTimeConstants.dateJulianDayEpoch));
+    assertEquals(true,rangeType.isValid(DateTimeConstants.timeStampRataDieEpoch));
+    assertEquals(false,rangeType.isValid(DateTimeConstants.timeStampMoon));
+    assertEquals(true,rangeType.isValid(DateTimeConstants.dateUNIXEpoch));
+    assertEquals(false,rangeType.isValid(DateTimeConstants.dateSputnik));
     
   }
   

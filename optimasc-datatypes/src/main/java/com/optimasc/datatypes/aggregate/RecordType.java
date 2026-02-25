@@ -11,14 +11,18 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
 
 
 /** This datatype represents a record datatype that consists of other datatypes
- *  embedded within them. By default, the ordering is significant, and {@link #setOrdered(boolean)}
+ *  embedded within them. Each embedded datatype is named with a unique identifier
+ *  (this is also called a field). By default, the ordering is significant, and {@link #setOrdered(boolean)}
  *  should be called if it should not be significant.
  *  
  *  This is equivalent to the following datatypes:
  *  <ul>
- *   <li>SEQUENCE ASN.1 datatype if <code>ordered</code> is true, or SET ASN.1 datatype
+ *   <li><code>SEQUENCE</code> ASN.1 datatype if <code>ordered</code> is true, or <code>SET</code> ASN.1 datatype
  *     if <code>ordered</code> is false.</li>
+ *   <li><code>sequence</code> XMLSchema element if <code>ordered</code> is true, or <code>all</code> 
+ *     XMLSchema element if <code>ordered</code> is false.</li>
  *   <li><code>record</code> ISO/IEC 11404 General purpose datatype</li>
+ *   <li>Similar to a <code>Table</code> in SQL2003.</li>
  *  </ul>
  * 
  * @author Carl Eric Codere

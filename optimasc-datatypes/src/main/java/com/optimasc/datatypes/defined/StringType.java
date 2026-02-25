@@ -5,12 +5,13 @@ import java.text.ParseException;
 import omg.org.astm.type.TypeReference;
 import omg.org.astm.type.UnnamedTypeReference;
 
-import com.optimasc.datatypes.CharacterSetEncodingFacet;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.EnumerationFacet;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.aggregate.SequenceType;
+import com.optimasc.datatypes.facets.CharacterSetEncodingFacet;
+import com.optimasc.datatypes.facets.EnumerationFacet;
+import com.optimasc.datatypes.facets.LengthFacet;
 import com.optimasc.datatypes.primitives.CharacterType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.lang.CharacterSet;
@@ -86,7 +87,7 @@ public class StringType extends SequenceType implements CharacterSetEncodingFace
    */
   public StringType()
   {
-    this(0,Integer.MIN_VALUE,new UnnamedTypeReference(new CharacterType(CharacterSet.ASCII)));
+    this(0,LengthFacet.UNBOUNDED,new UnnamedTypeReference(new CharacterType(CharacterSet.ASCII)));
     whitespace = WHITESPACE_PRESERVE;
     formatter = null;
   }
@@ -101,7 +102,7 @@ public class StringType extends SequenceType implements CharacterSetEncodingFace
    * @param charType The type reference that should point to a <code>CharacterType</code>
    *   type.
    */
-  public StringType(int minLength, int maxLength, TypeReference charType)
+  public StringType(long minLength, long maxLength, TypeReference charType)
   {
     super(minLength,maxLength,charType, String.class);
     if ((charType.getType() instanceof CharacterType)==false)
@@ -289,7 +290,7 @@ public class StringType extends SequenceType implements CharacterSetEncodingFace
       conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"The string does not match the datatype specification");
       return null;
     }
-    if (validateChoice(string)==false)
+    if (isValid(string)==false)
     {
       conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"The string does not match the datatype specification");
       return null;
@@ -410,5 +411,23 @@ public class StringType extends SequenceType implements CharacterSetEncodingFace
   {
       return v.visit(this,arg);
   }
+
+  public String toString()
+  {
+    String oid = getCharacterSet().oid;
+    String lengthString = "";
+    if (lengthHelper!=null)
+    {
+      lengthString = " "+lengthHelper.toString();
+    }
+    if (oid != null)
+    {
+      oid = oid.replace('.', ' ');
+      return "characterstring("+oid+")"+lengthString; 
+    }
+    return "characterstring"+lengthString;
+  }
+  
+  
 
 }

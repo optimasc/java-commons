@@ -10,9 +10,9 @@ import omg.org.astm.type.UnnamedTypeReference;
 import com.optimasc.datatypes.Convertable;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.PatternFacet;
 import com.optimasc.datatypes.PatternHelper;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
+import com.optimasc.datatypes.facets.PatternFacet;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.util.Pattern;
 

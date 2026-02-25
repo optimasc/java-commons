@@ -87,9 +87,9 @@ public class PointerType extends Datatype implements ConstructedSimple
       return super.equals(obj);
     }
 
-    public String getGPDName()
+    public String toString()
     {
-      return "pointer to ("+baseType.getType().getGPDName()+")";
+      return "pointer to ("+baseType.getType().toString()+")";
     }
     
     

@@ -6,10 +6,9 @@ import java.util.GregorianCalendar;
 
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.DatatypeTest;
-import com.optimasc.datatypes.NumberEnumerationFacet;
-import com.optimasc.datatypes.NumberRangeFacet;
 import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
+import com.optimasc.datatypes.facets.NumberEnumerationFacet;
 import com.optimasc.date.DateTimeFormat;
 
 import junit.framework.TestCase;
@@ -107,32 +106,32 @@ public class DurationTypeTest extends DatatypeTest
   {
     
     // Check first non-bounded value
-    NumberRangeFacet rangedType = (NumberRangeFacet) defaultInstance;
+    NumberEnumerationFacet rangedType = (NumberEnumerationFacet) defaultInstance;
     
     assertEquals(true,rangedType.isBounded());
     
     assertEquals(BigDecimal.valueOf(0).longValue(),rangedType.getMinInclusive().longValue());
     assertEquals(null,rangedType.getMaxInclusive());
     
-    // Verify that choices are null
+    // Verify that choices contains only 1 item which is the range.
     if (rangedType instanceof NumberEnumerationFacet)
     {
       NumberEnumerationFacet enumFacet = (NumberEnumerationFacet) rangedType;
-      assertEquals(null,enumFacet.getChoices());
+      assertEquals(1,enumFacet.getAllowedValuesAsSelectItems().length);
     }
     
-    assertEquals(false,rangedType.validateRange(BigDecimal.valueOf(Long.MIN_VALUE)));
-    assertEquals(true,rangedType.validateRange(BigDecimal.valueOf(0)));
-    assertEquals(true,rangedType.validateRange(BigDecimal.valueOf(Long.MAX_VALUE)));
+    assertEquals(false,rangedType.isValid(BigDecimal.valueOf(Long.MIN_VALUE)));
+    assertEquals(true,rangedType.isValid(BigDecimal.valueOf(0)));
+    assertEquals(true,rangedType.isValid(BigDecimal.valueOf(Long.MAX_VALUE)));
     
-    assertEquals(false,rangedType.validateRange(BigDecimal.valueOf(Integer.MIN_VALUE)));
-    assertEquals(true,rangedType.validateRange(BigDecimal.valueOf(0)));
-    assertEquals(true,rangedType.validateRange(BigDecimal.valueOf(Integer.MAX_VALUE)));
+    assertEquals(false,rangedType.isValid(BigDecimal.valueOf(Integer.MIN_VALUE)));
+    assertEquals(true,rangedType.isValid(BigDecimal.valueOf(0)));
+    assertEquals(true,rangedType.isValid(BigDecimal.valueOf(Integer.MAX_VALUE)));
 
     // Exceptions, this should fail, as this is decimal values for an integer type!
-    assertEquals(false,rangedType.validateRange(new BigDecimal(Float.MIN_VALUE)));
-    assertEquals(false,rangedType.validateRange(new BigDecimal(0.55)));
-    assertEquals(false,rangedType.validateRange(new BigDecimal(423423.564)));
+    assertEquals(false,rangedType.isValid(new BigDecimal(Float.MIN_VALUE)));
+    assertEquals(false,rangedType.isValid(new BigDecimal(0.55)));
+    assertEquals(false,rangedType.isValid(new BigDecimal(423423.564)));
   }
   
   /** Test bounded value. */
@@ -140,25 +139,25 @@ public class DurationTypeTest extends DatatypeTest
   {
     DurationType numericType = new DurationType(DateTimeFormat.TimeUnit.MILLISECONDS,Integer.MAX_VALUE);
     
-    NumberRangeFacet rangedType = numericType;
+    NumberEnumerationFacet rangedType = numericType;
     
     assertEquals(true,rangedType.isBounded());
     assertEquals(BigDecimal.valueOf(0).longValue(),rangedType.getMinInclusive().longValue());
     assertEquals(BigDecimal.valueOf(Integer.MAX_VALUE).longValue(),rangedType.getMaxInclusive().longValue());
 
     
-    assertEquals(false,rangedType.validateRange(BigDecimal.valueOf(Long.MIN_VALUE)));
-    assertEquals(true,rangedType.validateRange(BigDecimal.valueOf(0)));
-    assertEquals(false,rangedType.validateRange(BigDecimal.valueOf(Long.MAX_VALUE)));
+    assertEquals(false,rangedType.isValid(BigDecimal.valueOf(Long.MIN_VALUE)));
+    assertEquals(true,rangedType.isValid(BigDecimal.valueOf(0)));
+    assertEquals(false,rangedType.isValid(BigDecimal.valueOf(Long.MAX_VALUE)));
     
-    assertEquals(false,rangedType.validateRange(BigDecimal.valueOf(Integer.MIN_VALUE)));
-    assertEquals(true,rangedType.validateRange(BigDecimal.valueOf(0)));
-    assertEquals(true,rangedType.validateRange(BigDecimal.valueOf(Integer.MAX_VALUE)));
+    assertEquals(false,rangedType.isValid(BigDecimal.valueOf(Integer.MIN_VALUE)));
+    assertEquals(true,rangedType.isValid(BigDecimal.valueOf(0)));
+    assertEquals(true,rangedType.isValid(BigDecimal.valueOf(Integer.MAX_VALUE)));
 
     // Exceptions, this should fail, as this is decimal values for an integer type!
-    assertEquals(false,rangedType.validateRange(new BigDecimal(-323515.624645)));
-    assertEquals(false,rangedType.validateRange(new BigDecimal(0.55)));
-    assertEquals(false,rangedType.validateRange(new BigDecimal(Float.MAX_VALUE)));
+    assertEquals(false,rangedType.isValid(new BigDecimal(-323515.624645)));
+    assertEquals(false,rangedType.isValid(new BigDecimal(0.55)));
+    assertEquals(false,rangedType.isValid(new BigDecimal(Float.MAX_VALUE)));
   }
   
   /** Test bounded value where lower bound is equal to upper bound. */
@@ -166,24 +165,24 @@ public class DurationTypeTest extends DatatypeTest
   {
     DurationType numericType = new DurationType(DateTimeFormat.TimeUnit.MILLISECONDS,0);
     
-    NumberRangeFacet rangedType = numericType;
+    NumberEnumerationFacet rangedType = numericType;
     
     assertEquals(true,rangedType.isBounded());
     assertEquals(BigDecimal.valueOf(0).longValue(),rangedType.getMinInclusive().longValue());
     assertEquals(BigDecimal.valueOf(0).longValue(),rangedType.getMaxInclusive().longValue());
     
-    assertEquals(false,rangedType.validateRange(BigDecimal.valueOf(Long.MIN_VALUE)));
-    assertEquals(true,rangedType.validateRange(BigDecimal.valueOf(0)));
-    assertEquals(false,rangedType.validateRange(BigDecimal.valueOf(Long.MAX_VALUE)));
+    assertEquals(false,rangedType.isValid(BigDecimal.valueOf(Long.MIN_VALUE)));
+    assertEquals(true,rangedType.isValid(BigDecimal.valueOf(0)));
+    assertEquals(false,rangedType.isValid(BigDecimal.valueOf(Long.MAX_VALUE)));
     
-    assertEquals(false,rangedType.validateRange(BigDecimal.valueOf(Integer.MIN_VALUE)));
-    assertEquals(true,rangedType.validateRange(BigDecimal.valueOf(0)));
-    assertEquals(false,rangedType.validateRange(BigDecimal.valueOf(Integer.MAX_VALUE)));
+    assertEquals(false,rangedType.isValid(BigDecimal.valueOf(Integer.MIN_VALUE)));
+    assertEquals(true,rangedType.isValid(BigDecimal.valueOf(0)));
+    assertEquals(false,rangedType.isValid(BigDecimal.valueOf(Integer.MAX_VALUE)));
 
     // Exceptions, this should fail, as this is decimal values for an integer type!
-    assertEquals(false,rangedType.validateRange(new BigDecimal(Float.MIN_VALUE)));
-    assertEquals(false,rangedType.validateRange(new BigDecimal(0.55)));
-    assertEquals(false,rangedType.validateRange(new BigDecimal(Float.MAX_VALUE)));
+    assertEquals(false,rangedType.isValid(new BigDecimal(Float.MIN_VALUE)));
+    assertEquals(false,rangedType.isValid(new BigDecimal(0.55)));
+    assertEquals(false,rangedType.isValid(new BigDecimal(Float.MAX_VALUE)));
   }
   
 
@@ -211,15 +210,15 @@ public class DurationTypeTest extends DatatypeTest
   {
     DurationType datatype = defaultInstance;
     
-    assertEquals(null,datatype.getChoices());
+    // By default a duration has an allowed range.
+    assertEquals(1,datatype.getAllowedValuesAsSelectItems().length);
     
     
-    // TODO:  Should this be allowed.
-    assertEquals(true,datatype.validateChoice(Integer.MIN_VALUE));
+    assertEquals(false,datatype.isValid(Integer.MIN_VALUE));
     
     
-    assertEquals(true,datatype.validateChoice(0));
-    assertEquals(true,datatype.validateChoice(Integer.MAX_VALUE));
+    assertEquals(true,datatype.isValid(0));
+    assertEquals(true,datatype.isValid(Integer.MAX_VALUE));
     
   }
   
@@ -252,21 +251,21 @@ public class DurationTypeTest extends DatatypeTest
     DurationType datatype = new DurationType(DateTimeFormat.TimeUnit.MILLISECONDS,choices);
     
     
-    assertNotNull(datatype.getChoices());
+    assertNotNull(datatype.getAllowedValuesAsSelectItems());
     
     //== The range will be set
       assertEquals(minInclusive.longValue(),datatype.getMinInclusive().longValue());
       assertEquals(maxInclusive.longValue(),datatype.getMaxInclusive().longValue());
     
     
-    assertEquals(false,datatype.validateChoice(Integer.MIN_VALUE));
+    assertEquals(false,datatype.isValid(Integer.MIN_VALUE));
     
-    assertEquals(false,datatype.validateChoice(Integer.MIN_VALUE));
-    assertEquals(false,datatype.validateChoice(0));
-    assertEquals(true,datatype.validateChoice(minInclusive.intValue()));
-    assertEquals(true,datatype.validateChoice(midValue.intValue()));    
-    assertEquals(true,datatype.validateChoice(maxInclusive.intValue()));
-    assertEquals(false,datatype.validateChoice(Integer.MAX_VALUE));
+    assertEquals(false,datatype.isValid(Integer.MIN_VALUE));
+    assertEquals(false,datatype.isValid(0));
+    assertEquals(true,datatype.isValid(minInclusive.intValue()));
+    assertEquals(true,datatype.isValid(midValue.intValue()));    
+    assertEquals(true,datatype.isValid(maxInclusive.intValue()));
+    assertEquals(false,datatype.isValid(Integer.MAX_VALUE));
     
   }
   
@@ -340,7 +339,7 @@ public class DurationTypeTest extends DatatypeTest
     checkResult.reset();
     
     result = (Long) dataType.toValue(0, checkResult);
-    assertEquals(null,result);
+    assertEquals(800,result.longValue());
     assertNotNull(checkResult.error);
     
     checkResult.reset();
@@ -350,13 +349,13 @@ public class DurationTypeTest extends DatatypeTest
     
     checkResult.reset();
     result = (Long) dataType.toValue(Long.MAX_VALUE, checkResult);
-    assertEquals(null,result);
-    assertEquals(DatatypeException.ERROR_DATA_TYPE_MISMATCH,((DatatypeException)checkResult.error).getCode());
+    assertEquals(48000,result.longValue());
+    assertEquals(DatatypeException.ERROR_DATA_NUMERIC_OUT_OF_RANGE,((DatatypeException)checkResult.error).getCode());
     
     checkResult.reset();
     result = (Long) dataType.toValue(-800, checkResult);
-    assertEquals(null,result);
-    assertEquals(DatatypeException.ERROR_DATA_TYPE_MISMATCH,((DatatypeException)checkResult.error).getCode());
+    assertEquals(800,result.longValue());
+    assertEquals(DatatypeException.ERROR_DATA_NUMERIC_OUT_OF_RANGE,((DatatypeException)checkResult.error).getCode());
   }
   
   
@@ -400,7 +399,7 @@ public class DurationTypeTest extends DatatypeTest
     checkResult.reset();
     
     result = (Long) numberType.toValue(BigInteger.valueOf(0), checkResult);
-    assertEquals(null,result);
+    assertEquals(800,result.longValue());
     assertNotNull(checkResult.error);
     
     checkResult.reset();
@@ -416,13 +415,13 @@ public class DurationTypeTest extends DatatypeTest
     
     checkResult.reset();
     result = (Long) numberType.toValue(new Long(Long.MAX_VALUE), checkResult);
-    assertEquals(null,result);
-    assertEquals(DatatypeException.ERROR_DATA_TYPE_MISMATCH,((DatatypeException)checkResult.error).getCode());
+    assertEquals(48000,result.longValue());
+    assertEquals(DatatypeException.ERROR_DATA_NUMERIC_OUT_OF_RANGE,((DatatypeException)checkResult.error).getCode());
     
     checkResult.reset();
     result = (Long) numberType.toValue(new Integer(-800), checkResult);
-    assertEquals(null,result);
-    assertEquals(DatatypeException.ERROR_DATA_TYPE_MISMATCH,((DatatypeException)checkResult.error).getCode());
+    assertEquals(800,result.longValue());
+    assertEquals(DatatypeException.ERROR_DATA_NUMERIC_OUT_OF_RANGE,((DatatypeException)checkResult.error).getCode());
   }
   
   /*-------------------- equals/isRestrictionOf functionality ---------------*/

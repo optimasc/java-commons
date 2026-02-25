@@ -19,22 +19,22 @@ public class NumberEnumerationHelperTest extends TestCase
   {
     Number choices[]=new Number[]{new Double(100.0d),new Double(1d),new Double(-55d)};
     NumberEnumerationHelper helper = new NumberEnumerationHelper();
-    helper.setChoices(choices);
-    assertEquals(true,helper.validateChoice(new Double(1d)));
-    assertEquals(false,helper.validateChoice(new Double(1.5d)));
-    assertEquals(false,helper.validateChoice(0));
+    helper.setAllowedValues(choices);
+    assertEquals(true,helper.isValid(new Double(1d)));
+    assertEquals(false,helper.isValid(new Double(1.5d)));
+    assertEquals(false,helper.isValid(0));
   }
   
   public void testNumberEnumerationHelperInt()
   {
     Number choices[]=new Number[]{new Integer(10),new Integer(100),new Integer(-55)};
     NumberEnumerationHelper helper = new NumberEnumerationHelper();
-    helper.setChoices(choices);
-    assertEquals(true,helper.validateChoice(new Integer(100)));
-    assertEquals(false,helper.validateChoice(new Double(1.5d)));
-    assertEquals(false,helper.validateChoice(new Double(1.5d)));
-    assertEquals(false,helper.validateChoice(0));
-    assertEquals(false,helper.validateChoice(new Integer(11)));
+    helper.setAllowedValues(choices);
+    assertEquals(true,helper.isValid(new Integer(100)));
+    assertEquals(false,helper.isValid(new Double(1.5d)));
+    assertEquals(false,helper.isValid(new Double(1.5d)));
+    assertEquals(false,helper.isValid(0));
+    assertEquals(false,helper.isValid(new Integer(11)));
   }
   
 

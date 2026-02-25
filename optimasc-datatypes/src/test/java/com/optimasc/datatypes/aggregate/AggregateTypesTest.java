@@ -310,7 +310,7 @@ public class AggregateTypesTest extends TestCase
         new EnumerationElement("Choice2",2),
         new EnumerationElement("Choice3",3),
         new EnumerationElement("Choice4",4)};
-    enumType.setChoices(dataTypeEnum);
+    enumType.setAllowedValues(dataTypeEnum);
     NamedTypeReference namedType = new NamedTypeReference("MyEnum",enumType);
     
     datatype.setBaseTypeReference(namedType);
@@ -354,7 +354,7 @@ public class AggregateTypesTest extends TestCase
         new EnumerationElement("Choice3",3),
         // This is out of bounds
         new EnumerationElement("Choice4",1024)};
-    enumType.setChoices(dataTypeEnum);
+    enumType.setAllowedValues(dataTypeEnum);
     NamedTypeReference namedType = new NamedTypeReference("MyEnum",enumType);
 
   

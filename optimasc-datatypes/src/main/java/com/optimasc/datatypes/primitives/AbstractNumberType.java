@@ -5,17 +5,20 @@ import java.math.BigInteger;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.NumberEnumerationFacet;
 import com.optimasc.datatypes.NumberEnumerationHelper;
-import com.optimasc.datatypes.NumberRangeHelper;
-import com.optimasc.datatypes.NumberRangeSetterFacet;
-import com.optimasc.datatypes.OrderedFacet;
+import com.optimasc.datatypes.OrderedProperty;
 import com.optimasc.datatypes.TypeUtilities;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
+import com.optimasc.datatypes.facets.NumberEnumerationFacet;
+import com.optimasc.datatypes.facets.NumberRangeSetterFacet;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.lang.NumberComparator;
+import com.optimasc.lang.NumberSelectItem;
+import com.optimasc.lang.NumberedSelectItems.NumberSelectValue;
+import com.optimasc.lang.NumberedSelectItems.NumberSelectRange;
 
-public abstract class AbstractNumberType extends PrimitiveType  implements NumberRangeSetterFacet,OrderedFacet, NumberEnumerationFacet
+
+public abstract class AbstractNumberType extends PrimitiveType  implements NumberRangeSetterFacet,OrderedProperty, NumberEnumerationFacet
 {
 
   public Object accept(TypeVisitor v, Object arg)
@@ -24,7 +27,6 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Numbe
     return null;
   }
 
-  protected NumberRangeHelper rangeHelper;
   protected NumberEnumerationHelper enumHelper;
   protected int scale;
   protected int roundingMode;
@@ -49,7 +51,6 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Numbe
     {
       roundingMode = BigDecimal.ROUND_DOWN;
     }
-    setRange(null,null);
     enumHelper = new NumberEnumerationHelper();
   }
   
@@ -70,9 +71,8 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Numbe
   protected AbstractNumberType(BigDecimal minInclusive, BigDecimal maxInclusive)
   {
     super(true);
-    setRange(minInclusive,maxInclusive);
-    enumHelper = new NumberEnumerationHelper();
-    this.scale = rangeHelper.getScale();
+    enumHelper = new NumberEnumerationHelper(minInclusive,maxInclusive);
+    this.scale = enumHelper.getScale();
     roundingMode = BigDecimal.ROUND_HALF_EVEN;
     if (scale==0)
     {
@@ -101,12 +101,8 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Numbe
   {
     super(true);
     enumHelper = new NumberEnumerationHelper();
-    setChoices(choices);
-    // Get the lowest range and highest range that will become the
-    // minValue and maxValue
-    Number sortedChoices[] = enumHelper.getChoices();
-    setRange(sortedChoices[0],sortedChoices[sortedChoices.length-1]);
-    this.scale = rangeHelper.getScale();
+    setAllowedValues(choices);
+    this.scale = enumHelper.getScale();
     roundingMode = BigDecimal.ROUND_HALF_EVEN;
     if (scale==0)
     {
@@ -118,12 +114,8 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Numbe
   {
     super(true);
     enumHelper = new NumberEnumerationHelper();
-    setChoices(choices);
-    // Get the lowest range and highest range that will become the
-    // minValue and maxValue
-    Number sortedChoices[] = enumHelper.getChoices();
-    setRange(sortedChoices[0],sortedChoices[sortedChoices.length-1]);
-    this.scale = rangeHelper.getScale();
+    setAllowedValues(choices);
+    this.scale = enumHelper.getScale();
     roundingMode = BigDecimal.ROUND_HALF_EVEN;
     if (scale==0)
     {
@@ -139,17 +131,17 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Numbe
 
   public Number getMinInclusive()
   {
-    return rangeHelper.getMinInclusive();
+    return enumHelper.getMinInclusive();
   }
 
   public Number getMaxInclusive()
   {
-    return rangeHelper.getMaxInclusive();
+    return enumHelper.getMaxInclusive();
   }
 
   public boolean isBounded()
   {
-    return rangeHelper.isBounded();
+    return enumHelper.isBounded();
   }
   
   
@@ -171,7 +163,7 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Numbe
    */
   public int getPrecision()
   {
-    return rangeHelper.getPrecision();
+    return enumHelper.getPrecision();
   }
   
   
@@ -212,12 +204,12 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Numbe
     }
     AbstractNumberType referenceType = (AbstractNumberType) value;
     
-    boolean restriction = rangeHelper.isRestrictionOf(referenceType);
+    boolean restriction = enumHelper.isRestrictionOf(referenceType);
     if (restriction == true)
       return true;
     
-    Object[] choices = enumHelper.getChoices();
-    Object[] otherChoices = referenceType.getChoices();
+    Object[] choices = enumHelper.getAllowedValuesAsSelectItems();
+    Object[] otherChoices = referenceType.getAllowedValuesAsSelectItems();
     if ((choices!=null) && (otherChoices==null))
     {
       return true;
@@ -242,31 +234,6 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Numbe
     
   }
 
-  public boolean validateRange(long value)
-  {
-    return rangeHelper.validateRange(value);
-  }
-
-  /** {@inheritDoc}
-   * 
-   */
-  public boolean validateRange(Number value)
-  {
-    if (isBounded())
-    {
-      return rangeHelper.validateRange(value);
-    }
-    if (scale==0)
-    {
-      if (TypeUtilities.isExact(value)==false)
-      {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  
   
   /**{@inheritDoc}
    * 
@@ -322,7 +289,7 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Numbe
       // If this is a natural number and the number of bits is 
       // exactly of the range is exactly 8/16/32/64 of the primitive
       // type, zero extend the value.
-      if (rangeHelper.isNaturalNumber()==true)
+      if (enumHelper.isNaturalNumber()==true)
       {
         Number maxRange = getMaxInclusive();
         if (maxRange != null)
@@ -361,34 +328,37 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Numbe
       conversionResult.narrowingConversion = true;
       conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_NUMERIC_OUT_OF_RANGE,"Number is outside of valide range");
     }
+    
+    if (isWithinRange(bigDecimal)==false)
+    {
+      bigDecimal = NumberComparator.toBigDecimal(getBoundedValue(bigDecimal));
+      conversionResult.narrowingConversion = true;
+      conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_NUMERIC_OUT_OF_RANGE,"Number is outside of valide range");
+      return bigDecimal;
+    }
+    
 
-    if (validateChoice(bigDecimal)==false)
+    if (isValid(bigDecimal)==false)
     {
       conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Number is not one of the allowed values.");
       return null;
     }
     
 
-    if (validateRange(bigDecimal)==false)
-    {
-      bigDecimal = NumberComparator.toBigDecimal(getBoundedValue(bigDecimal));
-      conversionResult.narrowingConversion = true;
-      conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_NUMERIC_OUT_OF_RANGE,"Number is outside of valide range");
-    }
     
     return bigDecimal;
   }
 
   public Object toValue(long ordinalValue, TypeCheckResult conversionResult)
   {
-    if (validateRange(ordinalValue)==false)
+    if (isValid(ordinalValue)==false)
     {
       conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_NUMERIC_OUT_OF_RANGE,"Number is outside of valide range");
       return null;
     }
     BigDecimal v = BigDecimal.valueOf(ordinalValue);
     v = v.setScale(scale);
-    if (validateChoice(v)==false)
+    if (isValid(v)==false)
     {
       conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_NUMERIC_OUT_OF_RANGE,"Number is outside of valide range");
       return null;
@@ -396,36 +366,34 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Numbe
     return v;
   }
 
-  public Number[] getChoices()
+  public NumberSelectItem[] getAllowedValuesAsSelectItems()
   {
-    return enumHelper.getChoices();
+    return enumHelper.getAllowedValuesAsSelectItems();
   }
   
-  public boolean validateChoice(Object value)
+  public boolean isValid(Object value)
   {
-    return enumHelper.validateChoice((BigDecimal)value);
-  }
-  
-
-  public boolean validateChoice(Number value)
-  {
-    return enumHelper.validateChoice(value);
-  }
-
-  protected void setChoices(long[] choices)
-  {
-    enumHelper.setChoices(choices);
-  }
-  
-  public void setChoices(Number[] choices)
-  {
-    enumHelper.setChoices(choices);
+    if ((value instanceof Number)==false)
+      return false;
+    if (NumberComparator.getScale((Number) value)!=getScale())
+    {
+      return false;
+    }
+    return enumHelper.isValid((BigDecimal)value);
   }
   
 
-  public boolean validateChoice(long value)
+  public void setAllowedValues(Object[] choices)
   {
-    return enumHelper.validateChoice(value);
+    /** All values should be of the same scale */
+    
+    enumHelper.setAllowedValues(choices);
+  }
+  
+
+  public boolean isValid(long value)
+  {
+    return enumHelper.isValid(value);
   }
 
 
@@ -440,11 +408,6 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Numbe
       return false;
     }
     AbstractNumberType otherType = (AbstractNumberType) obj;
-    if (otherType.rangeHelper.equals(rangeHelper)==false)
-    {
-      return false;
-    }
-    
     if ((otherType.enumHelper==null) && (enumHelper!=null))
     {
       return false;
@@ -495,12 +458,56 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Numbe
         return getMaxInclusive();
     }
     return value;
-    
   }
+  
+ 
   
   public void setRange(Number minInclusive, Number maxInclusive)
   {
-    rangeHelper = new NumberRangeHelper(minInclusive,maxInclusive);
+    enumHelper.setAllowedValues(new NumberSelectItem[]{new NumberSelectRange(minInclusive,maxInclusive)});
+  }
+
+  public void setAllowedValues(long[] values)
+  {
+    enumHelper.setAllowedValues(values);
+  }
+
+  public void setAllowedValuesAsSelectItems(NumberSelectItem[] values)
+  {
+    enumHelper.setAllowedValuesAsSelectItems(values);
+  }
+
+  public Object[] getAllowedValues()
+  {
+    return enumHelper.getAllowedValues();
+  }
+
+  public Class getAllowedValuesClass()
+  {
+    return enumHelper.getAllowedValuesClass();
+  }
+  
+  public boolean isWithinRange(Number value)
+  {
+    Number minInclusive = getMinInclusive();
+    Number maxInclusive = getMaxInclusive();
+    
+    if (minInclusive != null)
+    {
+      if (NumberComparator.INSTANCE.compare(value, minInclusive)==-1)
+      {
+        return false;
+      }
+    }
+
+    if (maxInclusive != null)
+    {
+      if (NumberComparator.INSTANCE.compare(value, maxInclusive)==1)
+      {
+        return false;
+      }
+    }
+    return true;
   }
   
 }

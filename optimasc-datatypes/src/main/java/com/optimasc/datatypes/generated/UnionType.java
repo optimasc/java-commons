@@ -6,9 +6,9 @@ import java.util.Vector;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.MemberObject;
-import com.optimasc.datatypes.PatternFacet;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.aggregate.AggregateType;
+import com.optimasc.datatypes.facets.PatternFacet;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Represents a value that can be one or more different

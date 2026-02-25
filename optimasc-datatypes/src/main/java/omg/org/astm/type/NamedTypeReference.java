@@ -52,6 +52,12 @@ public class NamedTypeReference extends TypeReference
   {
     return v.visit(this, arg);
   }
+
+
+  public String toString()
+  {
+    return typeName;
+  }
   
   
    

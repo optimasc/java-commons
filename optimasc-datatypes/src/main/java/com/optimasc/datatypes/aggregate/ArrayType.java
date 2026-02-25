@@ -3,13 +3,14 @@ package com.optimasc.datatypes.aggregate;
 import java.text.ParseException;
 import java.util.Arrays;
 
+import omg.org.astm.GASTMObject;
 import omg.org.astm.type.TypeReference;
 
 import com.optimasc.datatypes.ConstructedSimple;
 import com.optimasc.datatypes.Convertable;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.PackedFacet;
+import com.optimasc.datatypes.PackedProperty;
 import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.primitives.BooleanType;
@@ -27,12 +28,12 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  * @author Carl Eric Codere
  *
  */
-public class ArrayType extends Datatype implements ConstructedSimple, PackedFacet, Convertable
+public class ArrayType extends Datatype implements ConstructedSimple, PackedProperty, Convertable
 {
   
   
   /** Represents the bounds of an array. */
-  public static class Dimension
+  public static class Dimension implements GASTMObject
   {
     public int lowBound;
     public int highBound;

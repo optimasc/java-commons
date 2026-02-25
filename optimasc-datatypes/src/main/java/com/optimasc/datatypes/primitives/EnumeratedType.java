@@ -3,16 +3,17 @@ package com.optimasc.datatypes.primitives;
 import java.math.BigDecimal;
 import java.util.Arrays;
 
+import omg.org.astm.GASTMObject;
 import omg.org.astm.type.NamedTypeReference;
 import omg.org.astm.type.TypeReference;
 
-import com.optimasc.datatypes.BoundedFacet;
+import com.optimasc.datatypes.BoundedProperty;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.EnumerationFacet;
-import com.optimasc.datatypes.NumberRangeFacet;
-import com.optimasc.datatypes.OrderedFacet;
+import com.optimasc.datatypes.OrderedProperty;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
+import com.optimasc.datatypes.facets.EnumerationFacet;
+import com.optimasc.datatypes.facets.NumberEnumerationFacet;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.lang.NumberComparator;
 
@@ -50,7 +51,7 @@ import com.optimasc.lang.NumberComparator;
  * @author Carl Eric Codère
  */
 public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
-    BoundedFacet, OrderedFacet
+    BoundedProperty, OrderedProperty
 {
   protected static final Object DEFAULT_CHOICES[] = new Object[0]; 
 
@@ -63,7 +64,7 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
   protected static final int DEFAULT_MAX_CHOICES = 127;
 
   /** Possible representation of an enumeration element. */
-  public static class EnumerationElement
+  public static class EnumerationElement implements GASTMObject
   {
     protected String name;
     protected int value;
@@ -133,7 +134,7 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
   {
     super(true);
     this.maxChoices = DEFAULT_MAX_CHOICES;
-    setChoices(choices);
+    setAllowedValues(choices);
   }
 
   public EnumeratedType(int maxChoices)
@@ -152,7 +153,7 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
     return Object[].class;
   }
 
-  public Object[] getChoices()
+  public Object[] getAllowedValues()
   {
     return choices;
   }
@@ -172,7 +173,7 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
    * 
    * 
    */
-  public void setChoices(Object[] choices)
+  public void setAllowedValues(Object[] choices)
   {
     if (choices == null)
     {
@@ -189,7 +190,7 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
     this.choices = choices;
   }
 
-  public boolean validateChoice(Object value)
+  public boolean isValid(Object value)
   {
     for (int i = 0; i < choices.length; i++)
     {
@@ -313,9 +314,9 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
    *         otherwise the ordinal value of the enumeration literal represented
    *         by this enumerated symbol.
    */
-  public int getEnumOrdinalValue(String symbol)
+  public int getEnumeratorOrdinalValue(String symbol)
   {
-    Object[] choices = getChoices();
+    Object[] choices = getAllowedValues();
     if (choices == null)
       return -1;
     if (choices.length == 0)
@@ -346,9 +347,9 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
     }
   }
 
-  protected int getEnumIndex(String symbol)
+  protected int getEnumeratorIndex(String symbol)
   {
-    Object[] choices = getChoices();
+    Object[] choices = getAllowedValues();
     if (choices[0] instanceof EnumerationElement)
     {
       for (int i = 0; i < choices.length; i++)
@@ -381,8 +382,8 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
       throw new IllegalArgumentException("Expecting parameter of type '"
           + value.getClass().getName() + "'.");
     }
-    NumberRangeFacet rangeType;
-    rangeType = (NumberRangeFacet) value;
+    EnumeratedType rangeType;
+    rangeType = (EnumeratedType) value;
     
     BigDecimal minOtherValue = NumberComparator.toBigDecimal(rangeType.getMinInclusive());
     BigDecimal maxOtherValue = NumberComparator.toBigDecimal(rangeType.getMaxInclusive());
@@ -445,7 +446,7 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
    *   out of range.
    * @throws IllegalArgumentException If the value is a negative number.
    */
-  public Object getChoice(int value)
+  public Object getEnumerator(int value)
   {
     if (value < 0)
     {
@@ -453,7 +454,7 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
     }
     if ((choices != null) && (choices.length > 0) && (choices[0] != null))
     {
-      Object[] choices = getChoices();
+      Object[] choices = getAllowedValues();
       if (choices[0] instanceof EnumerationElement)
       {
         for (int i = 0; i < choices.length; i++)
@@ -507,7 +508,7 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
     else
     {
       // Search for the choice index
-      int index = getEnumIndex(value.toString());
+      int index = getEnumeratorIndex(value.toString());
       // If found, return the enumeration choice
       if (index != -1)
         return choices[index];
@@ -521,7 +522,7 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
   public Object toValue(long ordinalValue, TypeCheckResult conversionResult)
   {
     conversionResult.reset();
-    Object obj = getChoice((int) ordinalValue);
+    Object obj = getEnumerator((int) ordinalValue);
     if (obj == null)
     {
       conversionResult.error = new DatatypeException(
@@ -532,17 +533,17 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
     return obj;
   }
 
-  public boolean validateRange(long value)
+  public boolean isValid(long value)
   {
     if (isBounded() == false)
     {
       return true;
     }
     BigDecimal v = BigDecimal.valueOf(value);
-    return validateRange(v);
+    return isValid(v);
   }
 
-  public boolean validateRange(Number value)
+  public boolean isValid(Number value)
   {
     if (choices == null)
     {
@@ -567,7 +568,7 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
     return true;
   }
   
-  public String getGPDName()
+  public String toString()
   {
     StringBuffer buffer = new StringBuffer();
     buffer.append("enumerated(");
@@ -581,6 +582,16 @@ public class EnumeratedType extends PrimitiveType implements EnumerationFacet,
     }
     buffer.append(")");
     return buffer.toString();
+  }
+
+  public int getEnumratorsLength()
+  {
+    return choices.length;
+  }
+
+  public Class getAllowedValuesClass()
+  {
+    return Object.class;
   }
 
 

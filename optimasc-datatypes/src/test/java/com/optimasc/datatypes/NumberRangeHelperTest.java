@@ -24,7 +24,7 @@ public class NumberRangeHelperTest extends TestCase
     boolean success = false;
     try
     {
-      NumberRangeHelper rangeHelper = new NumberRangeHelper(BigDecimal.valueOf(Integer.MAX_VALUE),BigDecimal.valueOf(0));
+      NumberEnumerationHelper rangeHelper = new NumberEnumerationHelper(BigDecimal.valueOf(Integer.MAX_VALUE),BigDecimal.valueOf(0));
     } catch (IllegalArgumentException e)
     {
       success = true;
@@ -35,16 +35,16 @@ public class NumberRangeHelperTest extends TestCase
   
   public void testNoBounds()
   {
-    NumberRangeHelper rangeHelper = new NumberRangeHelper(null,null);
-    NumberRangeHelper otherRangeHelper = new NumberRangeHelper(null,null);
+    NumberEnumerationHelper rangeHelper = new NumberEnumerationHelper(null,null);
+    NumberEnumerationHelper otherRangeHelper = new NumberEnumerationHelper(null,null);
     
     assertNull(rangeHelper.getMinInclusive());
     assertNull(rangeHelper.getMaxInclusive());
     assertFalse(rangeHelper.isBounded());
     assertFalse(rangeHelper.isNaturalNumber());
-    assertTrue(rangeHelper.validateRange(Integer.MIN_VALUE));
-    assertTrue(rangeHelper.validateRange(0));
-    assertTrue(rangeHelper.validateRange(Integer.MAX_VALUE));
+    assertTrue(rangeHelper.isValid(Integer.MIN_VALUE));
+    assertTrue(rangeHelper.isValid(0));
+    assertTrue(rangeHelper.isValid(Integer.MAX_VALUE));
     
     assertTrue(rangeHelper.equals(otherRangeHelper));
     assertFalse(rangeHelper.isRestrictionOf(otherRangeHelper));
@@ -54,16 +54,16 @@ public class NumberRangeHelperTest extends TestCase
   public void testNoUpperBoundOne()
   {
     BigDecimal ZERO = BigDecimal.valueOf(0);
-    NumberRangeHelper rangeHelper = new NumberRangeHelper(BigDecimal.valueOf(0),null);
-    NumberRangeHelper otherRangeHelper = new NumberRangeHelper(null,null);
+    NumberEnumerationHelper rangeHelper = new NumberEnumerationHelper(BigDecimal.valueOf(0),null);
+    NumberEnumerationHelper otherRangeHelper = new NumberEnumerationHelper(null,null);
     
     assertEquals(ZERO,rangeHelper.getMinInclusive());
     assertEquals(null,rangeHelper.getMaxInclusive());
     assertEquals(true,rangeHelper.isBounded());
     assertEquals(true,rangeHelper.isNaturalNumber());
-    assertEquals(false,rangeHelper.validateRange(Integer.MIN_VALUE));
-    assertEquals(true,rangeHelper.validateRange(0));
-    assertEquals(true,rangeHelper.validateRange(Integer.MAX_VALUE));
+    assertEquals(false,rangeHelper.isValid(Integer.MIN_VALUE));
+    assertEquals(true,rangeHelper.isValid(0));
+    assertEquals(true,rangeHelper.isValid(Integer.MAX_VALUE));
     
     assertFalse(rangeHelper.equals(otherRangeHelper));
     assertTrue(rangeHelper.isRestrictionOf(otherRangeHelper));
@@ -73,16 +73,16 @@ public class NumberRangeHelperTest extends TestCase
   public void testNoUpperBoundBoth()
   {
     BigDecimal ZERO = BigDecimal.valueOf(0);
-    NumberRangeHelper rangeHelper = new NumberRangeHelper(BigDecimal.valueOf(0),null);
-    NumberRangeHelper otherRangeHelper = new NumberRangeHelper(BigDecimal.valueOf(55),null);
+    NumberEnumerationHelper rangeHelper = new NumberEnumerationHelper(BigDecimal.valueOf(0),null);
+    NumberEnumerationHelper otherRangeHelper = new NumberEnumerationHelper(BigDecimal.valueOf(55),null);
     
     assertEquals(ZERO,rangeHelper.getMinInclusive());
     assertEquals(null,rangeHelper.getMaxInclusive());
     assertEquals(true,rangeHelper.isBounded());
     assertEquals(true,rangeHelper.isNaturalNumber());
-    assertEquals(false,rangeHelper.validateRange(Integer.MIN_VALUE));
-    assertEquals(true,rangeHelper.validateRange(0));
-    assertEquals(true,rangeHelper.validateRange(Integer.MAX_VALUE));
+    assertEquals(false,rangeHelper.isValid(Integer.MIN_VALUE));
+    assertEquals(true,rangeHelper.isValid(0));
+    assertEquals(true,rangeHelper.isValid(Integer.MAX_VALUE));
     
     assertFalse(rangeHelper.equals(otherRangeHelper));
     assertFalse(rangeHelper.isRestrictionOf(otherRangeHelper));

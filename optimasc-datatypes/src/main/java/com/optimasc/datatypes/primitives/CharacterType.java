@@ -6,16 +6,19 @@ import java.math.BigInteger;
 import omg.org.astm.type.NamedTypeReference;
 import omg.org.astm.type.TypeReference;
 
-import com.optimasc.datatypes.BoundedFacet;
-import com.optimasc.datatypes.CharacterSetEncodingFacet;
+import com.optimasc.datatypes.BoundedProperty;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.OrderedFacet;
+import com.optimasc.datatypes.OrderedProperty;
 import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.TypeUtilities;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
+import com.optimasc.datatypes.facets.CharacterSetEncodingFacet;
+import com.optimasc.datatypes.facets.NumberEnumerationFacet;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.lang.CharacterSet;
+import com.optimasc.lang.NumberComparator;
+import com.optimasc.lang.NumberSelectItem;
 
 /** Abstract datatype that represents a character. 
  * 
@@ -27,10 +30,11 @@ import com.optimasc.lang.CharacterSet;
  *  <p>Contrary to ISO/IEC 11404, this type is considered ordered and a character
  *  set specification can be associated with it and is bounded.</p>
  *  
- * <p>Internally, values of this type are represented as {@link Integer} objects.</p>
+ * <p>Internally, values of this type are represented as {@link Integer} objects that
+ * represent a Unicode code point.</p>
  *  
  */
-public class CharacterType extends PrimitiveType implements CharacterSetEncodingFacet,OrderedFacet,BoundedFacet
+public class CharacterType extends PrimitiveType implements CharacterSetEncodingFacet,OrderedProperty,BoundedProperty, NumberEnumerationFacet
 {
   /** Character Set Repertoire list  */
   protected CharacterSet characterSet;
@@ -122,7 +126,53 @@ public class CharacterType extends PrimitiveType implements CharacterSetEncoding
         return false;
     }
     
-    return super.equals(obj);
+    
+    if (this instanceof CharacterSetEncodingFacet)
+    {
+      CharacterSetEncodingFacet thisObject = (CharacterSetEncodingFacet) this;
+      if ((obj instanceof CharacterSetEncodingFacet) == false)
+      {
+        return false;
+      }
+      CharacterSetEncodingFacet otherObject = (CharacterSetEncodingFacet) obj;
+      if (otherObject.getCharacterSet().equals(thisObject.getCharacterSet()) == false)
+      {
+        return false;
+      }
+    }
+    
+    
+    if (this instanceof NumberEnumerationFacet)
+    {
+      NumberEnumerationFacet thisObject = (NumberEnumerationFacet) this;
+      if ((obj instanceof NumberEnumerationFacet) == false)
+      {
+        return false;
+      }
+      NumberEnumerationFacet otherObject = (NumberEnumerationFacet) obj;
+      
+      NumberEnumerationFacet other = (NumberEnumerationFacet) obj;
+      Number maxInclusive = thisObject.getMaxInclusive();
+      Number minInclusive = thisObject.getMinInclusive();
+      if (maxInclusive == null)
+      {
+        if (other.getMaxInclusive() != null)
+          return false;
+      }
+      // We check that the scales are equal here!
+      else if (NumberComparator.INSTANCE.compare(maxInclusive,other.getMaxInclusive())!=0)
+        return false;
+      if (minInclusive == null)
+      {
+        if (other.getMinInclusive() != null)
+          return false;
+      }
+      // We check that the scales are equal here!
+      else if (NumberComparator.INSTANCE.compare(minInclusive,other.getMinInclusive())!=0)
+        return false;
+    }
+    return true;
+    
     
   }
   
@@ -252,14 +302,14 @@ public class CharacterType extends PrimitiveType implements CharacterSetEncoding
     return new Long(characterSet.getMaxInclusive());
   }
 
-  public boolean validateRange(long value)
+  public boolean isValid(long value)
   {
     if (ordered==false)
       return false;
     return characterSet.isValid(value);
   }
 
-  public boolean validateRange(Number value)
+  public boolean validateChoice(Number value)
   {
     if (ordered==false)
       return false;
@@ -271,11 +321,85 @@ public class CharacterType extends PrimitiveType implements CharacterSetEncoding
     this.characterSet = charset;
   }
   
-  public String getGPDName()
+  public String toString()
   {
-    return "character";
+    String oid= getCharacterSet().oid;
+    if (oid != null)
+    {
+      oid = oid.replace('.', ' ');
+      return "character("+oid+")";
+    } else
+    {
+      return "character";
+    }
+  }
+
+  public NumberSelectItem[] getAllowedValuesAsSelectItems()
+  {
+    return characterSet.getSelectingItems();
+  }
+
+  /** This is not supported and will throw 
+   *  an <code>UnsupportedOperationException</code>.
+   *  
+   *  To get the range of allowed values, call
+   *  {@link #getAllowedValuesAsSelectItems()} or
+   *  {@link #getCharacterSet()}.
+   */
+  public Object[] getAllowedValues()
+  {
+    throw new UnsupportedOperationException();
+  }
+
+  /** This is not supported and will throw 
+   *  an <code>UnsupportedOperationException</code>.
+   *  
+   *  To set the range of allowed values, call
+   *  {@link #setCharacterSet(CharacterSet)}.
+   */
+  public void setAllowedValues(Object[] choices)
+  {
+    throw new UnsupportedOperationException();
+  }
+
+  public boolean isValid(Object value)
+  {
+    if (ordered==false)
+      return false;
+    if ((value instanceof Number)==false)
+    {
+      return false;
+    }
+    return characterSet.isValid(((Number)value).intValue());
+  }
+
+  public Class getAllowedValuesClass()
+  {
+    return Integer.class;
+  }
+
+  /** This is not supported and will throw 
+   *  an <code>UnsupportedOperationException</code>.
+   *  
+   *  To set the range of allowed values, call
+   *  {@link #setCharacterSet(CharacterSet)}.
+   */
+  public void setAllowedValuesAsSelectItems(NumberSelectItem[] values)
+  {
+    throw new UnsupportedOperationException();
+  }
+
+  /** This is not supported and will throw 
+   *  an <code>UnsupportedOperationException</code>.
+   *  
+   *  To set the range of allowed values, call
+   *  {@link #setCharacterSet(CharacterSet)}.
+   */
+  public void setAllowedValues(long[] values)
+  {
+    throw new UnsupportedOperationException();
   }
   
-
+  
 
 }

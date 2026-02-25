@@ -5,6 +5,7 @@ import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.Convertable;
 import com.optimasc.datatypes.aggregate.SequenceType;
+import com.optimasc.datatypes.facets.LengthFacet;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /** Datatype that represents an ITU-T/ISO Object identifier as
@@ -26,7 +27,7 @@ public class ObjectIdentifierType extends SequenceType implements Convertable
   
   public ObjectIdentifierType()
   {
-    super(1,Integer.MIN_VALUE, TYPE_REFERENCE,int[].class);
+    super(1,LengthFacet.UNBOUNDED, TYPE_REFERENCE,int[].class);
   }
   
   public ObjectIdentifierType(int[] choices[], TypeReference baseType)
@@ -42,14 +43,19 @@ public class ObjectIdentifierType extends SequenceType implements Convertable
   }
 
 
-  public boolean validateChoice(Object value)
+  public boolean isValid(Object value)
   {
-    return validateChoice((long[])value);
+    return isValid((long[])value);
   }
 
-  public String getGPDName()
+  public String toString()
   {
-    return "objectidentifier";
+    String lengthString = "";
+    if (lengthHelper!=null)
+    {
+      lengthString = " "+lengthHelper.toString();
+    }
+    return "objectidentifier"+lengthString;
   }
   
 

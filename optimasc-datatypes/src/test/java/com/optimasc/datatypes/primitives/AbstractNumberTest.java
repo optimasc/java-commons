@@ -4,7 +4,7 @@ import com.optimasc.datatypes.DatatypeTest;
 
 import java.math.BigInteger;
 
-import com.optimasc.datatypes.BoundedFacet;
+import com.optimasc.datatypes.BoundedProperty;
 
 import junit.framework.TestCase;
 
@@ -41,9 +41,9 @@ public abstract class AbstractNumberTest extends DatatypeTest
   {
     assertEquals(true,defaultInstance.isOrdered());
     assertEquals(true,defaultInstance.isNumeric());
-    if (defaultInstance instanceof BoundedFacet)
+    if (defaultInstance instanceof BoundedProperty)
     {
-      assertEquals(false,((BoundedFacet)defaultInstance).isBounded());
+      assertEquals(false,((BoundedProperty)defaultInstance).isBounded());
     }
   }
   

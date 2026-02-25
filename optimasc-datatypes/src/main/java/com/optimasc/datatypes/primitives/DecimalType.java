@@ -95,7 +95,7 @@ public class DecimalType extends AbstractNumberType
     return v.visit(this, arg);
   }
   
-  public String getGPDName()
+  public String toString()
   {
      return "scaled(10,"+Integer.toString(getScale())+")";
   }

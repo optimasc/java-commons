@@ -99,6 +99,16 @@ public class DefaultMemberObject implements MemberObject
   {
     return optional;
   }
+
+  public void setAccess(AccessKind access)
+  {
+    this.access = access;
+  }
+
+  public void setOptional(boolean optional)
+  {
+    this.optional = optional;
+  }
   
   
 

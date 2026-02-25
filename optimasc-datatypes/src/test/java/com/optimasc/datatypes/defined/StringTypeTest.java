@@ -8,6 +8,7 @@ import omg.org.astm.type.UnnamedTypeReference;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.DatatypeTest;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
+import com.optimasc.datatypes.facets.LengthFacet;
 import com.optimasc.datatypes.primitives.BooleanType;
 import com.optimasc.datatypes.primitives.CharacterType;
 import com.optimasc.lang.CharacterSet;
@@ -50,7 +51,7 @@ public class StringTypeTest extends DatatypeTest
     assertEquals(false,instance.isOrdered());
     assertEquals(false,instance.isNumeric());
     assertEquals(true,instance.isBounded());
-    assertEquals(null,instance.getChoices());
+    assertEquals(null,instance.getAllowedValues());
   }
   
   /*------------------ length/size functionality ----------------*/
@@ -59,7 +60,7 @@ public class StringTypeTest extends DatatypeTest
      StringType datatype = new StringType();
      
      assertEquals(0,datatype.getMinLength());
-     assertEquals(Integer.MIN_VALUE,datatype.getMaxLength());
+     assertEquals(LengthFacet.UNBOUNDED,datatype.getMaxLength());
      
    }
    
@@ -130,17 +131,17 @@ public class StringTypeTest extends DatatypeTest
      
      StringType datatype = new StringType(choices,charType);
      
-     assertEquals(false,datatype.validateChoice(""));
-     assertEquals(true,datatype.validateChoice("Choice1"));
-     assertEquals(true,datatype.validateChoice("Choice2"));
-     assertEquals(false,datatype.validateChoice("Choice3"));
+     assertEquals(false,datatype.isValid(""));
+     assertEquals(true,datatype.isValid("Choice1"));
+     assertEquals(true,datatype.isValid("Choice2"));
+     assertEquals(false,datatype.isValid("Choice3"));
 
      boolean success;
      
      success = false;
      try
      {
-       assertEquals(false,datatype.validateChoice(new Integer(5)));
+       assertEquals(false,datatype.isValid(new Integer(5)));
      } catch (IllegalArgumentException e)
      {
        success = true;

@@ -32,6 +32,11 @@ public class UnnamedTypeReference extends TypeReference
   {
     return v.visit(this, arg);
   }
+
+  public String toString()
+  {
+    return type.toString();
+  }
   
   
 }

@@ -8,19 +8,20 @@ import java.util.Vector;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.MemberObject;
-import com.optimasc.datatypes.PackedFacet;
+import com.optimasc.datatypes.PackedProperty;
 import com.optimasc.datatypes.primitives.BooleanType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
 /**
  * Abstract class used for aggregate types. Two Aggregate types are only
  * considered equal if the list of its members are all equal, including the
- * position in the member list.
+ * position in the member list. All members of an aggregate type must
+ * have a unique identifier. 
  * 
  * @author Carl Eric Codere
  *
  */
-public abstract class AggregateType extends Datatype implements PackedFacet
+public abstract class AggregateType extends Datatype implements PackedProperty
 {
   /**
    * Contains the members of this aggregate type. This contains implementations
@@ -61,7 +62,12 @@ public abstract class AggregateType extends Datatype implements PackedFacet
     super(false);
     this.ordered = true;
     this.packed = false;
-    this.members = Arrays.asList(members);
+    this.members = new ArrayList();
+    /* Do error checking */
+    for (int i=0; i < members.length; i++)
+    {
+      addMember(members[i]);
+    }
   }
 
   public void validate(Object value) throws IllegalArgumentException, DatatypeException
@@ -116,6 +122,13 @@ public abstract class AggregateType extends Datatype implements PackedFacet
 
   public void addMember(MemberObject member)
   {
+    String memberName = member.getIdentifier();
+    for (int i=0; i < members.size(); i++)
+    {
+       String otherName = ((MemberObject)members.get(i)).getIdentifier();
+       if (otherName.equals(memberName))
+          throw new IllegalArgumentException("An item with identifier '"+member.getIdentifier()+"' already exists.");
+    }
     members.add(member);
   }
 

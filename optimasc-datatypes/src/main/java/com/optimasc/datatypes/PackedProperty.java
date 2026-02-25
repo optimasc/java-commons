@@ -1,5 +1,7 @@
 package com.optimasc.datatypes;
 
+import com.optimasc.datatypes.facets.Facet;
+
 /** Represents a facet/attribute for aggregates 
  *  types indicating if the memory must be
  *  packed as closely as possible in memory 
@@ -9,7 +11,7 @@ package com.optimasc.datatypes;
  * @author Carl Eric Codere
  *
  */
-public interface PackedFacet
+public interface PackedProperty extends Facet
 {
     public boolean isPacked();
     public void setPacked(boolean packData);

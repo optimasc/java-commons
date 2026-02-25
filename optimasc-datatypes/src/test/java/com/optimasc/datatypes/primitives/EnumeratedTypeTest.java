@@ -54,14 +54,14 @@ public class EnumeratedTypeTest extends DatatypeTest
     EnumeratedType datatype = defaultInstance;
     
     // No choices set by default
-    assertEquals(0,datatype.getChoices().length);
+    assertEquals(0,datatype.getAllowedValues().length);
     assertEquals(null,datatype.getMinInclusive());
     assertEquals(null,datatype.getMaxInclusive());
-    assertEquals(null,datatype.getChoice(0));
-    assertEquals(-1,datatype.getEnumOrdinalValue("symbol"));
-    assertEquals(false,datatype.validateChoice("symbol"));
-    assertEquals(false,datatype.validateRange(12));
-    assertEquals(false,datatype.validateRange(100));
+    assertEquals(null,datatype.getEnumerator(0));
+    assertEquals(-1,datatype.getEnumeratorOrdinalValue("symbol"));
+    assertEquals(false,datatype.isValid("symbol"));
+    assertEquals(null,datatype.getEnumerator(12));
+    assertEquals(null,datatype.getEnumerator(100));
     
   }
   
@@ -74,23 +74,23 @@ public class EnumeratedTypeTest extends DatatypeTest
     // Create some different types of choices.
     Object[] dataTypeChoices = new String[]{"Choice1","Choice2"};
 
-    datatype.setChoices(dataTypeChoices);
-    assertEquals(2,datatype.getChoices().length);
+    datatype.setAllowedValues(dataTypeChoices);
+    assertEquals(2,datatype.getAllowedValues().length);
     assertEquals(0,datatype.getMinInclusive().intValue());
     assertEquals(1,datatype.getMaxInclusive().intValue());
-    assertEquals(1,datatype.getEnumOrdinalValue("Choice2"));
-    assertEquals(-1,datatype.getEnumOrdinalValue("Choice19"));
-    assertEquals("Choice1",datatype.getChoice(0));
-    assertEquals("Choice2",datatype.getChoice(1));
-    assertEquals(null,datatype.getChoice(2));
-    assertEquals(true,datatype.validateChoice("Choice2"));
-    assertEquals(false,datatype.validateChoice("ChoiceOut"));
-    assertEquals(true,datatype.validateRange(0));
-    assertEquals(true,datatype.validateRange(1));
-    assertEquals(false,datatype.validateRange(241));
-    assertEquals(false,datatype.validateRange(255));
+    assertEquals(1,datatype.getEnumeratorOrdinalValue("Choice2"));
+    assertEquals(-1,datatype.getEnumeratorOrdinalValue("Choice19"));
+    assertEquals("Choice1",datatype.getEnumerator(0));
+    assertEquals("Choice2",datatype.getEnumerator(1));
+    assertEquals(null,datatype.getEnumerator(2));
+    assertEquals(true,datatype.isValid("Choice2"));
+    assertEquals(false,datatype.isValid("ChoiceOut"));
+    assertEquals("Choice1",datatype.getEnumerator(0));
+    assertEquals("Choice2",datatype.getEnumerator(1));
+    assertEquals(null,datatype.getEnumerator(241));
+    assertEquals(null,datatype.getEnumerator(255));
     
-    assertTrue(Arrays.equals(dataTypeChoices,datatype.getChoices()));
+    assertTrue(Arrays.equals(dataTypeChoices,datatype.getAllowedValues()));
     assertFalse(datatype.equals(otherDatatype));
     
   }
@@ -112,41 +112,41 @@ public class EnumeratedTypeTest extends DatatypeTest
         new EnumerationElement("Other1",34),
     };
 
-    datatype.setChoices(dataTypeEnum);
-    assertEquals(3,datatype.getChoices().length);
+    datatype.setAllowedValues(dataTypeEnum);
+    assertEquals(3,datatype.getAllowedValues().length);
     assertEquals(1,datatype.getMinInclusive().intValue());
     assertEquals(55,datatype.getMaxInclusive().intValue());
-    assertEquals(2,datatype.getEnumOrdinalValue("Choice2"));
-    assertEquals(55,datatype.getEnumOrdinalValue("Choice3"));
-    assertEquals(-1,datatype.getEnumOrdinalValue("Choice19"));
-    assertEquals(new EnumerationElement("Choice1",1),datatype.getChoice(1));
-    assertEquals(new EnumerationElement("Choice3",55),datatype.getChoice(55));
-    assertEquals(null,datatype.getChoice(356));
-    assertEquals(true,datatype.validateChoice(new EnumerationElement("Choice2",2)));
-    assertEquals(false,datatype.validateChoice(new EnumerationElement("ChoiceOut",2)));
+    assertEquals(2,datatype.getEnumeratorOrdinalValue("Choice2"));
+    assertEquals(55,datatype.getEnumeratorOrdinalValue("Choice3"));
+    assertEquals(-1,datatype.getEnumeratorOrdinalValue("Choice19"));
+    assertEquals(new EnumerationElement("Choice1",1),datatype.getEnumerator(1));
+    assertEquals(new EnumerationElement("Choice3",55),datatype.getEnumerator(55));
+    assertEquals(null,datatype.getEnumerator(356));
+    assertEquals(true,datatype.isValid(new EnumerationElement("Choice2",2)));
+    assertEquals(false,datatype.isValid(new EnumerationElement("ChoiceOut",2)));
     
-    assertEquals(false,datatype.validateRange(0));
+    assertEquals(null,datatype.getEnumerator(0));
     
-    assertEquals(true,datatype.validateRange(1));
-    assertEquals(false,datatype.validateRange(241));
-    assertEquals(false,datatype.validateRange(255));
+    assertEquals(dataTypeEnum[0],datatype.getEnumerator(1));
+    assertEquals(null,datatype.getEnumerator(241));
+    assertEquals(null,datatype.getEnumerator(255));
     
-    assertTrue(Arrays.equals(dataTypeEnum,datatype.getChoices()));
+    assertTrue(Arrays.equals(dataTypeEnum,datatype.getAllowedValues()));
     assertFalse(datatype.equals(otherDatatype));
     
     
     assertEquals(1,datatype.getMinInclusive().intValue());
     assertEquals(55,datatype.getMaxInclusive().intValue());
-    assertEquals(55,datatype.getEnumOrdinalValue("Choice3"));
-    assertEquals(-1,datatype.getEnumOrdinalValue("Choice19"));
+    assertEquals(55,datatype.getEnumeratorOrdinalValue("Choice3"));
+    assertEquals(-1,datatype.getEnumeratorOrdinalValue("Choice19"));
 
-    assertTrue(Arrays.equals(dataTypeEnum,datatype.getChoices()));
+    assertTrue(Arrays.equals(dataTypeEnum,datatype.getAllowedValues()));
     assertFalse(datatype.equals(otherDatatype));
 
-    otherDatatype.setChoices(otherDataTypeEnum);
+    otherDatatype.setAllowedValues(otherDataTypeEnum);
     assertFalse(datatype.equals(otherDatatype));
 
-    otherDatatype.setChoices(dataTypeEnum);
+    otherDatatype.setAllowedValues(dataTypeEnum);
     assertTrue(datatype.equals(otherDatatype));
   }
   
@@ -167,7 +167,7 @@ public class EnumeratedTypeTest extends DatatypeTest
         element2,
         new EnumerationElement("Choice3",55)
     };
-    datatype.setChoices(dataTypeEnum);
+    datatype.setAllowedValues(dataTypeEnum);
     
     assertEquals(null,datatype.toValue(otherElement, checkResult));
     assertEquals(DatatypeException.ERROR_DATA_TYPE_MISMATCH,((DatatypeException)checkResult.error).getCode());
@@ -195,7 +195,7 @@ public class EnumeratedTypeTest extends DatatypeTest
     String otherElement = "ChoiceOut";
     Object[] dataTypeChoices = new String[]{"Choice1",element2};
     
-    datatype.setChoices(dataTypeChoices);
+    datatype.setAllowedValues(dataTypeChoices);
     
     assertEquals(null,datatype.toValue(otherElement, checkResult));
     assertEquals(DatatypeException.ERROR_DATA_TYPE_MISMATCH,((DatatypeException)checkResult.error).getCode());
@@ -238,7 +238,7 @@ public class EnumeratedTypeTest extends DatatypeTest
     assertFalse(datatype.equals(otherDatatype));
     assertTrue(otherDatatype.isRestrictionOf(datatype));
     
-    otherDatatype.setChoices(dataTypeEnum);
+    otherDatatype.setAllowedValues(dataTypeEnum);
     assertTrue(datatype.equals(otherDatatype));
     
   }

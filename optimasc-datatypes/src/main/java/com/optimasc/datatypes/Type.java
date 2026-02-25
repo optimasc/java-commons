@@ -5,6 +5,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import omg.org.astm.GASTMObject;
+
+import com.optimasc.datatypes.facets.CharacterSetEncodingFacet;
+import com.optimasc.datatypes.facets.EnumerationFacet;
+import com.optimasc.datatypes.facets.LengthFacet;
+import com.optimasc.datatypes.facets.NumberEnumerationFacet;
+import com.optimasc.datatypes.facets.PatternFacet;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.lang.NumberComparator;
 import com.optimasc.util.Pattern;
@@ -17,7 +24,7 @@ import com.optimasc.utils.UserConfiguration;
  * @author Carl Eric Codère
  *
  */
-public abstract class Type implements UserConfiguration
+public abstract class Type implements UserConfiguration, GASTMObject
 {
   /** User-specific data associated with this datatype */
   protected Map userData;
@@ -224,16 +231,16 @@ public abstract class Type implements UserConfiguration
       }
       
       
-      if (this instanceof NumberRangeFacet)
+      if (this instanceof NumberEnumerationFacet)
       {
-        NumberRangeFacet thisObject = (NumberRangeFacet) this;
-        if ((obj instanceof NumberRangeFacet) == false)
+        NumberEnumerationFacet thisObject = (NumberEnumerationFacet) this;
+        if ((obj instanceof NumberEnumerationFacet) == false)
         {
           return false;
         }
-        NumberRangeFacet otherObject = (NumberRangeFacet) obj;
+        NumberEnumerationFacet otherObject = (NumberEnumerationFacet) obj;
         
-        NumberRangeFacet other = (NumberRangeFacet) obj;
+        NumberEnumerationFacet other = (NumberEnumerationFacet) obj;
         Number maxInclusive = thisObject.getMaxInclusive();
         Number minInclusive = thisObject.getMinInclusive();
         if (maxInclusive == null)
@@ -262,8 +269,8 @@ public abstract class Type implements UserConfiguration
           return false;
         }
         EnumerationFacet otherObject = (EnumerationFacet) obj;
-        Object[] otherChoices = otherObject.getChoices();
-        Object[] thisChoices = thisObject.getChoices();
+        Object[] otherChoices = otherObject.getAllowedValues();
+        Object[] thisChoices = thisObject.getAllowedValues();
 
         if (otherChoices.length != thisChoices.length)
         {
@@ -279,16 +286,68 @@ public abstract class Type implements UserConfiguration
     return true;
   }
   
-  /** Return the ISO 11404 General Purpsoe Datatype name, or
-   *  <code>null</code> if this datatype has no name. This
-   *  should be implemented by derived class that have an
-   *  associated ISO 11404 official datatype name.
-   *  
-   * @return The datatype name.
-   */
-  public String getGPDName()
+
+  /** Outputs the definition using the syntax defined 
+   *  in ISO/IEC 11404.
+   * 
+   * Additionally, the following fields exist and
+   * may be present, each separated by a space from the others
+   * <ul>
+   *  <li><code>type</code> The name of the associated type, if any</li>.
+   *  <li><code>character</code> The character repertoire using an number representation of the object identifier, 
+   *    if any</li>.
+   *  <li><code>size</code> The size constraint, if any</li>.
+   *  <li><code>range</code> The range constraint, if any</li>.
+   * </ul>
+   */   
+  public String toString()
   {
-    return null;
+    String simpleClassName = getClass().getName().substring(getClass().getName().lastIndexOf('.') + 1);
+    String tag = "type:"+simpleClassName;
+    
+    if (this instanceof CharacterSetEncodingFacet)
+    {
+      CharacterSetEncodingFacet encoding = (CharacterSetEncodingFacet) this;
+      String oid= encoding.getCharacterSet().oid.replace('.', ' ');
+      
+      tag = tag + " character("+oid+")";
+      
+    }
+    
+    
+    if (this instanceof LengthFacet)
+    {
+      LengthFacet facet = (LengthFacet) this;
+      String minLengthStr = Long.toString(facet.getMinLength());
+      String maxLengthStr = Long.toString(facet.getMaxLength());
+      if (facet.getMinLength() == LengthFacet.UNBOUNDED)
+      {
+        minLengthStr = "*";
+      }
+      if (facet.getMaxLength() == LengthFacet.UNBOUNDED)
+      {
+        maxLengthStr = "*";
+      }
+      if (facet.getMinLength()==facet.getMaxLength())
+      {
+        tag = tag + " size("+minLengthStr+")";
+      } else
+        tag = tag + " size("+minLengthStr + ".."+maxLengthStr+")";
+    }
+    
+    
+    if (this instanceof NumberEnumerationFacet)
+    {
+      NumberEnumerationFacet facet = (NumberEnumerationFacet) this;
+      Number minValue = facet.getMinInclusive();
+      String minValueStr = minValue.toString();
+      Number maxValue = facet.getMaxInclusive();
+      String maxValueStr = maxValue.toString();
+      
+      tag = tag + " range("+minValueStr + ".."+maxValueStr+")";
+    }
+    
+    return tag;
   }
 
 

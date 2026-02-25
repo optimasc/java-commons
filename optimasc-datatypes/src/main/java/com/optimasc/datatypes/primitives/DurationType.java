@@ -9,26 +9,24 @@ import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.NumberEnumerationFacet;
 import com.optimasc.datatypes.NumberEnumerationHelper;
-import com.optimasc.datatypes.IntegerEnumerationFacet;
-import com.optimasc.datatypes.IntegerEnumerationHelper;
-import com.optimasc.datatypes.NumberRangeFacet;
-import com.optimasc.datatypes.NumberRangeHelper;
-import com.optimasc.datatypes.OrderedFacet;
-import com.optimasc.datatypes.TimeUnitFacet;
+import com.optimasc.datatypes.OrderedProperty;
 import com.optimasc.datatypes.Type;
 import com.optimasc.datatypes.TypeUtilities;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
+import com.optimasc.datatypes.facets.NumberEnumerationFacet;
+import com.optimasc.datatypes.facets.TimeUnitFacet;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.date.DateTime;
 import com.optimasc.date.DateTimeFormat;
 import com.optimasc.lang.Duration;
 import com.optimasc.lang.NumberComparator;
+import com.optimasc.lang.NumberSelectItem;
 
 /** * Datatype that represents elapsed time. To avoid
  *    any issues with time ranges because of months
- *    and years, where the number of month varies. 
+ *    and years, where the number of month varies, only
+ *    the day, hour, minutes, and/or seconds fields are allowed. 
  *    The range of values allowed for duration is the following in ISO
  *    8601 notation: <code>P[n][n]DT[n]H[n]M[n]S</code> or <code>P[n]W</code>.
  *
@@ -46,10 +44,9 @@ import com.optimasc.lang.NumberComparator;
  * @author Carl Eric Codere
  *
  */
-public class DurationType extends PrimitiveType implements OrderedFacet, NumberRangeFacet, TimeUnitFacet, IntegerEnumerationFacet
+public class DurationType extends PrimitiveType implements OrderedProperty, TimeUnitFacet, NumberEnumerationFacet
 {
-  protected NumberRangeHelper rangeHelper;
-  protected IntegerEnumerationHelper enumHelper;
+  protected NumberEnumerationHelper enumHelper;
   
   protected int timeUnit;
   
@@ -60,8 +57,7 @@ public class DurationType extends PrimitiveType implements OrderedFacet, NumberR
   public DurationType()
   {
     super(true);
-    rangeHelper = new NumberRangeHelper(new Long(0),null);
-    enumHelper = new IntegerEnumerationHelper(false);
+    enumHelper = new NumberEnumerationHelper(new Long(0),null);
     timeUnit = DateTimeFormat.TimeUnit.MILLISECONDS;
   }
 
@@ -75,8 +71,7 @@ public class DurationType extends PrimitiveType implements OrderedFacet, NumberR
   {
     super(true);
     DateTimeFormat.TimeUnit.validate(unit);
-    rangeHelper = new NumberRangeHelper(new Long(0),null);
-    enumHelper = new IntegerEnumerationHelper(false);
+    enumHelper = new NumberEnumerationHelper(new Long(0),null);
     timeUnit = unit;
   }
   
@@ -92,10 +87,8 @@ public class DurationType extends PrimitiveType implements OrderedFacet, NumberR
   {
     super(true);
     DateTimeFormat.TimeUnit.validate(unit);
-    enumHelper = new IntegerEnumerationHelper(false);
-    enumHelper.setChoices(choices);
-    long[] sortedChoices = enumHelper.getChoicesAsInteger();
-    rangeHelper = new NumberRangeHelper(new Long(sortedChoices[0]),new Long(sortedChoices[sortedChoices.length-1]));
+    enumHelper = new NumberEnumerationHelper();
+    setAllowedValues(choices);
     timeUnit = unit;
   }
   
@@ -112,8 +105,7 @@ public class DurationType extends PrimitiveType implements OrderedFacet, NumberR
   {
     super(true);
     DateTimeFormat.TimeUnit.validate(unit);
-    enumHelper = new IntegerEnumerationHelper(false);
-    rangeHelper = new NumberRangeHelper(new Long(0),new Long(maxValue));
+    enumHelper = new NumberEnumerationHelper(new Long(0),new Long(maxValue));
     timeUnit = unit;
   }
   
@@ -150,11 +142,6 @@ public class DurationType extends PrimitiveType implements OrderedFacet, NumberR
       }
       DurationType otherObj = (DurationType) obj;
       if (otherObj.timeUnit!=timeUnit)
-      {
-        return false;
-      }
-      
-      if (otherObj.rangeHelper.equals(rangeHelper)==false)
       {
         return false;
       }
@@ -220,42 +207,51 @@ public class DurationType extends PrimitiveType implements OrderedFacet, NumberR
     {
       bigDecimal = BigDecimal.valueOf(ordinalValue.longValue());
     }
-    if (validateChoice(bigDecimal.longValue())==false)
+    
+    if (isWithinRange(bigDecimal)==false)
     {
-      conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Value is not one of the allowed values.");
+      bigDecimal = NumberComparator.toBigDecimal(getBoundedValue(bigDecimal));
+      conversionResult.narrowingConversion = true;
+      conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_NUMERIC_OUT_OF_RANGE,"Number is outside of valide range");
+      return new Long(bigDecimal.longValue());
+    }
+    
+
+    if (isValid(bigDecimal)==false)
+    {
+      conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Number is not one of the allowed values.");
       return null;
     }
-      if (validateRange(bigDecimal)==false)
-      {
-        bigDecimal = getBoundedValue(bigDecimal);
-        conversionResult.narrowingConversion = true;
-        conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_NUMERIC_OUT_OF_RANGE,"Number is outside of valide range");
-      }
     return new Long(bigDecimal.longValue());
   }
 
   public Object toValue(long ordinalValue, TypeCheckResult conversionResult)
   {
-    if (validateChoice(ordinalValue)==false)
-    {
-      conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Value is not one of the allowed values.");
-      return null;
-    }
-    if (validateRange(ordinalValue)==false)
+    if (isWithinRange(new Long(ordinalValue))==false)
     {
       Number bigValue = getBoundedValue(BigDecimal.valueOf(ordinalValue));
       conversionResult.narrowingConversion = true;
       conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_NUMERIC_OUT_OF_RANGE,"Number is outside of valide range");
       return new Long(bigValue.longValue());
     }
+    if (isValid(ordinalValue)==false)
+    {
+      conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Value is not one of the allowed values.");
+      return null;
+    }
     return new Long(ordinalValue);
   }
 
   public boolean isBounded()
   {
-    return rangeHelper.isBounded();
+    return enumHelper.isBounded();
   }
 
+  
+  public NumberSelectItem[] getAllowedValuesAsSelectItems()
+  {
+    return enumHelper.getAllowedValuesAsSelectItems();
+  }
   
   /** {@inheritDoc}
    * 
@@ -288,13 +284,13 @@ public class DurationType extends PrimitiveType implements OrderedFacet, NumberR
       return true;
     }
     
-    boolean restriction = rangeHelper.isRestrictionOf(otherType);
+    boolean restriction = enumHelper.isRestrictionOf(otherType);
     if (restriction == true)
       return true;
     
     
-    long[] choices = enumHelper.getChoicesAsInteger();
-    long[] otherChoices = otherType.getChoices();
+    Object[] choices = enumHelper.getAllowedValuesAsSelectItems();
+    Object[] otherChoices = otherType.getAllowedValuesAsSelectItems();
     if ((choices!=null) && (otherChoices==null))
     {
       return true;
@@ -315,22 +311,12 @@ public class DurationType extends PrimitiveType implements OrderedFacet, NumberR
 
   public Number getMinInclusive()
   {
-    return rangeHelper.getMinInclusive();
+    return enumHelper.getMinInclusive();
   }
 
   public Number getMaxInclusive()
   {
-    return rangeHelper.getMaxInclusive();
-  }
-
-  public boolean validateRange(long value)
-  {
-    return rangeHelper.validateRange(value);
-  }
-
-  public boolean validateRange(Number value)
-  {
-    return rangeHelper.validateRange(value);
+    return enumHelper.getMaxInclusive();
   }
 
   public int getAccuracy()
@@ -338,21 +324,17 @@ public class DurationType extends PrimitiveType implements OrderedFacet, NumberR
     return timeUnit;
   }
 
-  public boolean validateChoice(long value)
+  public boolean isValid(long value)
   {
-    return enumHelper.validateChoice(value);
+    return enumHelper.isValid(value);
   }
+  
   
   public boolean isNumeric()
   {
     return true;
   }
 
-  public long[] getChoices()
-  {
-    return enumHelper.getChoicesAsInteger();
-  }
-  
   /** If the value is not within the specified range,
    *  this method sets the value to the specified bounds
    * 
@@ -382,7 +364,7 @@ public class DurationType extends PrimitiveType implements OrderedFacet, NumberR
   }
 
   
-  public String getGPDName()
+  public String toString()
   {
     switch (this.timeUnit)
     {
@@ -400,8 +382,85 @@ public class DurationType extends PrimitiveType implements OrderedFacet, NumberR
       return null;
     }
   }
+
+  public Object[] getAllowedValues()
+  {
+    return enumHelper.getAllowedValues();
+  }
+
+  public void setAllowedValues(Object[] choices)
+  {
+    Class allowedValueClass = enumHelper.getAllowedValuesClass();
+    for (int i=0; i < choices.length; i++)
+    {
+      if (allowedValueClass.isInstance(choices[i])==false)
+      {
+        throw new IllegalArgumentException("Enumeration elements should be of type '"+ allowedValueClass.getName()+"'");
+      }
+      if (NumberComparator.getScale((Number)choices[i])>0)
+      {
+        throw new IllegalArgumentException("Scale should be zero for integer choices.");
+      }
+      if (NumberComparator.INSTANCE.compare(BigInteger.ZERO, (Number)choices[i])==-1)
+      {
+        throw new IllegalArgumentException("Number must be a natural number (A non negative number).");
+      }
+      
+    }
+    enumHelper.setAllowedValues(choices);
+  }
+
+  public boolean isValid(Object value)
+  {
+    return enumHelper.isValid(value);
+  }
+
+  public Class getAllowedValuesClass()
+  {
+    return enumHelper.getAllowedValuesClass();
+  }
+
+  public void setAllowedValuesAsSelectItems(NumberSelectItem[] values)
+  {
+    enumHelper.setAllowedValuesAsSelectItems(values);
+  }
+
+  public void setAllowedValues(long[] values)
+  {
+    for (int i=0; i < values.length; i++)
+    {
+      if ((values[i])<0)
+      {
+        throw new IllegalArgumentException("Number must be a natural number (A non negative number).");
+      }
+      
+    }
+    enumHelper.setAllowedValues(values);
+  }
   
   
+  public boolean isWithinRange(Number value)
+  {
+    Number minInclusive = getMinInclusive();
+    Number maxInclusive = getMaxInclusive();
+    
+    if (minInclusive != null)
+    {
+      if (NumberComparator.INSTANCE.compare(value, minInclusive)==-1)
+      {
+        return false;
+      }
+    }
+
+    if (maxInclusive != null)
+    {
+      if (NumberComparator.INSTANCE.compare(value, maxInclusive)==1)
+      {
+        return false;
+      }
+    }
+    return true;
+  }
   
 
   

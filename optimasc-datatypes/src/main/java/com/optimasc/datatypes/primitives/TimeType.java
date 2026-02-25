@@ -11,17 +11,16 @@ import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.DateTimeEnumerationFacet;
 import com.optimasc.datatypes.DateTimeEnumerationHelper;
-import com.optimasc.datatypes.EnumerationFacet;
 import com.optimasc.datatypes.EnumerationHelper;
-import com.optimasc.datatypes.NumberRangeHelper;
-import com.optimasc.datatypes.OrderedFacet;
+import com.optimasc.datatypes.OrderedProperty;
 import com.optimasc.datatypes.Restriction;
-import com.optimasc.datatypes.TimeUnitFacet;
-import com.optimasc.datatypes.TimeFacet;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.defined.UnsignedByteType;
+import com.optimasc.datatypes.facets.DateTimeEnumerationFacet;
+import com.optimasc.datatypes.facets.EnumerationFacet;
+import com.optimasc.datatypes.facets.TimeFacet;
+import com.optimasc.datatypes.facets.TimeUnitFacet;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.date.DateConverter;
 import com.optimasc.date.DateTime;
@@ -30,6 +29,8 @@ import com.optimasc.date.DateTime.Time;
 import com.optimasc.date.DateTimeFormat.TimeUnit;
 import com.optimasc.date.TimeComparator;
 import com.optimasc.lang.GregorianDatetimeCalendar;
+import com.optimasc.lang.NumberSelectItem;
+import com.optimasc.lang.NumberedSelectItems;
 
 /** Datatype that represents an instant of time that recurs every day. 
  *  The value space of time is the space of time of day value in 24-hour
@@ -39,6 +40,7 @@ import com.optimasc.lang.GregorianDatetimeCalendar;
  *  <ul>
  *   <li><code>time</code> XMLSchema built-in datatype</li>
  *   <li><code>TIME</code> in SQL2003</li>
+ *   <li><code>TIME-OF-DAY</code> ASN.1 datatype</li>
  *  </ul>
  *  
  *  <p>A time of day also has a unit base, such as seconds or 
@@ -53,9 +55,8 @@ import com.optimasc.lang.GregorianDatetimeCalendar;
  * @author Carl Eric Codere
  *
  */
-public class TimeType extends PrimitiveType implements TimeFacet, OrderedFacet, DateTimeEnumerationFacet
+public class TimeType extends PrimitiveType implements TimeFacet, OrderedProperty, DateTimeEnumerationFacet
 {
-  
   /* TIME : (0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])([\.,]\d+)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)? */
   protected static final String REGEX_PATTERN = "(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(?:[\\.,](\\d+))?([zZ]|([\\+-])([01]\\d|2[0-3]):?([0-5]\\d)?)?";
   
@@ -106,15 +107,15 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedFacet, 
   protected int accuracy;
   protected boolean localTime;
   protected DateTimeEnumerationHelper enumHelper;
-  protected NumberRangeHelper rangeHelper;
+  protected NumberedSelectItems.NumberSelectRange rangeHelper;
   
-  protected static final NumberRangeHelper milliRangeHelper = new NumberRangeHelper(BigDecimal.valueOf(MIN_VALUE_MILLISECONDS),
+  protected static final NumberedSelectItems.NumberSelectRange milliRangeHelper = new NumberedSelectItems.NumberSelectRange(BigDecimal.valueOf(MIN_VALUE_MILLISECONDS),
       BigDecimal.valueOf(MAX_VALUE_MILLISECONDS));
   
-  protected static final NumberRangeHelper secondRangeHelper = new NumberRangeHelper(BigDecimal.valueOf(MIN_VALUE_SECONDS),
+  protected static final NumberedSelectItems.NumberSelectRange secondRangeHelper = new NumberedSelectItems.NumberSelectRange(BigDecimal.valueOf(MIN_VALUE_SECONDS),
       BigDecimal.valueOf(MAX_VALUE_SECONDS));
   
-  protected static final NumberRangeHelper minuteRangeHelper =  new NumberRangeHelper(BigDecimal.valueOf(MIN_VALUE_MINUTES),
+  protected static final NumberedSelectItems.NumberSelectRange minuteRangeHelper =  new NumberedSelectItems.NumberSelectRange(BigDecimal.valueOf(MIN_VALUE_MINUTES),
       BigDecimal.valueOf(MAX_VALUE_MINUTES));
 
   
@@ -143,10 +144,10 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedFacet, 
     validateAccuracy(accuracy);
     this.accuracy = accuracy;
     this.localTime = localTime;
-    this.enumHelper = new DateTimeEnumerationHelper(GregorianCalendar.class,new TimeComparator(accuracy,localTime));
+    this.enumHelper = new DateTimeEnumerationHelper(new TimeComparator(accuracy,localTime));
     if (choices != null)
     {
-      enumHelper.setChoices(choices);
+      enumHelper.setAllowedValues(choices);
     }
   }
   
@@ -284,7 +285,7 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedFacet, 
           cal.set(Calendar.SECOND, inputCalendar.get(Calendar.SECOND));
           cal.set(Calendar.MILLISECOND, inputCalendar.get(Calendar.MILLISECOND));
         }
-        if (validateChoice(cal)==false)
+        if (isValid(cal)==false)
         {
           conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Value is not one of the values allowed by enumeration.");
           return null;
@@ -325,7 +326,7 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedFacet, 
           cal.set(Calendar.SECOND, t.second);
           cal.set(Calendar.MILLISECOND, t.millisecond);
         }
-        if (validateChoice(cal)==false)
+        if (isValid(cal)==false)
         {
           conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Value is not one of the values allowed by enumeration.");
           return null;
@@ -358,7 +359,7 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedFacet, 
       Time timeResult = null;
       if (accuracy == DateTime.TimeAccuracy.MINUTE)
       {
-        if (validateRange(ordinalValue)==false)
+        if (validateChoice(ordinalValue)==false)
         {
           conversionResult.error = new DatatypeException(
               DatatypeException.ERROR_DATA_DATETIME_OVERFLOW,
@@ -372,7 +373,7 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedFacet, 
       } else
       if (accuracy == DateTime.TimeAccuracy.SECOND)
       {
-        if (validateRange(ordinalValue)==false)
+        if (validateChoice(ordinalValue)==false)
         {
           conversionResult.error = new DatatypeException(
               DatatypeException.ERROR_DATA_DATETIME_OVERFLOW,
@@ -386,7 +387,7 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedFacet, 
       } else
       if (accuracy == DateTime.TimeAccuracy.MILLISECOND)
       {
-        if (validateRange(ordinalValue)==false)
+        if (validateChoice(ordinalValue)==false)
         {
           conversionResult.error = new DatatypeException(
               DatatypeException.ERROR_DATA_DATETIME_OVERFLOW,
@@ -415,7 +416,7 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedFacet, 
       {
         cal.set(Calendar.MILLISECOND, timeResult.millisecond);
       }
-      if (validateChoice(cal)==false)
+      if (isValid(cal)==false)
       {
         conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"The value is not within the list of allowed value as defined by"
             + "the enumration.");
@@ -448,15 +449,23 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedFacet, 
      }
    }
 
-  public Calendar[] getChoices()
+  public Calendar[] getAllowedValuesAsCalendars()
   {
-    return enumHelper.getChoices();
+    return enumHelper.getAllowedValuesAsCalendars();
   }
 
-  public boolean validateChoice(Calendar value)
+  public boolean isValid(Object value)
   {
-    return enumHelper.validateChoice(value);
+    return enumHelper.isValid(value);
   }
+  
+  
+  public boolean isValid(long value)
+  {
+    TypeCheckResult result = new TypeCheckResult();
+    return enumHelper.isValid(toValue(value,result));
+  }
+  
 
   /** {@inheritDoc}
    * 
@@ -487,8 +496,8 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedFacet, 
       return true;
     }
     
-    Object[] choices = enumHelper.getChoices();
-    Object[] otherChoices = otherTimeType.getChoices();
+    Object[] choices = enumHelper.getAllowedValuesAsCalendars();
+    Object[] otherChoices = otherTimeType.getAllowedValuesAsCalendars();
     if ((choices!=null) && (otherChoices==null))
     {
       return true;
@@ -507,24 +516,15 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedFacet, 
     return false;
   }
 
-  public Number getMinInclusive()
+  /** Returns if the ordinal value is within the 
+   *  allowed range for this specific accuracy.
+   * 
+   * @param value [in] The number of units since midnight.
+   * @return <code>true</code> if the value is valud, otherwise <code>false</code>.
+   */
+  protected boolean validateChoice(long value)
   {
-    return rangeHelper.getMinInclusive();
-  }
-
-  public Number getMaxInclusive()
-  {
-    return rangeHelper.getMaxInclusive();
-  }
-
-  public boolean validateRange(long value)
-  {
-    return rangeHelper.validateRange(value);
-  }
-
-  public boolean validateRange(Number value)
-  {
-    return rangeHelper.validateRange(value);
+    return NumberedSelectItems.validateValue(new NumberSelectItem[]{rangeHelper}, new Long(value));
   }
 
   public boolean isBounded()
@@ -544,9 +544,31 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedFacet, 
     this.accuracy = accuracy;
   }
 
-  public void setChoices(Calendar[] choices)
+  public void setAllowedValues(Object[] choices)
   {
-    enumHelper.setChoices(choices);
+    enumHelper.setAllowedValues(choices);
   }
+
+  public Calendar getMinInclusive()
+  {
+    return enumHelper.getMinInclusive();
+  }
+
+  public Calendar getMaxInclusive()
+  {
+    return enumHelper.getMaxInclusive();
+  }
+
+  public Object[] getAllowedValues()
+  {
+    return enumHelper.getAllowedValues();
+  }
+
+  public Class getAllowedValuesClass()
+  {
+    return enumHelper.getAllowedValuesClass();
+  }
+  
+  
 
 }

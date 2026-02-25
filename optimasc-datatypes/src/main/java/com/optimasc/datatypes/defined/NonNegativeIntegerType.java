@@ -44,5 +44,13 @@ public class NonNegativeIntegerType extends IntegralType
   {
     super(BigInteger.ZERO,maxInclusive);
   }
+
+
+  public String toString()
+  {
+    return "naturalnumber";
+  }
+  
+  
   
 }

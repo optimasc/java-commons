@@ -112,9 +112,16 @@ public class RealType extends AbstractNumberType
       return new Double(ordinalValue);
     }
 
-    public String getGPDName()
+    public String toString()
     {
-      return "real";
+      if (enumHelper == null)
+      {
+        return "real";
+      }
+      String constraint = enumHelper.toString();
+      if (constraint.length()==0)
+         return "real";
+      return "real "+constraint;
     }  
     
 

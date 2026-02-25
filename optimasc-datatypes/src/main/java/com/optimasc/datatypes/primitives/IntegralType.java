@@ -8,17 +8,16 @@ package com.optimasc.datatypes.primitives;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import omg.org.astm.type.NamedTypeReference;
-import omg.org.astm.type.TypeReference;
-import omg.org.astm.type.UnnamedTypeReference;
-
-import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.NumberRangeHelper;
+import com.optimasc.datatypes.NumberEnumerationHelper;
 import com.optimasc.datatypes.TypeUtilities;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.lang.NumberComparator;
+import com.optimasc.lang.NumberSelectItem;
+import com.optimasc.lang.NumberedSelectItems;
+import com.optimasc.lang.NumberedSelectItems.NumberSelectRange;
+import com.optimasc.lang.NumberedSelectItems.NumberSelectValue;
 
 /**
  * Datatype that represents an integral numeric value. For
@@ -54,7 +53,7 @@ public class IntegralType extends DecimalType
   public IntegralType(int minInclusive, int maxInclusive)
   {
     super(0);
-    rangeHelper = new NumberRangeHelper(BigInteger.valueOf(minInclusive),
+    enumHelper = new NumberEnumerationHelper(BigInteger.valueOf(minInclusive),
         BigInteger.valueOf(maxInclusive));
   }
   
@@ -62,7 +61,7 @@ public class IntegralType extends DecimalType
   public IntegralType(BigInteger minInclusive, BigInteger maxInclusive)
   {
     super(0);
-    rangeHelper = new NumberRangeHelper(minInclusive,
+    enumHelper = new NumberEnumerationHelper(minInclusive,
         maxInclusive);
   }
   
@@ -111,17 +110,61 @@ public class IntegralType extends DecimalType
    *    value does not have a scale of zero.
    * 
    */
-  public void setChoices(Number[] choices)
+  public void setAllowedValues(Object[] choices)
   {
+    enumHelper = new NumberEnumerationHelper();
+    Class allowedValueClass = enumHelper.getAllowedValuesClass();
     for (int i=0; i < choices.length; i++)
     {
-      if (NumberComparator.getScale(choices[i])>0)
+      if (allowedValueClass.isInstance(choices[i])==false)
+      {
+        throw new IllegalArgumentException("Enumeration elements should be of type '"+ allowedValueClass.getName()+"'");
+      }
+      if (NumberComparator.getScale((Number)choices[i])>0)
       {
         throw new IllegalArgumentException("Scale should be zero for integer choices.");
       }
     }
-    enumHelper.setChoices(choices);
+    enumHelper.setAllowedValues(choices);
   }
+  
+  
+  public void setAllowedValuesAsSelectItems(NumberSelectItem[] choices)
+  {
+    for (int i=0; i < choices.length; i++)
+    {
+      if (choices[i] instanceof NumberedSelectItems.NumberSelectValue)
+      {
+        NumberedSelectItems.NumberSelectValue v = (NumberSelectValue) choices[i];
+        if (NumberComparator.getScale(v.getValue())>0)
+        {
+          throw new IllegalArgumentException("Scale should be zero for integer choices.");
+        }
+      } else
+      if (choices[i] instanceof NumberedSelectItems.NumberSelectRange)
+      {
+        NumberedSelectItems.NumberSelectRange r = (NumberSelectRange) choices[i];
+        if ((NumberComparator.getScale(r.getMinInclusive())>0) || (NumberComparator.getScale(r.getMaxInclusive())>0))
+        {
+          throw new IllegalArgumentException("Scale should be zero for integer choices.");
+        }
+      }
+      else
+      if (choices[i] instanceof NumberedSelectItems.NumberAnyValue)
+      {
+        
+      } else
+      {
+        throw new IllegalArgumentException("Illegal select item instance - internal error.");
+      }
+      if (NumberComparator.getScale((Number)choices[i])>0)
+      {
+        throw new IllegalArgumentException("Scale should be zero for integer choices.");
+      }
+    }
+    enumHelper.setAllowedValues(choices);
+  }
+  
   
   
   protected Object toValueNumber(Number ordinalValue, TypeCheckResult conversionResult)
@@ -149,9 +192,16 @@ public class IntegralType extends DecimalType
     return BigInteger.valueOf(ordinalValue);
   }
 
-  public String getGPDName()
+  public String toString()
   {
-    return "integer";
+    if (enumHelper == null)
+    {
+      return "integer";
+    }
+    String constraint = enumHelper.toString();
+    if (constraint.length()==0)
+       return "integer";
+    return "integer "+constraint;
   }  
   
 

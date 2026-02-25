@@ -5,19 +5,15 @@
 
 package com.optimasc.datatypes.primitives;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-
-import omg.org.astm.type.NamedTypeReference;
-import omg.org.astm.type.TypeReference;
 import omg.org.astm.type.UnnamedTypeReference;
 
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.NumberRangeHelper;
-import com.optimasc.datatypes.OrderedFacet;
+import com.optimasc.datatypes.NumberEnumerationHelper;
+import com.optimasc.datatypes.OrderedProperty;
 import com.optimasc.datatypes.TypeUtilities;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
+import com.optimasc.datatypes.facets.NumberEnumerationFacet;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.lang.NumberComparator;
 
@@ -38,7 +34,7 @@ import com.optimasc.lang.NumberComparator;
  *
  * @author Carl Eric Codère
  */
-public class BooleanType extends PrimitiveType implements OrderedFacet
+public class BooleanType extends PrimitiveType implements OrderedProperty
 {
   /** Type instance which is fully compatible with XMLSchema and  ISO/IEC 11404,
    *  where the type is <em>not</em> considered ordered.
@@ -62,7 +58,7 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
    */
   public static final UnnamedTypeReference DEFAULT_ORDERED_TYPE_REFERENCE = new UnnamedTypeReference(DEFAULT_ORDERED_INSTANCE);
   
-  protected NumberRangeHelper rangeHelper;
+  protected NumberEnumerationFacet allowedItemHelper;
   
     /** Constructs a new boolean type definition  
      * 
@@ -72,7 +68,7 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
     protected BooleanType(boolean ordered)
     {
         super(ordered);
-        rangeHelper = new NumberRangeHelper(new Integer(0),new Integer(1));
+        allowedItemHelper = new NumberEnumerationHelper(new Integer(0),new Integer(1));
     }
     
     
@@ -208,7 +204,7 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
       {
         return null; 
       }
-      return rangeHelper.getMinInclusive();
+      return allowedItemHelper.getMinInclusive();
     }
 
 
@@ -218,29 +214,7 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
       {
         return null; 
       }
-      return rangeHelper.getMaxInclusive();
-    }
-
-
-    public boolean validateRange(long value)
-    {
-      // Throw and exception when value is not ordered.
-      if (ordered ==false)
-      {
-        return false; 
-      }
-      return rangeHelper.validateRange(value);
-    }
-
-
-    public boolean validateRange(Number value)
-    {
-      // Throw and exception when value is not ordered.
-      if (ordered ==false)
-      {
-        return false; 
-      }
-      return rangeHelper.validateRange(value);
+      return allowedItemHelper.getMaxInclusive();
     }
 
 
@@ -251,7 +225,7 @@ public class BooleanType extends PrimitiveType implements OrderedFacet
       return true;
     }
     
-    public String getGPDName()
+    public String toString()
     {
       return "boolean";
     }

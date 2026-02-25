@@ -14,6 +14,7 @@ import com.optimasc.date.DateTime;
 import com.optimasc.lang.GregorianDateTime;
 
 /** The date type represents a date in the proleptic Gregorian Calender.
+ *  That is a date containing a year, month and day.
  * 
  *  This is equivalent to the following datatypes:
  *  <ul>

@@ -9,7 +9,7 @@ public interface Restriction
    *  allowed length value. See the XSD Schema restriction
    *  element for more information. 
    * 
-   * @param value [in] The tyoe to verify against
+   * @param value [in] The type to verify against
    * @return <code>true</code> if this type is
    *   a restriction of the specified type.
    * @throws IllegalArgumentException if the 

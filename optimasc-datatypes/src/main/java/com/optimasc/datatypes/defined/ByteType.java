@@ -39,4 +39,5 @@ public class ByteType extends ShortType
         return v.visit(this,arg);
     }
 
+
 }

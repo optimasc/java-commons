@@ -6,13 +6,13 @@ import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.TimeZone;
 
-import com.optimasc.datatypes.BoundedFacet;
+import com.optimasc.datatypes.BoundedProperty;
 import com.optimasc.datatypes.Datatype;
 import com.optimasc.datatypes.DatatypeException;
-import com.optimasc.datatypes.DateTimeEnumerationFacet;
 import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.defined.BinaryType;
+import com.optimasc.datatypes.facets.DateTimeEnumerationFacet;
 import com.optimasc.date.DateTime;
 import com.optimasc.lang.CharacterSet;
 import com.optimasc.lang.GregorianDatetimeCalendar;
@@ -54,8 +54,8 @@ public class TimeTypeTest extends DatatypeTest
     TimeType instance = defaultInstance;
     assertEquals(true,instance.isOrdered());
     assertEquals(false,instance.isNumeric());
-    assertEquals(true,instance.isBounded());
-    assertEquals(null,instance.getChoices());
+    assertEquals(false,instance.isBounded());
+    assertEquals(null,instance.getAllowedValuesAsCalendars());
   }
 
   /*------------------ Accuracy/Timezone functionality ----------------*/
@@ -658,7 +658,7 @@ public class TimeTypeTest extends DatatypeTest
     TimeType timeType = defaultInstance;
     
     DateTimeEnumerationFacet enumFacet = (DateTimeEnumerationFacet)timeType; 
-    assertEquals(null,enumFacet.getChoices());
+    assertEquals(null,enumFacet.getAllowedValuesAsCalendars());
     
     Calendar calendarValue = Calendar.getInstance();
     calendarValue.set(Calendar.HOUR_OF_DAY,12);
@@ -667,7 +667,7 @@ public class TimeTypeTest extends DatatypeTest
     calendarValue.set(Calendar.MILLISECOND,0);
     
     
-    assertEquals(true,enumFacet.validateChoice(calendarValue));
+    assertEquals(true,enumFacet.isValid(calendarValue));
     
   }
   
@@ -683,24 +683,24 @@ public class TimeTypeTest extends DatatypeTest
     
     TimeType timeType = new TimeType(DateTime.TimeAccuracy.MINUTE,true,choices);
     DateTimeEnumerationFacet enumFacet = (DateTimeEnumerationFacet)timeType; 
-    assertNotNull(enumFacet.getChoices());
+    assertNotNull(enumFacet.getAllowedValuesAsCalendars());
     
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampRataDieEpoch));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampUNIXEpoch));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampJulianDayEpoch ));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampRataDieEpoch));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampUNIXEpoch));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampJulianDayEpoch ));
     
     
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampSputnik));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampEndWWII));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampMoon));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampSputnik));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampEndWWII));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampMoon));
     
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timestampMinuteMoon));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timestampMinuteSputnik));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timestampMinuteMoon));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timestampMinuteSputnik));
 
     // This is ALSO valid ,since these are considered local values, since timezones
     // are not compared.
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeSecondsMoonUTC));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeSecondsSputnikUTC));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeSecondsMoonUTC));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeSecondsSputnikUTC));
     
   }
   
@@ -716,25 +716,25 @@ public class TimeTypeTest extends DatatypeTest
     
     TimeType timeType = new TimeType(DateTime.TimeAccuracy.SECOND,true,choices);
     DateTimeEnumerationFacet enumFacet = (DateTimeEnumerationFacet)timeType; 
-    assertNotNull(enumFacet.getChoices());
+    assertNotNull(enumFacet.getAllowedValuesAsCalendars());
     
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampRataDieEpoch));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampUNIXEpoch));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampJulianDayEpoch ));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampRataDieEpoch));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampUNIXEpoch));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampJulianDayEpoch ));
     
     
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampSputnik));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timeStampEndWWII));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampMoon));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampSputnik));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timeStampEndWWII));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampMoon));
     
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampSputnikUTC));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeStampMoonUTC));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampSputnikUTC));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeStampMoonUTC));
     
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timestampMinuteMoon));
-    assertEquals(false,enumFacet.validateChoice(DateTimeConstants.timestampMinuteSputnik));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timestampMinuteMoon));
+    assertEquals(false,enumFacet.isValid(DateTimeConstants.timestampMinuteSputnik));
 
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeSecondsMoonUTC));
-    assertEquals(true,enumFacet.validateChoice(DateTimeConstants.timeSecondsSputnikUTC));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeSecondsMoonUTC));
+    assertEquals(true,enumFacet.isValid(DateTimeConstants.timeSecondsSputnikUTC));
   }
   
   /*----------------------------- ranges --------------------------------*/
@@ -745,15 +745,15 @@ public class TimeTypeTest extends DatatypeTest
     assertEquals(BigDecimal.valueOf(0),ordered01.getMinInclusive());
     assertEquals(BigDecimal.valueOf(86400),ordered01.getMaxInclusive());
     
-    assertEquals(false,ordered01.validateRange(100000));
-    assertEquals(false,ordered01.validateRange(-1));
-    assertEquals(true,ordered01.validateRange(127));
-    assertEquals(true,ordered01.validateRange(0));
+    assertEquals(false,ordered01.isValid(100000));
+    assertEquals(false,ordered01.isValid(-1));
+    assertEquals(true,ordered01.isValid(127));
+    assertEquals(true,ordered01.isValid(0));
 
-    assertEquals(false,ordered01.validateRange(BigDecimal.valueOf(312000)));
-    assertEquals(false,ordered01.validateRange(BigDecimal.valueOf(-1)));
-    assertEquals(true,ordered01.validateRange(BigDecimal.valueOf(127)));
-    assertEquals(true,ordered01.validateRange(BigDecimal.valueOf(54)));
+    assertEquals(false,ordered01.isValid(BigDecimal.valueOf(312000)));
+    assertEquals(false,ordered01.isValid(BigDecimal.valueOf(-1)));
+    assertEquals(true,ordered01.isValid(BigDecimal.valueOf(127)));
+    assertEquals(true,ordered01.isValid(BigDecimal.valueOf(54)));
     
     
     TimeType ordered02 = new TimeType(DateTime.TimeAccuracy.MINUTE,true);
@@ -761,30 +761,30 @@ public class TimeTypeTest extends DatatypeTest
     assertEquals(BigDecimal.valueOf(0),ordered02.getMinInclusive());
     assertEquals(BigDecimal.valueOf(1439),ordered02.getMaxInclusive());
     
-    assertEquals(false,ordered02.validateRange(100000));
-    assertEquals(false,ordered02.validateRange(-1));
-    assertEquals(true,ordered02.validateRange(127));
-    assertEquals(true,ordered02.validateRange(0));
+    assertEquals(false,ordered02.isValid(100000));
+    assertEquals(false,ordered02.isValid(-1));
+    assertEquals(true,ordered02.isValid(127));
+    assertEquals(true,ordered02.isValid(0));
 
-    assertEquals(false,ordered02.validateRange(BigDecimal.valueOf(312000)));
-    assertEquals(false,ordered02.validateRange(BigDecimal.valueOf(-1)));
-    assertEquals(true,ordered02.validateRange(BigDecimal.valueOf(127)));
-    assertEquals(true,ordered02.validateRange(BigDecimal.valueOf(1000)));
+    assertEquals(false,ordered02.isValid(BigDecimal.valueOf(312000)));
+    assertEquals(false,ordered02.isValid(BigDecimal.valueOf(-1)));
+    assertEquals(true,ordered02.isValid(BigDecimal.valueOf(127)));
+    assertEquals(true,ordered02.isValid(BigDecimal.valueOf(1000)));
     
     TimeType ordered03 = new TimeType(DateTime.TimeAccuracy.MILLISECOND,true);
 
     assertEquals(BigDecimal.valueOf(0),ordered03.getMinInclusive());
     assertEquals(BigDecimal.valueOf(86400*1000),ordered03.getMaxInclusive());
     
-    assertEquals(false,ordered03.validateRange(100000*1000));
-    assertEquals(false,ordered03.validateRange(-1));
-    assertEquals(true,ordered03.validateRange(127));
-    assertEquals(true,ordered03.validateRange(0));
+    assertEquals(false,ordered03.isValid(100000*1000));
+    assertEquals(false,ordered03.isValid(-1));
+    assertEquals(true,ordered03.isValid(127));
+    assertEquals(true,ordered03.isValid(0));
 
-    assertEquals(false,ordered03.validateRange(BigDecimal.valueOf(312000*1000)));
-    assertEquals(false,ordered03.validateRange(BigDecimal.valueOf(-1)));
-    assertEquals(true,ordered03.validateRange(BigDecimal.valueOf(127)));
-    assertEquals(true,ordered03.validateRange(BigDecimal.valueOf(54)));
+    assertEquals(false,ordered03.isValid(BigDecimal.valueOf(312000*1000)));
+    assertEquals(false,ordered03.isValid(BigDecimal.valueOf(-1)));
+    assertEquals(true,ordered03.isValid(BigDecimal.valueOf(127)));
+    assertEquals(true,ordered03.isValid(BigDecimal.valueOf(54)));
     
   }
   

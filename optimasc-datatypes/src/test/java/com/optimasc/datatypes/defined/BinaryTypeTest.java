@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.DatatypeTest;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
+import com.optimasc.datatypes.facets.LengthFacet;
 import com.optimasc.datatypes.primitives.BooleanType;
 
 public class BinaryTypeTest extends DatatypeTest
@@ -44,7 +45,7 @@ public class BinaryTypeTest extends DatatypeTest
     assertEquals(false,instance.isOrdered());
     assertEquals(false,instance.isNumeric());
     assertEquals(true,instance.isBounded());
-    assertEquals(null,instance.getChoices());
+    assertEquals(null,instance.getAllowedValues());
   }
   
   /*------------------ length/size functionality ----------------*/
@@ -57,7 +58,7 @@ public class BinaryTypeTest extends DatatypeTest
 
      // No length/size limitations
      assertEquals(0,datatype.getMinLength());
-     assertEquals(Integer.MIN_VALUE,datatype.getMaxLength());
+     assertEquals(LengthFacet.UNBOUNDED,datatype.getMaxLength());
      
    }
    
@@ -202,7 +203,7 @@ public class BinaryTypeTest extends DatatypeTest
     byte[] smallArray = new byte[]{0,1,2,3,4,5,6};
     byte[] twoElementArray = new byte[]{7,8};
     
-    BinaryType boundedDatatype = new BinaryType(1,Integer.MIN_VALUE);
+    BinaryType boundedDatatype = new BinaryType(1,LengthFacet.UNBOUNDED);
     
     // Invalid object class
     assertEquals(null,boundedDatatype.toValue(BigDecimal.valueOf(0), checkResult));
