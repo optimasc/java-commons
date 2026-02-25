@@ -1,8 +1,17 @@
 package com.optimasc.text;
 
+import java.lang.reflect.Array;
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.URI;
+import java.text.Format;
 import java.text.ParseException;
 import java.text.ParsePosition;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Locale;
+
+import com.optimasc.util.DataUtilities;
 
 public class Parsers
 {
@@ -518,6 +527,240 @@ public class Parsers
       }
     }
     return fromIndex < inLength ? fromIndex : inLength;
+  }
+
+  /**
+   * Parses a string value into a java object instance representation. The
+   * parsing tries to use the <code>formatter</code> to convert to the correct output object
+   * instance, if it is not present, it uses the <code>targetClass</cpde> to try to convert
+   * and if targetClass is not specified, returns the string value.
+   * 
+   * @param value
+   *          [in] The string value to parse. The value must not be
+   *          <code>null</code>.
+   * @param targetClass
+   *          [in] The target class to convert to, or <code>null</code> if it is
+   *          unknown.
+   * @param formatter
+   *          [in] The formatter used to parse and convert, or <code>null</code>
+   *          if it is unknown.
+   * @param maxLength
+   *          [in] maxLength in case of a multiple item value, or a negative
+   *          value if the maximum length is not applicable.
+   * @return The parsed object instance.
+   * @throws ParseException
+   *           If the value cannot be parsed according to its constraints.
+   */
+  public static Object parseSingleValue(String value, Class targetClass,
+      Format formatter, int maxLength) throws ParseException
+  {
+    Object convertedValue;
+    if (formatter != null)
+    {
+      convertedValue = formatter.parseObject(value);
+    }
+    else
+    /* No formatter, try to check the java class type only */
+    {
+      /* targetClass is null, return a string */
+      convertedValue = parseString(targetClass, value);
+    }
+    if (maxLength >= 0)
+    {
+      if (DataUtilities.verifyLength(convertedValue, maxLength) == false)
+      {
+        throw new ParseException("Value is beyond the allowed maximum length.", 0);
+      }
+    }
+    return convertedValue;
+  }
+
+
+  /**
+   * Parses a string value into a java object instance. The parsing is very
+   * lenient and supports the following class types:
+   * 
+   * <ul>
+   * <li><code>java.math.BigDecimal</code></li>
+   * <li><code>java.math.BigInteger</code>. This is parsed as a
+   * <code>java.math.BigDecimal</code> and returns the unscaled number.</li>
+   * <li><code>java.lang.Long</code>. This is parsed as a
+   * <code>java.math.BigDecimal</code> and returns the unscaled long number. No
+   * range checking is done.</li>
+   * <li><code>java.lang.Integer</code>. This is parsed as a
+   * <code>java.math.BigDecimal</code> and returns the unscaled long number and
+   * compared to verify if it is within the the allowed range.</li>
+   * <li><code>java.lang.Short</code>. This is parsed as a
+   * <code>java.math.BigDecimal</code> and returns the unscaled long number and
+   * compared to verify if it is within the the allowed range.</li>
+   * <li><code>java.lang.Byte</code>. This is parsed as a
+   * <code>java.math.BigDecimal</code> and returns the unscaled long number and
+   * compared to verify if it is within the the allowed range.</li>
+   * <li><code>java.lang.Boolean</code>. If the value is <code>TRUE</code> or
+   * <code>1</code>, then result is <code>Boolean.TRUE</code>. If the value is
+   * is <code>FALSE</code> or <code>0</code> then the result is
+   * <code>Boolean.FALSE</code>. The comparisons are done in a case insensitive
+   * way.</li>
+   * <li><code>java.util.Locale</code>. Verifies that there is a two-letter
+   * language code, as specified by ISO 639-1, followed by an optional hyphen
+   * and 2 character country code as defined in ISO 3166-1. The syntax is a
+   * subset of IETF RFC 5646.</li>
+   * <li><code>java.lang.String</code>. The value is returned as is.</li>
+   * <li><code>java.lang.StringBuffer</code>. The value is converted to a string
+   * buffer</li>
+   * <li><code>java.lang.Calendar</code>. The value is parsed as an <a
+   * href="https://www.w3.org/TR/NOTE-datetime">W3C-DATETIME</a> format and is
+   * returned as a <code>com.optimasc.lang.GregorianDatetimeCalendar</code>
+   * instance.</li>
+   * <li><code>java.net.URI</code>. The value is parsed as an URI and syntax is
+   * verified accordingly.</li>
+   * <li><code>byte[]</code>. The value is parsed as an <code>hexBinary</code>
+   * string as defined by <a href="https://www.w3.org/TR/xmlschema11-2/">W3C XML
+   * Schema Definition Language (XSD) 1.1 Part 2: Datatypes</a>.</li>
+   * <li><code>String[]</code>. The string is split into a series of strings
+   * along the separator. The separator is the semi-colon character.</li>
+   * </ul>
+   * 
+   * @param targetClass
+   *          [in] The expected target class, or <code>null</code> to return the
+   *          original string.
+   * @param value
+   *          [in] The string value to parse. The value must not be
+   *          <code>null</code>.
+   * @return The parsed object instance.
+   * @throws ParseException
+   *           If the value cannot be parsed into the specified target class.
+   * @throws IllegalArgumentException
+   *           Thrown if the target class is not supported.
+   */
+  public static Object parseString(Class targetClass, String value) throws ParseException
+  {
+    value = value.trim();
+    if (targetClass == null)
+      return value;
+    /* It is a number */
+    if (Number.class.isAssignableFrom(targetClass))
+    {
+      BigDecimal parsedDecimal = null;
+      try
+      {
+        parsedDecimal = new BigDecimal(value);
+      } catch (NumberFormatException e)
+      {
+        throw new ParseException(e.getMessage(), 0);
+      }
+      if (BigDecimal.class.isAssignableFrom(targetClass))
+      {
+        return parsedDecimal;
+      }
+
+      if (BigInteger.class.isAssignableFrom(targetClass))
+      {
+        return parsedDecimal.toBigInteger();
+      }
+      Long longObject = new Long(parsedDecimal.unscaledValue().longValue());
+      if (Long.class.isAssignableFrom(targetClass))
+      {
+        return longObject;
+      }
+      long numericValue = longObject.longValue();
+
+      if (Integer.class.isAssignableFrom(targetClass))
+      {
+        if ((numericValue > Integer.MAX_VALUE) || (numericValue < Integer.MIN_VALUE))
+        {
+          throw new ParseException("Integer value is out of range.", 0);
+        }
+        return new Integer(longObject.intValue());
+      }
+
+      if (Short.class.isAssignableFrom(targetClass))
+      {
+        if ((numericValue > Short.MAX_VALUE) || (numericValue < Short.MIN_VALUE))
+        {
+          throw new ParseException("Short value is out of range.", 0);
+        }
+        return new Short(longObject.shortValue());
+      }
+
+      if (Byte.class.isAssignableFrom(targetClass))
+      {
+        if ((numericValue > Byte.MAX_VALUE) || (numericValue < Byte.MIN_VALUE))
+        {
+          throw new ParseException("Byte value is out of range.", 0);
+        }
+        return new Byte(longObject.byteValue());
+      }
+
+      if (Double.class.isAssignableFrom(targetClass))
+      {
+        return new Double(parsedDecimal.doubleValue());
+      }
+      if (Float.class.isAssignableFrom(targetClass))
+      {
+        return new Float(parsedDecimal.floatValue());
+      }
+      throw new IllegalArgumentException("Unknown number class, aborting conversion");
+    } // endif number
+
+    // Boolean
+    if (Boolean.class.isAssignableFrom(targetClass))
+    {
+      value = value.toUpperCase();
+      if (value.equals("0") || value.equals("FALSE"))
+      {
+        return Boolean.FALSE;
+      }
+      else if (value.equals("1") || value.equals("TRUE"))
+      {
+        return Boolean.TRUE;
+      }
+      throw new ParseException("Cannot parse BOOLEAN value.", 0);
+    } // endif boolean
+
+    // Locale
+    if (Locale.class.isAssignableFrom(targetClass))
+    {
+      return StandardFormatters.LocaleTypeConverter.getInstance().parseObject(value);
+    } // endif Locale
+
+    // String
+    if (String.class.isAssignableFrom(targetClass))
+    {
+      return value;
+    } // endif String
+
+    // StringBuffer
+    if (StringBuffer.class.isAssignableFrom(targetClass))
+    {
+      return new StringBuffer(value);
+    } // endif StringBuffer
+
+    // Calendar
+    if (Calendar.class.isAssignableFrom(targetClass))
+    {
+      return StandardDateFormatters.W3CDateTimeConverter.getInstance().parseObject(value);
+    } // endif Calendar
+
+    // URI
+    if (URI.class.isAssignableFrom(targetClass))
+    {
+      return StandardFormatters.URIConverter.getInstance().parseObject(value);
+    } // endif URI
+
+    // binary data
+    if (targetClass == byte[].class)
+    {
+      return StandardFormatters.HexBinaryConverter.getInstance().parseObject(value);
+    } // endif binary data
+
+    if (targetClass == String[].class)
+    {
+      return StringUtilities.split(value, ";");
+    } // endif binary data
+
+    throw new IllegalArgumentException("Cannot convert string to object of class '"
+        + targetClass.getName() + "'.");
   }
 
 
