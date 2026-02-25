@@ -242,16 +242,17 @@ public class StandardFormattersTest extends TestCase
   {
     DataConverter converter = new StandardFormatters.OIDConverter();
     assertEquals(true,converter.isLenient());
-    final int[] res = {1,2,3,5};
+    final String res = "1.2.3.5";
     
     String strValue; 
-    int[] output;
+    String output;
     
     try {
       strValue = "1.2.3.5";
-      output = (int[]) converter.parseObject(strValue);
-      assertTrue(Arrays.equals(output, res));
+      output = (String) converter.parseObject(strValue);
+      assertEquals(res, output);
       assertEquals(strValue,converter.format(output));
+      assertEquals(strValue,converter.format(new int[]{1,2,3,5}));
     } catch (ParseException e)
     {
       fail();

@@ -1256,7 +1256,7 @@ public class StringNormalizer
         throw new ParseException("String contains prohibited characters at position", i);
       }
       /* Non-character code points */
-      if (IntegerSelectItems.validateValue(UNICODE_NON_CHARACTERS, ch) == false)
+      if (IntegerSelectItems.validateValue(UNICODE_NON_CHARACTERS, ch) == true)
       {
         throw new ParseException("String contains prohibited characters at position", i);
       }
@@ -1324,7 +1324,7 @@ public class StringNormalizer
         throw new ParseException("String contains prohibited characters at position", i);
       }
       /* Non-character code points */
-      if (IntegerSelectItems.validateValue(UNICODE_NON_CHARACTERS, ch) == false)
+      if (IntegerSelectItems.validateValue(UNICODE_NON_CHARACTERS, ch) == true)
       {
         throw new ParseException("String contains prohibited characters at position", i);
       }

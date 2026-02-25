@@ -13,6 +13,7 @@
         <module>optimasc-commons-cldc</module>
         <module>optimasc-commons-cdc</module>
         <module>optimasc-datatypes</module>
+        <module>optimasc-schemas</module>        
     </modules>    
     
 </project>    

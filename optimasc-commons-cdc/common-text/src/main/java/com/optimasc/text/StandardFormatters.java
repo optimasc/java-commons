@@ -892,6 +892,7 @@ public class StandardFormatters
       if ((value instanceof String))
       {
         BaseTypeUtilities.validateObjectIdentifier((String)value,false);
+        toAppendTo.append(value);
       }
       return toAppendTo;
     }
