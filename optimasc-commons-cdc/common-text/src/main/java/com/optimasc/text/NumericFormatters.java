@@ -167,7 +167,7 @@ public class NumericFormatters
   
   
   /**
-   * Integer type converter.  This converter converts a decimal 
+   * Integer type converter.  This converter converts an integer 
    * number string representation to a <code>BigInteger</code> Java Object. 
    * 
    * The syntax is the one supported by the Java
@@ -233,19 +233,21 @@ public class NumericFormatters
    * When <code>lenient</code> is <code>false</code> the converter is compliant
    * with the following syntaxes:
    * <ul>
-   * <li>ASN.1 ITU X.680</li>
-   * <li>LDAP IETF RFC 4517 (OID: 1.3.6.1.4.1.1466.115.121.1.27)</li>
-   * <li>W3C XML Schema Second Edition (2004) <code>integer</code> built-in datatype canonical representation</li>
+   * <li>ASN.1 ITU X.680 <code>SignedNumber</code></li>
+   * <li>LDAP IETF RFC 4517 <code>INTEGER</code> encoding (OID: 1.3.6.1.4.1.1466.115.121.1.27)</li>
+   * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>integer</code> canonical representation</li>
    * </ul>
    * 
    * When <code>lenient</code> is <code>true</code> the converter is also compliant
    * with the following syntaxes:
    * <ul>
-   * <li>W3C XML Schema Second Edition (2004) <code>integer</code> built-in datatype lexical representation</li>
-   * <li>vCard IETF RFC 6350 INTEGER type</li>
+   * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>integer</code> lexical representation</li>
+   * <li>vCard IETF RFC 6350 <code>INTEGER</code> value type</li>
    * <li>XMP ISO 16684-1:2011</li>
    * <li>Pascal Language Syntax</li>
    * </ul>
+   * 
+   * <p>By default the parsing is lenient.</p>
    */
   public static class IntegerCanonicalConverter extends NumberConverter
   {
@@ -441,7 +443,8 @@ public class NumericFormatters
   
 
   /** Signed integer type (int) formatter and parser. The allowed
-   *  numeric value range is between -2147483648..2147483647 inclusive.   
+   *  numeric value range is between -2147483648..2147483647 inclusive and
+   *  is returned as a <code>java.lang.Integer</code>.   
    *  
    *  The parsing verifies if the numeric value is of the following syntax:
    * 
@@ -458,15 +461,16 @@ public class NumericFormatters
    * When lenient mode is <code>false</code> the converter is compliant
    * with the following syntaxes:
    * <ul>
-   * <li>W3C XML Schema Second Edition (2004) <code>int</code> built-in datatype canonical representation</li>
-   * <li>
+   * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>int</code> canonical representation</li>
    * </ul>
    * 
    * When lenient is <code>true</code> the converter is compliant with the 
    * following syntaxes:
    * <ul>
-   * <li>W3C XML Schema Second Edition (2004) <code>int</code> built-in datatype lexical representation</li>
+   * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>int</code> lexical representation</li>
    * </ul>
+   * 
+   * <p>By default, parsing is lenient.</p>
    */
   public static class IntConverter extends IntegerNumberConverter
   {
@@ -500,15 +504,18 @@ public class NumericFormatters
    * When lenient mode is <code>false</code> the converter is compliant
    * with the following syntaxes:
    * <ul>
-   * <li>W3C XML Schema Second Edition (2004) <code>long</code> built-in datatype canonical representation</li>
+   * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>long</code> canonical representation</li>
    * <li>
    * </ul>
    * 
    * When lenient is <code>true</code> the converter is compliant with the 
    * following syntaxes:
    * <ul>
-   * <li>W3C XML Schema Second Edition (2004) <code>long</code> built-in datatype lexical representation</li>
+   * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>long</code> lexical representation</li>
    * </ul>
+   * 
+   * <p>By default, parsing is lenient.</p>
+   * 
    */
   public static class LongConverter extends IntegerNumberConverter
   {
@@ -737,17 +744,17 @@ public class NumericFormatters
    * When lenient mode is <code>false</code> the converter is compliant
    * with the following syntaxes:
    * <ul>
-   * <li>W3C XML Schema Second Edition (2004) <code>unsignedInt</code> built-in datatype canonical
-   * representation</li>
+   * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>unsignedInt</code> canonical representation</li>
    * <li>
    * </ul>
    * 
    * When lenient mode is <code>true</code> the converter is compliant
    * with the following syntaxes:
    * <ul>
-   * <li>W3C XML Schema Second Edition (2004) <code>unsignedInt</code> built-in datatype lexical
-   * representation</li>
+   * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>unsignedInt</code> lexical representation</li>
    * </ul>
+   * 
+   * <p>By default the parsing is lenient.</p>
    */
   public static class unsignedIntConverter extends IntegerNumberConverter
   {
