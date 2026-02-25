@@ -1,7 +1,5 @@
 package com.optimasc.utils;
 
-import java.util.Arrays;
-
 import junit.framework.TestCase;
 
 public class BaseTypesUtilitiesTest extends TestCase
