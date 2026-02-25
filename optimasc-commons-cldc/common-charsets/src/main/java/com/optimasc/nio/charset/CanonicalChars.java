@@ -7,13 +7,17 @@ package com.optimasc.nio.charset;
  */
 public final class CanonicalChars
 {
-  /** The first column is the actual non-canonical character code while
-   *  the second one is the canonical character code.
+  /** The first column is the actual composed character code while
+   *  the second one is the canonical character code resulting from character
+   *  decomposition.
    */
   public static final char[][] canonicalMap =
   {
    { (char)0x00A8,  (char)0x0020},
    { (char)0x00AF,  (char)0x0020},
+   { (char)0x00AF,  (char)0x0020},
+   
+   
    { (char)0x00B4,  (char)0x0020},
    { (char)0x00B5,  (char)0x03BC},
    { (char)0x00B8,  (char)0x0020},
