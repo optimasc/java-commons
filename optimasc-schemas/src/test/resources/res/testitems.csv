@@ -1,0 +1,9 @@
+Type,Desc,Hierarchy,No-User-Modification,Family,Name,DISPLAY-NAME,Datatype,Syntax,X-MIN-VALUE-LENGTH,X-MAX-VALUE-LENGTH,Choices,Units,Context,UPnP,PREMIS,XMP,ANSI/NISO Z39.87-2006
+object,Indicates the name of an actor,objectDescription,TRUE,contributor,actor(),actors,Token,1.3.6.1.4.1.61799.5.40.12.5,0,4,"[""bitstream"",""file"",""intellectual entity"",""representation""]",,,upnp:actor(),,,
+object,Contains the original track number on an audio CD or other medium.,objectDescription,TRUE,,audioTrackNumber,audioTrackNumber,UInt32,1.3.6.1.4.1.61799.5.40.2.24,,,"[0,1,2,3]",,,upnp:originalTrackNumber,,xmpDM:trackNumber,
+object,indicates the name of a contributor to the content item.,objectDescription,TRUE,,contributor{},contributors,Token,1.3.6.1.4.1.61799.5.40.12.5,,,,,,dc:contributor(),,dc:contributor{},
+,The spatial or temporal topic of the resource,objectDescription,TRUE,,coverage,coverage,Token,1.3.6.1.4.1.61799.5.40.12.5,,,,,,upnp:region,,dc:coverage,
+object,Main creator of the original of the object,objectDescription,TRUE,,creator,creator,Token,1.3.6.1.4.1.61799.5.40.12.5,,,,,,dc:creator,,dc:creator(),
+object,contains the primary date associated with the object,objectDescription,TRUE,,date,date,OpenDate,1.3.6.1.4.1.61799.5.40.14.1,,,,,,dc:date,,dc:date(),
+object,property contains a few lines of description of the content item,objectDescription,TRUE,,description[],description,NormalizedString,1.3.6.1.4.1.61799.5.40.12.4,,,,,,upnp:longDescription,,dc:description[],
+object,the name of a director of the content,objectDescription,TRUE,contributor,director(),director(s),Token,1.3.6.1.4.1.61799.5.40.12.5,,,,,,upnp:director(),,"dc:creator, xmpDM:director",

@@ -54,19 +54,14 @@
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-        <groupId>com.optimasc.commons</groupId>
-        <artifactId>optimasc-commons-lang</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+      <groupId>com.optimasc.commons</groupId>
+      <artifactId>optimasc-commons-text</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-        <groupId>com.optimasc.commons</groupId>
-        <artifactId>optimasc-commons-date</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-        <groupId>com.optimasc.commons</groupId>
-        <artifactId>optimasc-commons-text</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+      <groupId>com.optimasc.commons</groupId>
+      <artifactId>optimasc-commons-lang</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
      <groupId>com.optimasc.commons</groupId>
