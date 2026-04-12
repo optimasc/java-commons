@@ -58,10 +58,9 @@ public class StringNormalizer
   // Key: combining character, Value: combining class (0-254)
   private static final byte[] COMBINING_CLASS = new byte[0x0400]; // Covers U+0000 to U+03FF
 
-  /** Non character, bidirectional and deprecated characters */
   /**
-   * From Unicode 4.0 Proplist.txt -> # Cn property for non-characters the rest
-   * is defined in IETF RFC 4518.
+   * From Unicode 4.0 Proplist.txt -> # Cn property for non-characters.
+   * 
    */
   public static final SelectItem UNICODE_NON_CHARACTERS[] = {
   /* Non character */
@@ -69,13 +68,13 @@ public class StringNormalizer
   /* Non character */
   new IntegerSelectItems.IntegerSelectRange(0xFFFE, 0xFFFF),
   /* Combining characters */
-  new IntegerSelectItems.IntegerSelectRange(0x0340, 0x341),
+//  new IntegerSelectItems.IntegerSelectRange(0x0340, 0x341),
   /* Direction of text mark */
-  new IntegerSelectItems.IntegerSelectRange(0x200E, 0x200F),
+//  new IntegerSelectItems.IntegerSelectRange(0x200E, 0x200F),
   /* Bidirectional text markers */
-  new IntegerSelectItems.IntegerSelectRange(0x202A, 0x202E),
+//  new IntegerSelectItems.IntegerSelectRange(0x202A, 0x202E),
   /* Swapping and shares */
-  new IntegerSelectItems.IntegerSelectRange(0x206A, 0x206F)
+//  new IntegerSelectItems.IntegerSelectRange(0x206A, 0x206F)
   /*    1FFFE..1FFFF  ; Noncharacter_Code_Point # Cn   [2] <noncharacter-1FFFE>..<noncharacter-1FFFF>
       2FFFE..2FFFF  ; Noncharacter_Code_Point # Cn   [2] <noncharacter-2FFFE>..<noncharacter-2FFFF>
       3FFFE..3FFFF  ; Noncharacter_Code_Point # Cn   [2] <noncharacter-3FFFE>..<noncharacter-3FFFF>
@@ -1192,8 +1191,8 @@ public class StringNormalizer
   }
 
   /**
-   * Checks for prohibited characters according to RFC 4518. This is much
-   * stricter than then XML 1.1 Specification but provides better compatibility
+   * Checks for prohibited characters according to IETF RFC draft-codere-ldapsyntax. 
+   * This is much stricter than then XML 1.1 Specification but provides better compatibility
    * (XML allows private use characters, some non-characters and text direction
    * markers).
    * 
@@ -1202,10 +1201,11 @@ public class StringNormalizer
    * </p>
    * 
    * <ul>
+   * <li>General_Category of Cc (Control), with the exception of U+0009 
+   *   (CHARACTER TABULATION), U+000A (LINE FEED), and U+000D (CARRIAGE RETURN), which are permitted;</li>
    * <li>Codepoint is a surrogate character (General category "Cs")</li>
    * <li>Codepoint is a private use character (General category "Co")</li>
    * <li>Codepoint is a non-character (PropList "# Cn" category)</li>
-   * <li>Codepoint is a text direction marker or is deprecated</li>
    * </ul>
    * 
    * The limitations of this compliance check are as follows:
@@ -1217,16 +1217,12 @@ public class StringNormalizer
    * encoding).</li>
    * </ul>
    * 
-   * <p>
-   * See IETF RFC 4518 Section 2.4 for more information.
-   * </p>
-   * 
    * @param value
    *          [in] The string to check
    * @throws ParseException
    *           if prohibited characters are found
    */
-  public static void verifyProhibited(CharSequence value) throws ParseException
+  public static void verifyProhibitedString(CharSequence value) throws ParseException
   {
     int maxLength = value.length();
     for (int i = 0; i < maxLength; i++)
@@ -1238,7 +1234,7 @@ public class StringNormalizer
       /* Surrogate general category codepoints */
       /* Java 1.4+ versions: D800-DFFF; [SURROGATE CODES] */
         case Character.SURROGATE:
-          throw new ParseException("String contains prohibited characters at position", i);
+          throw new ParseException("String contains a prohibited character (General category 'Cs') at position", i);
           /* Private use codepoints */
           /* Java 1.4+: E000-F8FF; [PRIVATE USE, PLANE 0]
            * Java 1.6+: E000-F8FF; [PRIVATE USE, PLANE 0]
@@ -1246,14 +1242,14 @@ public class StringNormalizer
            *            100000-10FFFD; [PRIVATE USE, PLANE 16]
            */
         case Character.PRIVATE_USE:
-          throw new ParseException("String contains prohibited characters at position", i);
+          throw new ParseException("String contains a prohibited character (General category 'Co') at position", i);
+        case Character.CONTROL:
+          // These control characters are explicitly allowed.
+          if ((ch == '\u0009') || (ch == '\n') || (ch == '\r'))
+            continue;
+          throw new ParseException("String contains a prohibited character (General category 'Cc') at position", i);
         default:
           break;
-      }
-      /* Replacement character is not allowed */
-      if (ch == 0xFFFD)
-      {
-        throw new ParseException("String contains prohibited characters at position", i);
       }
       /* Non-character code points */
       if (IntegerSelectItems.validateValue(UNICODE_NON_CHARACTERS, ch) == true)
@@ -1262,18 +1258,186 @@ public class StringNormalizer
       }
     }
   }
+  
+  
+  /**
+   * Checks for prohibited characters according to IETF RFC draft-codere-ldapsyntax
+   * normalizedString syntax. 
+   * This is much stricter than then XML 1.1 Specification but provides better compatibility
+   * (XML allows private use characters, some non-characters and text direction
+   * markers).
+   * 
+   * <p>
+   * Verification fails if the character has one the following properties:
+   * </p>
+   * 
+   * <ul>
+   * <li>General_Category of Cc (Control);</li>
+   * <li>General_Category of Zl or Zp except space character;</li>
+   * <li>Codepoint is a surrogate character (General category "Cs")</li>
+   * <li>Codepoint is a private use character (General category "Co")</li>
+   * <li>Codepoint is a non-character (PropList "# Cn" category)</li>
+   * </ul>
+   * 
+   * The limitations of this compliance check are as follows:
+   * 
+   * <ul>
+   * <li>Unassigned codepoint verification are not done, as they may be assigned
+   * in the future.</li>
+   * <li>Only supports character verification in the BMP (legacy UCS-2
+   * encoding).</li>
+   * </ul>
+   * 
+   * @param value
+   *          [in] The string to check
+   * @throws ParseException
+   *           if prohibited characters are found
+   */
+  public static void verifyProhibitedNormalizedString(CharSequence value) throws ParseException
+  {
+    int maxLength = value.length();
+    for (int i = 0; i < maxLength; i++)
+    {
+      char ch = value.charAt(i);
+      int category = Character.getType(ch);
+      // Space character is good - go to next character.
+      if (ch == ' ')
+        continue;
+      switch (category)
+      {
+      /* Surrogate general category codepoints */
+      /* Java 1.4+ versions: D800-DFFF; [SURROGATE CODES] */
+        case Character.SURROGATE:
+          throw new ParseException("String contains a prohibited character (General category 'Cs') at position", i);
+          /* Private use codepoints */
+          /* Java 1.4+: E000-F8FF; [PRIVATE USE, PLANE 0]
+           * Java 1.6+: E000-F8FF; [PRIVATE USE, PLANE 0]
+           *            F0000-FFFFD; [PRIVATE USE, PLANE 15]
+           *            100000-10FFFD; [PRIVATE USE, PLANE 16]
+           */
+        case Character.PRIVATE_USE:
+          throw new ParseException("String contains a prohibited character (General category 'Co') at position", i);
+        case Character.LINE_SEPARATOR:
+          throw new ParseException("String contains a prohibited character (General category 'Zl') at position", i);
+        case Character.PARAGRAPH_SEPARATOR:
+          throw new ParseException("String contains a prohibited character (General category 'Zp') at position", i);
+        case Character.CONTROL:
+          throw new ParseException("String contains a prohibited character (General category 'Cc') at position", i);
+        default:
+          break;
+      }
+      /* Non-character code points */
+      if (IntegerSelectItems.validateValue(UNICODE_NON_CHARACTERS, ch) == true)
+      {
+        throw new ParseException("String contains prohibited characters at position", i);
+      }
+    }
+  }
+  
 
+  /**
+   * Checks for prohibited characters according to IETF RFC draft-codere-ldapsyntax
+   * Token syntax.
+   *
+   * <p>
+   * Token has the same character restrictions as normalizedString, with these
+   * additional constraints:
+   * </p>
+   *
+   * <ul>
+   * <li>No leading space character;</li>
+   * <li>No trailing space character;</li>
+   * <li>No two or more consecutive space characters.</li>
+   * </ul>
+   *
+   * The limitations of this compliance check are as follows:
+   *
+   * <ul>
+   * <li>Unassigned codepoint verification are not done, as they may be assigned
+   * in the future.</li>
+   * <li>Only supports character verification in the BMP (legacy UCS-2
+   * encoding).</li>
+   * </ul>
+   *
+   * @param value
+   *          [in] The string to check
+   * @throws ParseException
+   *           if prohibited characters are found, or if Token-specific
+   *           space constraints are violated
+   */
+  public static void verifyProhibitedToken(CharSequence value) throws ParseException
+  {
+    int maxLength = value.length();
+
+    /* Check for leading space */
+    if (maxLength > 0 && value.charAt(0) == ' ')
+    {
+      throw new ParseException("String contains a prohibited leading space character at position", 0);
+    }
+
+    /* Check for trailing space */
+    if (maxLength > 0 && value.charAt(maxLength - 1) == ' ')
+    {
+      throw new ParseException("String contains a prohibited trailing space character at position", maxLength - 1);
+    }
+
+    for (int i = 0; i < maxLength; i++)
+    {
+      char ch = value.charAt(i);
+      int category = Character.getType(ch);
+
+      if (ch == ' ')
+      {
+        /* Check for consecutive spaces; leading space already excluded above,
+         * so i > 0 is always true here, but guarded for safety */
+        if (i + 1 < maxLength && value.charAt(i + 1) == ' ')
+        {
+          throw new ParseException("String contains prohibited consecutive space characters at position", i);
+        }
+        continue;
+      }
+
+      switch (category)
+      {
+      /* Surrogate general category codepoints */
+      /* Java 1.4+ versions: D800-DFFF; [SURROGATE CODES] */
+        case Character.SURROGATE:
+          throw new ParseException("String contains a prohibited character (General category 'Cs') at position", i);
+          /* Private use codepoints */
+          /* Java 1.4+: E000-F8FF; [PRIVATE USE, PLANE 0]
+           * Java 1.6+: E000-F8FF; [PRIVATE USE, PLANE 0]
+           *            F0000-FFFFD; [PRIVATE USE, PLANE 15]
+           *            100000-10FFFD; [PRIVATE USE, PLANE 16]
+           */
+        case Character.PRIVATE_USE:
+          throw new ParseException("String contains a prohibited character (General category 'Co') at position", i);
+        case Character.LINE_SEPARATOR:
+          throw new ParseException("String contains a prohibited character (General category 'Zl') at position", i);
+        case Character.PARAGRAPH_SEPARATOR:
+          throw new ParseException("String contains a prohibited character (General category 'Zp') at position", i);
+        case Character.CONTROL:
+          throw new ParseException("String contains a prohibited character (General category 'Cc') at position", i);
+        default:
+          break;
+      }
+      /* Non-character code points */
+      if (IntegerSelectItems.validateValue(UNICODE_NON_CHARACTERS, ch) == true)
+      {
+        throw new ParseException("String contains prohibited characters at position", i);
+      }
+    }
+  }  
+  
   /**
    * Map a string by adapting the string for comparison and potential storage
    * for certain specific use-cases.
    * 
-   * This is compliant with the mapping prohibited codepoint steps of IETF RFC 4518 and does the
-   * following:
+   * It does the following:
    * 
    * <ul>
    * <li>CHARACTER TABULATION (U+0009), LINE FEED (LF) (U+000A), LINE TABULATION
    * (U+000B), FORM FEED (FF) (U+000C), CARRIAGE RETURN (CR) (U+000D), and NEXT
-   * LINE (NEL) (U+0085) mapped to SPACE (U+0020).
+   * LINE (NEL) (U+0085) mapped to SPACE (U+0020).</li>
    * <li>All other control code (e.g., Cc) points or code points with a control
    * function (e.g., Cf) are mapped to nothing.</li>
    * <li>ZERO WIDTH SPACE (U+200B) is mapped to nothing.</li>
@@ -1300,12 +1464,12 @@ public class StringNormalizer
    *           if prohibited characters are found
    * @return The mapped string.
    */
-  public static final String mapAndVerifyString(CharSequence value, boolean toLowerCase)
+  public static final String mapAndVerifyNormalizedString(CharSequence value, boolean toLowerCase)
       throws ParseException
   {
     int maxLength = value.length();
     char buffer[] = new char[maxLength];
-    int length = 0;
+    int outIndex = 0;
     for (int i = 0; i < maxLength; i++)
     {
       char ch = value.charAt(i);
@@ -1314,8 +1478,7 @@ public class StringNormalizer
         continue;
       if (IntegerSelectItems.validateValue(UNICODE_WHITESPACE_CODEPOINTS, ch) == true)
       {
-        buffer[i] = ' ';
-        length++;
+        buffer[outIndex++] = ' ';
         continue;
       }
       /* Replacement character is not allowed */
@@ -1349,8 +1512,7 @@ public class StringNormalizer
         case Character.SPACE_SEPARATOR:
         case Character.PARAGRAPH_SEPARATOR:
         case Character.LINE_SEPARATOR:
-          buffer[i] = ' ';
-          length++;
+          buffer[outIndex++] = ' ';
           continue;
         default:
           break;
@@ -1359,18 +1521,131 @@ public class StringNormalizer
 
         if (toLowerCase == true)
         {
-          buffer[i] = Character.toLowerCase(ch);
+          buffer[outIndex++] = Character.toLowerCase(ch);
         }
         else
         {
-          buffer[i] = ch;
+          buffer[outIndex++] = ch;
         }
-        length++;
       }
     }
-    String result = new String(buffer, 0, length);
+    String result = new String(buffer, 0, outIndex);
     return result;
   }
+  
+  
+  /**
+   * Map a string by adapting the string for comparison and potential storage
+   * for certain specific use-cases.
+   * 
+   * It does the following:
+   * 
+   * General_Category of Cc (Control), 
+   * with the exception of U+0009 (CHARACTER TABULATION), 
+   * U+000A (LINE FEED), 
+   * and U+000D (CARRIAGE RETURN), which are permitted;
+   * 
+   * <ul>
+   * <li>CHARACTER TABULATION (U+0009), LINE FEED (LF) (U+000A), CARRIAGE RETURN (CR) (U+000D) are kept
+   *  as is.</li>
+   * <li>LINE TABULATION (U+000B), FORM FEED (FF) (U+000C) and NEXT
+   * LINE (NEL) (U+0085) mapped to SPACE (U+0020).</li>
+   * <li>All other control code (e.g., Cc) points or code points with a control
+   * function (e.g., Cf) are mapped to nothing.</li>
+   * <li>ZERO WIDTH SPACE (U+200B) is mapped to nothing.</li>
+   * <li>All other code points with Separator (space, line, or paragraph)
+   * property (e.g., Zs, Zl, or Zp) are mapped to SPACE (U+0020)</li>
+   * <li>If Codepoint is a surrogate character (General category "Cs") then an exception is thrown.</li>
+   * <li>If Codepoint is a private use character (General category "Co") then an exception is thrown.</li>
+   * <li>Codepoint is a non-character (PropList "# Cn" category) then an exception is thrown.</li>
+   * </ul>
+   * 
+   * <p>
+   * This could be considered a stricter version of the
+   * <code>String</code> defined in W3C XML Schema Definition Language
+   * (XSD) 1.1 Part 2: Datatypes.
+   * </p>
+   * 
+   * @param value
+   *          [in] The value that requires remapping.
+   * @param toLowerCase
+   *          [in] <code>true</code> if the characters should be converted to
+   *          lower case on output.
+   * @throws ParseException
+   *           if prohibited characters are found
+   * @return The mapped string.
+   */
+  public static final String mapAndVerifyString(CharSequence value, boolean toLowerCase)
+      throws ParseException
+  {
+    int maxLength = value.length();
+    char buffer[] = new char[maxLength];
+    int outIndex = 0;
+    for (int i = 0; i < maxLength; i++)
+    {
+      char ch = value.charAt(i);
+      // ZERO WIDTH SPACE
+      if (ch == '\u200B')
+        continue;
+      if ((ch == '\u0009') || (ch == '\n') || (ch == '\r'))
+      {
+        buffer[outIndex++] = ch;
+        continue;
+      }
+        
+      if (IntegerSelectItems.validateValue(UNICODE_WHITESPACE_CODEPOINTS, ch) == true)
+      {
+        buffer[outIndex++] = ' ';
+        continue;
+      }
+      /* Non-character code points */
+      if (IntegerSelectItems.validateValue(UNICODE_NON_CHARACTERS, ch) == true)
+      {
+        throw new ParseException("String contains prohibited characters at position", i);
+      }
+      int category = Character.getType(ch);
+      switch (category)
+      {
+      /* Surrogate general category codepoints */
+      /* Java 1.4+ versions: D800-DFFF; [SURROGATE CODES] */
+        case Character.SURROGATE:
+          throw new ParseException("String contains prohibited characters at position", i);
+          /* Private use codepoints */
+          /* Java 1.4+: E000-F8FF; [PRIVATE USE, PLANE 0]
+           * Java 1.6+: E000-F8FF; [PRIVATE USE, PLANE 0]
+           *            F0000-FFFFD; [PRIVATE USE, PLANE 15]
+           *            100000-10FFFD; [PRIVATE USE, PLANE 16]
+           */
+        case Character.PRIVATE_USE:
+          throw new ParseException("String contains prohibited characters at position", i);
+        case Character.FORMAT:
+        case Character.CONTROL:
+          continue;
+        case Character.SPACE_SEPARATOR:
+        case Character.PARAGRAPH_SEPARATOR:
+        case Character.LINE_SEPARATOR:
+          buffer[outIndex++] = ' ';
+          continue;
+        default:
+          break;
+      }
+      {
+
+        if (toLowerCase == true)
+        {
+          buffer[outIndex++] = Character.toLowerCase(ch);
+        }
+        else
+        {
+          buffer[outIndex++] = ch;
+        }
+      }
+    }
+    // Outindex is equal to length here
+    String result = new String(buffer, 0, outIndex);
+    return result;
+  }
+  
 
   
   /** Prepares a string for case exact matching. The 
@@ -1392,7 +1667,7 @@ public class StringNormalizer
    */
   public static String prepareCaseExact(CharSequence value) throws ParseException
   {
-    String prepared1 = mapAndVerifyString(value, true);
+    String prepared1 = mapAndVerifyNormalizedString(value, true);
     prepared1 = toNFKC(prepared1);
     prepared1 = collapseWhitespace(prepared1.trim());
     return prepared1;
@@ -1411,7 +1686,7 @@ public class StringNormalizer
    */
   public static String prepareCaseIgnore(CharSequence value) throws ParseException
   {
-    String prepared1 = mapAndVerifyString(value, false);
+    String prepared1 = mapAndVerifyNormalizedString(value, false);
     prepared1 = toNFKC(prepared1);
     prepared1 = collapseWhitespace(prepared1.trim());
     return prepared1;
@@ -1437,7 +1712,7 @@ public class StringNormalizer
     {
       return null;
     }
-    String normalizedText = mapAndVerifyString(removeDiacritics(text), true);
+    String normalizedText = mapAndVerifyNormalizedString(removeDiacritics(text), true);
     return normalizedText;
   }
   
@@ -1463,7 +1738,7 @@ public class StringNormalizer
     {
       return null;
     }
-    String normalizedText = mapAndVerifyString(removeDiacritics(text), false);
+    String normalizedText = mapAndVerifyNormalizedString(removeDiacritics(text), false);
     return normalizedText;
   }
   

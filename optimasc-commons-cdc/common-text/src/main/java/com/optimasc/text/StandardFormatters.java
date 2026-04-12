@@ -93,8 +93,16 @@ public class StandardFormatters
         throw new ParseException("Empty string are not allowed.", 0);
       }
       
-      StringNormalizer.verifyProhibited(value);
-      String resultString = StringNormalizer.toNFC(value);
+      String resultString = null; 
+      if (lenient == true)
+      {
+       resultString = StringNormalizer.mapAndVerifyString(value, false);
+      } else
+      {
+        StringNormalizer.verifyProhibitedString(value);
+        resultString = value.toString();
+      }
+      resultString = StringNormalizer.toNFC(resultString);
       return resultString;
     }
 
@@ -188,7 +196,11 @@ public class StandardFormatters
         throw new ParseException("Empty string are not allowed.", 0);
       }
 
-      String resultString = StringNormalizer.mapAndVerifyString(value,false);
+      if (lenient == false)
+      {
+        StringNormalizer.verifyProhibitedNormalizedString(value);
+      }
+      String resultString = StringNormalizer.mapAndVerifyNormalizedString(value,false);
       resultString = StringNormalizer.toNFC(resultString);
       return resultString;
     }
@@ -244,7 +256,11 @@ public class StandardFormatters
         throw new ParseException("Empty string are not allowed.", 0);
       }
       
-      String resultString = StringNormalizer.mapAndVerifyString(value,false);
+      if (lenient == false)
+      {
+        StringNormalizer.verifyProhibitedToken(value);
+      }
+      String resultString = StringNormalizer.mapAndVerifyNormalizedString(value,false);
       resultString = StringNormalizer.toNFC(resultString);
       return StringNormalizer.collapseWhitespace(resultString.trim());
     }

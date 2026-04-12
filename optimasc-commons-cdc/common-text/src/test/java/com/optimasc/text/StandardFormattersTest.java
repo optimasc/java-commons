@@ -784,7 +784,7 @@ public class StandardFormattersTest extends TestCase
     }
     assertFalse(fail);
     
-    // Control chacter
+    // Control character
     try{
       fail = true;
       strValue = " 0131232A\u0000z ";
@@ -876,30 +876,6 @@ public class StandardFormattersTest extends TestCase
     }
     assertFalse(fail);
     
-    try{
-      fail = true;
-      strValue = " 0131232A\nz ";
-      String value = (String) converter.parseObject(strValue);
-    } catch (ParseException e)
-    {
-      assertEquals(9,e.getErrorOffset());
-      fail = false;
-    }
-    assertFalse(fail);
-    
-    try{
-      fail = true;
-      strValue = " \r0131232Az ";
-      String value = (String) converter.parseObject(strValue);
-    } catch (ParseException e)
-    {
-      assertEquals(1,e.getErrorOffset());
-      fail = false;
-    }
-    assertFalse(fail);
-    
-    
-    
     
     // Control character
     try{
@@ -931,7 +907,7 @@ public class StandardFormattersTest extends TestCase
     
     strValue = " \t\n0131232A\u0000z ";
     value = (String) converter.parseObject(strValue);
-    assertEquals(" 0131232Az", converter.format(value));
+    assertEquals("0131232Az", converter.format(value));
     
     strValue = " 0131232A\rz ";
     value = (String) converter.parseObject(strValue);
@@ -948,7 +924,7 @@ public class StandardFormattersTest extends TestCase
     
     strValue = " \t\n0131\t\n\r 232A\u0000z ";
     value = (String) converter.parseObject(strValue);
-    assertEquals(" 0131 232Az", converter.format(value));
+    assertEquals("0131 232Az", converter.format(value));
     
   }
   
@@ -993,7 +969,7 @@ public class StandardFormattersTest extends TestCase
       String value = (String) converter.parseObject(strValue);
     } catch (ParseException e)
     {
-      assertEquals(9,e.getErrorOffset());
+      assertEquals(0,e.getErrorOffset());
       fail = false;
     }
     assertFalse(fail);
@@ -1004,14 +980,14 @@ public class StandardFormattersTest extends TestCase
       String value = (String) converter.parseObject(strValue);
     } catch (ParseException e)
     {
-      assertEquals(9,e.getErrorOffset());
+      assertEquals(0,e.getErrorOffset());
       fail = false;
     }
     assertFalse(fail);
     
     try{
       fail = true;
-      strValue = " \r0131232Az ";
+      strValue = "A\r0131232Az";
       String value = (String) converter.parseObject(strValue);
     } catch (ParseException e)
     {
@@ -1036,11 +1012,11 @@ public class StandardFormattersTest extends TestCase
     // Control character
     try{
       fail = true;
-      strValue = " 0131232A\u0000z ";
+      strValue = "0131232A\u0000z ";
       String value = (String) converter.parseObject(strValue);
     } catch (ParseException e)
     {
-      assertEquals(9,e.getErrorOffset());
+      assertEquals(10,e.getErrorOffset());
       fail = false;
     }
     assertFalse(fail);
