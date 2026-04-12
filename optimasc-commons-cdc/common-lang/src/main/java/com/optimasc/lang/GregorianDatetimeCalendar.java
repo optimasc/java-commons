@@ -12,13 +12,17 @@ import java.util.TimeZone;
  * time. This class is compatible with the {@link java.lang.Calendar} class with
  * additional functionality.
  * 
- * <p>This calendar supports a year and zero in the constructor to be compatible
- * with ISO 8601:2004 which uses astronomical year numbering (0 is equal to 1 BC, -1 
- * is equal to 2 BC).</p> 
+ * <p>
+ * This calendar supports a year and zero in the constructor to be compatible
+ * with ISO 8601:2004 which uses astronomical year numbering (0 is equal to 1
+ * BC, -1 is equal to 2 BC).
+ * </p>
  * 
- * <p>This calendar permits to distinguish fields that were specifically set by the
+ * <p>
+ * This calendar permits to distinguish fields that were specifically set by the
  * caller and those that were internally calculated. Information on user set
- * fields can be retrieved by calling {@link #isUserSet(int)}.</p>
+ * fields can be retrieved by calling {@link #isUserSet(int)}.
+ * </p>
  * 
  * <p>
  * It is to note that {@link #setTimeZone(TimeZone)} should be called to set
@@ -32,6 +36,7 @@ import java.util.TimeZone;
  */
 public class GregorianDatetimeCalendar extends GregorianCalendar
 {
+  protected boolean endOfDay;
   /**
    * Array indicating if the field was explicitly set by the caller or if it was
    * calculated internally.
@@ -46,6 +51,9 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
    * class, if the value is not defined.
    */
   public static final int FIELD_UNDEFINED = Integer.MIN_VALUE;
+  
+  /** Indicates if this calendar specifies a local time or not */
+  protected boolean localTime;
 
   /**
    * 
@@ -58,18 +66,30 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
     userSet = new boolean[FIELD_COUNT];
     clear();
     Arrays.fill(userSet, false);
+    localTime = false;
+    endOfDay = false;
   }
   
+  public GregorianDatetimeCalendar(boolean localTime)
+  {
+    super(TimeZone.getDefault(), Locale.getDefault());
+    userSet = new boolean[FIELD_COUNT];
+    clear();
+    Arrays.fill(userSet, false);
+    this.localTime = localTime;
+    endOfDay = false;
+  }
   
+
   public static GregorianDatetimeCalendar normalize(Calendar input)
   {
     long currentDate = input.getTimeInMillis();
     long currentOffset = input.getTimeZone().getRawOffset();
-    java.util.Date date = new java.util.Date(currentDate+currentOffset);
+    java.util.Date date = new java.util.Date(currentDate + currentOffset);
     GregorianDatetimeCalendar cal = new GregorianDatetimeCalendar();
     cal.setTime(date);
     cal.setTimeZone(ZULU);
-    return cal;    
+    return cal;
   }
 
   /**
@@ -77,8 +97,8 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
    * zone. The following options are supported:
    * 
    * @param year
-   *          The year, if the value is zero, or negative, the era
-   *          will be set to the <code>BC</code>.
+   *          The year, if the value is zero, or negative, the era will be set
+   *          to the <code>BC</code>.
    * @param month
    *          The month, allowed values from 0 to 11 where 0 represents
    *          <code>January</code> or {@link #FIELD_UNDEFINED}.
@@ -91,18 +111,19 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   public GregorianDatetimeCalendar(int year, int month, int dayOfMonth)
   {
     this();
-    
+    localTime = true;
     if (year <= 0)
     {
-      year = Math.abs(- 1 - year);
+      year = Math.abs(-1 - year);
       set(Calendar.ERA, GregorianCalendar.BC);
       set(Calendar.YEAR, year);
-    } else
+    }
+    else
     {
       set(Calendar.ERA, GregorianCalendar.AD);
       set(Calendar.YEAR, year);
     }
-    
+
     if (year < getMinimum(Calendar.YEAR))
       throw new IllegalArgumentException(
           "The year must be positive when using this constructor.");
@@ -133,15 +154,14 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
     }
     set(Calendar.DAY_OF_MONTH, dayOfMonth);
   }
-  
-  
+
   /**
-   * Constructs a GregorianCalendar with the given date set in the specified time
-   * zone. The following options are supported:
+   * Constructs a GregorianCalendar with the given date set in the specified
+   * time zone. The following options are supported:
    * 
    * @param year
-   *          The year, if the value is zero, or negative, the era
-   *          will be set to the <code>BC</code>.
+   *          The year, if the value is zero, or negative, the era will be set
+   *          to the <code>BC</code>.
    * @param month
    *          The month, allowed values from 0 to 11 where 0 represents
    *          <code>January</code> or {@link #FIELD_UNDEFINED}.
@@ -156,19 +176,21 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   public GregorianDatetimeCalendar(int year, int month, int dayOfMonth, TimeZone tz)
   {
     this();
+    localTime = true;
     setTimeZone(tz);
-    
+
     if (year <= 0)
     {
-      year = Math.abs(- 1 - year);
+      year = Math.abs(-1 - year);
       set(Calendar.ERA, GregorianCalendar.BC);
       set(Calendar.YEAR, year);
-    } else
+    }
+    else
     {
       set(Calendar.ERA, GregorianCalendar.AD);
       set(Calendar.YEAR, year);
     }
-    
+
     if (year < getMinimum(Calendar.YEAR))
       throw new IllegalArgumentException(
           "The year must be positive when using this constructor.");
@@ -199,16 +221,15 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
     }
     set(Calendar.DAY_OF_MONTH, dayOfMonth);
   }
-  
 
   /**
    * Constructs a date-time representation based on values. It is possible to
-   * specify minutes and seconds as undefined, but if they are defined, it
-   * is considered to be 'local time'.
+   * specify minutes and seconds as undefined, but if they are defined, it is
+   * considered to be 'local time'.
    *
    * @param year
-   *          The year, if the value is zero, or negative, the era
-   *          will be set to the <code>BC</code>.
+   *          The year, if the value is zero, or negative, the era will be set
+   *          to the <code>BC</code>.
    * @param month
    *          The month, allowed values from 0 to 11 where 0 represents
    *          <code>January</code>.
@@ -229,12 +250,14 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
       int minute, int second)
   {
     this();
+    localTime = true;
     if (year <= 0)
     {
-      year = Math.abs(- 1 - year);
+      year = Math.abs(-1 - year);
       set(Calendar.ERA, GregorianCalendar.BC);
       set(Calendar.YEAR, year);
-    } else
+    }
+    else
     {
       set(Calendar.ERA, GregorianCalendar.AD);
       set(Calendar.YEAR, year);
@@ -254,6 +277,23 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
       throw new IllegalArgumentException("The day of month must be between 1 and 31.");
     }
     set(Calendar.DAY_OF_MONTH, dayOfMonth);
+
+    // Intercept 24:00:00 before the normal HOUR_OF_DAY range check
+    if (hour == 24)
+    {
+      // 24:00:00 is only valid if minute and second are both 0 or FIELD_UNDEFINED
+      if ((minute != 0 && minute != FIELD_UNDEFINED)
+          || (second != 0 && second != FIELD_UNDEFINED))
+      {
+        throw new IllegalArgumentException(
+            "24:00:00 is only valid when minute and second are 0.");
+      }
+      endOfDay = true;
+      set(Calendar.HOUR_OF_DAY, 0);
+      set(Calendar.MINUTE, 0);
+      set(Calendar.SECOND, 0);
+      return;
+    }
 
     if ((hour < getMinimum(Calendar.HOUR_OF_DAY))
         || (hour > getMaximum(Calendar.HOUR_OF_DAY)))
@@ -280,9 +320,9 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
     {
       return;
     }
-    if ((second < getMinimum(Calendar.SECOND)) || (second > getMaximum(Calendar.SECOND)))
+    if ((second < getMinimum(Calendar.SECOND)) || (second > 60))
     {
-      throw new IllegalArgumentException("The second must be between 0 and 59.");
+      throw new IllegalArgumentException("The second must be between 0 and 60.");
     }
     set(Calendar.SECOND, second);
   }
@@ -314,8 +354,9 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
       int minute, int second, int milliseconds, int tz)
   {
     this(year, month, dayOfMonth, hour, minute, second);
-    setTimeZone(new SimpleTimeZone(tz, ""));
-    
+    localTime = true;
+    if (tz != FIELD_UNDEFINED)
+      setTimeZone(new SimpleTimeZone(tz, ""));
 
     if (milliseconds == FIELD_UNDEFINED)
     {
@@ -345,13 +386,41 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
 
     setTimeZone(new SimpleTimeZone(tz, ""));
   }
-  
-  
-  public GregorianDatetimeCalendar(int hour,
-      int minute, int second, int milliseconds, int tz)
+
+  public GregorianDatetimeCalendar(int hour, int minute, int second, int milliseconds,
+      int tz)
   {
     this();
-    
+    localTime = true;
+
+    if (hour == 24)
+    {
+      // 24:00:00 is only valid if minute, second and milliseconds are all 0
+      if (minute != 0 || second != 0
+          || (milliseconds != FIELD_UNDEFINED && milliseconds != 0))
+      {
+        throw new IllegalArgumentException(
+            "24:00:00 is only valid when minute, second and milliseconds are 0.");
+      }
+      endOfDay = true;
+      // Store as 00:00:00 internally
+      set(Calendar.HOUR_OF_DAY, 0);
+      set(Calendar.MINUTE, 0);
+      set(Calendar.SECOND, 0);
+      if (tz == FIELD_UNDEFINED)
+        return;
+      
+      // handle tz as normal...
+      if ((tz < getMinimum(Calendar.ZONE_OFFSET))
+          || (tz > getMaximum(Calendar.ZONE_OFFSET)))
+      {
+        throw new IllegalArgumentException(
+            "The timezone offset must be a valid range in milliseconds.");
+      }
+      setTimeZone(new SimpleTimeZone(tz, ""));
+      return;
+    }
+
     if ((hour < getMinimum(Calendar.HOUR_OF_DAY))
         || (hour > getMaximum(Calendar.HOUR_OF_DAY)))
     {
@@ -364,13 +433,19 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
       throw new IllegalArgumentException("The minute must be between 0 and 59.");
     }
     set(Calendar.MINUTE, minute);
+    if (second == FIELD_UNDEFINED)
+    {
+
+    }
+    else
     if ((second < getMinimum(Calendar.SECOND)) || (second > getMaximum(Calendar.SECOND)))
     {
       throw new IllegalArgumentException("The second must be between 0 and 59.");
+    } else
+    {
+      set(Calendar.SECOND, second);
     }
-    set(Calendar.SECOND, second);
-    
-    
+
     if (milliseconds == FIELD_UNDEFINED)
     {
 
@@ -388,14 +463,16 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
     {
       return;
     }
+    if (tz == FIELD_UNDEFINED)
+      return;
 
     if ((tz < getMinimum(Calendar.ZONE_OFFSET))
-        || (milliseconds > getMaximum(Calendar.ZONE_OFFSET)))
+        || (tz > getMaximum(Calendar.ZONE_OFFSET)))
     {
       throw new IllegalArgumentException(
           "The timezone offset must be a valid range in milliseconds.");
     }
-
+    setTimeZone(new SimpleTimeZone(tz, ""));
   }
 
   public void setTimeInMillis(long millis)
@@ -442,7 +519,13 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
     super.setTimeZone(value);
     set(DST_OFFSET, value.getDSTSavings());
     set(ZONE_OFFSET, value.getRawOffset());
+    localTime = false;
   }
+  
+  public boolean isLocalTime()
+  {
+      return localTime;
+  }  
 
   /**
    * Returns the hour field value or {@link #FIELD_UNDEFINED} if the value has
@@ -452,6 +535,8 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
    */
   public int getHour()
   {
+    if (endOfDay)
+      return 24;
     if (isUserSet(Calendar.HOUR_OF_DAY) == false)
       return FIELD_UNDEFINED;
     return get(Calendar.HOUR_OF_DAY);
@@ -600,7 +685,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
         buffer.append('.');
         buffer.append(addPrefix(3, millisecond));
       }
-      if (timezone != FIELD_UNDEFINED)
+      if ((timezone != FIELD_UNDEFINED) && (localTime == false))
       {
         if (timezone == 0)
           buffer.append('Z');
@@ -639,5 +724,85 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   }
   
   
+  public boolean equals(Object obj)
+  {
+      if (this == obj)
+          return true;
+      if (obj == null)
+          return false;
+      if (!(obj instanceof Calendar))
+          return false;
 
+      if (obj instanceof GregorianDatetimeCalendar)
+      {
+          GregorianDatetimeCalendar other = (GregorianDatetimeCalendar) obj;
+          if (endOfDay != other.endOfDay)
+              return false;
+          if (localTime != other.localTime)
+              return false;
+          // Compare only user set fields
+          int[] fields = {
+              Calendar.YEAR, Calendar.MONTH, Calendar.DAY_OF_MONTH,
+              Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND,
+              Calendar.MILLISECOND, Calendar.ZONE_OFFSET
+          };
+          for (int i = 0; i < fields.length; i++)
+          {
+              int field = fields[i];
+              boolean thisSet = isUserSet(field);
+              boolean otherSet = other.isUserSet(field);
+              // If set in one but not the other, not equal
+              if (thisSet != otherSet)
+                  return false;
+              // If set in both, values must match
+              if (thisSet && (get(field) != other.get(field)))
+                  return false;
+          }
+          return true;
+      }
+
+      // Comparing against a plain Calendar -- it has no userSet concept
+      // so only compare if ALL relevant fields are user set on our side
+      int[] fields = {
+          Calendar.YEAR, Calendar.MONTH, Calendar.DAY_OF_MONTH,
+          Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND,
+          Calendar.MILLISECOND, Calendar.ZONE_OFFSET
+      };
+      for (int i = 0; i < fields.length; i++)
+      {
+          int field = fields[i];
+          if (isUserSet(field))
+          {
+              if (get(field) != ((Calendar) obj).get(field))
+                  return false;
+          }
+      }
+      return true;
+  }
+  
+  public int hashCode()
+  {
+      int result = 17;
+      int[] fields = {
+          Calendar.YEAR, Calendar.MONTH, Calendar.DAY_OF_MONTH,
+          Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND,
+          Calendar.MILLISECOND, Calendar.ZONE_OFFSET
+      };
+      for (int i = 0; i < fields.length; i++)
+      {
+          int field = fields[i];
+          if (isUserSet(field))
+              result = 31 * result + get(field);
+      }
+      result = 31 * result + (endOfDay ? 1 : 0);
+      result = 31 * result + (localTime ? 1 : 0);
+      return result;
+  }
+
+  public boolean isEndOfDay()
+  {
+    return endOfDay;
+  }
+  
+  
 }
