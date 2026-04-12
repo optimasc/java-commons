@@ -3,26 +3,25 @@ package com.optimasc.date;
 import java.util.Calendar;
 import java.util.Comparator;
 
-/** A comparator that compares the fields associated
- *  with the time in calendar objects up to the specified
- *  accuracy. It supports both ignoring (when <code>localTime</code>
- *  is set) timezone or normalizing to UTC before comparing.
+
+/**
+ * A comparator that compares the fields associated with the time in calendar
+ * objects up to the specified accuracy. It supports both ignoring (when
+ * <code>localTime</code> is set) timezone or normalizing to UTC before
+ * comparing.
  * 
  * @author Carl Eric Codere.
- *
  */
 public class TimeComparator implements Comparator
 {
   protected int accuracy;
   protected boolean localTime;
 
-  
   /**
-   * 
-   * @param accuracy [in] The accuracy to which the compare fields
-   *   against.
-   * @param localTime [in] If comparison will ignore timzeones
-   *  or not.
+   * @param accuracy
+   *          [in] The accuracy to which the compare fields against.
+   * @param localTime
+   *          [in] If comparison will ignore timezones or not.
    */
   public TimeComparator(int accuracy, boolean localTime)
   {
@@ -32,62 +31,67 @@ public class TimeComparator implements Comparator
 
   protected int timeCompare(Calendar left, Calendar right)
   {
-    // Make both times to UTC timezones before comparing the time,
-    // only if these are not local times.
+    // Normalize both times to UTC before comparing, only if
+    // these are not local times.
     if (localTime == false)
     {
       left = (Calendar) DateTime.normalize(left);
       right = (Calendar) DateTime.normalize(right);
     }
-    
-    
-    int hourResult = right.get(Calendar.HOUR_OF_DAY) - left.get(Calendar.HOUR_OF_DAY);
-    
-    // Independent of the precision, the hour is already different.
-    // So we can return immediately.
-    if (hourResult != 0)
+
+    // Handle endOfDay sentinel for GregorianDatetimeCalendar instances,
+    // since internally 24:00:00 is stored as 00:00:00 in Calendar fields.
+/*    int leftHour = (left instanceof GregorianDatetimeCalendar)
+        && ((GregorianDatetimeCalendar) left).endOfDay ? 24
+        : left.get(Calendar.HOUR_OF_DAY);
+    int rightHour = (right instanceof GregorianDatetimeCalendar)
+        && ((GregorianDatetimeCalendar) right).endOfDay ? 24
+        : right.get(Calendar.HOUR_OF_DAY);*/
+      int leftHour =  left.get(Calendar.HOUR_OF_DAY);
+      int rightHour = right.get(Calendar.HOUR_OF_DAY);
+
+    if (leftHour < rightHour) return -1;
+    if (leftHour > rightHour) return 1;
+
+    // Hours are equal, check minutes
+    int leftMinute = left.get(Calendar.MINUTE);
+    int rightMinute = right.get(Calendar.MINUTE);
+
+    if (accuracy == DateTime.TimeAccuracy.MINUTE)
     {
-      return hourResult;
-    }
-    
-    int minuteResult = right.get(Calendar.MINUTE) - left.get(Calendar.MINUTE);
-    
-    if (accuracy==DateTime.TimeAccuracy.MINUTE)
-    {
-      return minuteResult;
-    }
-    
-    if (minuteResult != 0)
-    {
-      return minuteResult;
+      if (leftMinute < rightMinute) return -1;
+      if (leftMinute > rightMinute) return 1;
+      return 0;
     }
 
-    int secondsResult = right.get(Calendar.SECOND) - left.get(Calendar.SECOND);
-    
-    if (accuracy==DateTime.TimeAccuracy.SECOND)
+    if (leftMinute < rightMinute) return -1;
+    if (leftMinute > rightMinute) return 1;
+
+    // Minutes are equal, check seconds
+    int leftSecond = left.get(Calendar.SECOND);
+    int rightSecond = right.get(Calendar.SECOND);
+
+    if (accuracy == DateTime.TimeAccuracy.SECOND)
     {
-      return secondsResult;
+      if (leftSecond < rightSecond) return -1;
+      if (leftSecond > rightSecond) return 1;
+      return 0;
     }
-    
-    if (secondsResult != 0)
-    {
-      return secondsResult;
-    }
-    
-    int millisResult = right.get(Calendar.MILLISECOND) - left.get(Calendar.MILLISECOND);
-    
-    if (accuracy==DateTime.TimeAccuracy.MILLISECOND)
-    {
-      return millisResult;
-    }
-    
-    return millisResult;
+
+    if (leftSecond < rightSecond) return -1;
+    if (leftSecond > rightSecond) return 1;
+
+    // Seconds are equal, check milliseconds
+    int leftMillis = left.get(Calendar.MILLISECOND);
+    int rightMillis = right.get(Calendar.MILLISECOND);
+
+    if (leftMillis < rightMillis) return -1;
+    if (leftMillis > rightMillis) return 1;
+    return 0;
   }
 
   public int compare(Object o1, Object o2)
   {
-    
-    return timeCompare((Calendar)o1,(Calendar)o2);
+    return timeCompare((Calendar) o1, (Calendar) o2);
   }
-
 }

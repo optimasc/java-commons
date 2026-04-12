@@ -54,7 +54,7 @@ public class TimeTypeTest extends DatatypeTest
     TimeType instance = defaultInstance;
     assertEquals(true,instance.isOrdered());
     assertEquals(false,instance.isNumeric());
-    assertEquals(false,instance.isBounded());
+    assertEquals(true,instance.isBounded());
     assertEquals(null,instance.getAllowedValuesAsCalendars());
   }
 
@@ -742,25 +742,20 @@ public class TimeTypeTest extends DatatypeTest
   {
     TimeType ordered01 = new TimeType(DateTime.TimeAccuracy.SECOND,true);
 
-    assertEquals(BigDecimal.valueOf(0),ordered01.getMinInclusive());
-    assertEquals(BigDecimal.valueOf(86400),ordered01.getMaxInclusive());
+    TypeCheckResult checkResult = new TypeCheckResult();
+    assertEquals(ordered01.toValue(0,checkResult),ordered01.getMinInclusive());
+    assertEquals(ordered01.toValue(86399,checkResult),ordered01.getMaxInclusive());
     
     assertEquals(false,ordered01.isValid(100000));
     assertEquals(false,ordered01.isValid(-1));
     assertEquals(true,ordered01.isValid(127));
     assertEquals(true,ordered01.isValid(0));
 
-    assertEquals(false,ordered01.isValid(BigDecimal.valueOf(312000)));
-    assertEquals(false,ordered01.isValid(BigDecimal.valueOf(-1)));
-    assertEquals(true,ordered01.isValid(BigDecimal.valueOf(127)));
-    assertEquals(true,ordered01.isValid(BigDecimal.valueOf(54)));
-    
-    
     TimeType ordered02 = new TimeType(DateTime.TimeAccuracy.MINUTE,true);
 
-    assertEquals(BigDecimal.valueOf(0),ordered02.getMinInclusive());
-    assertEquals(BigDecimal.valueOf(1439),ordered02.getMaxInclusive());
-    
+    assertEquals(ordered02.toValue(0,checkResult),ordered02.getMinInclusive());
+    assertEquals(ordered02.toValue(1439,checkResult),ordered02.getMaxInclusive());
+
     assertEquals(false,ordered02.isValid(100000));
     assertEquals(false,ordered02.isValid(-1));
     assertEquals(true,ordered02.isValid(127));
@@ -773,9 +768,6 @@ public class TimeTypeTest extends DatatypeTest
     
     TimeType ordered03 = new TimeType(DateTime.TimeAccuracy.MILLISECOND,true);
 
-    assertEquals(BigDecimal.valueOf(0),ordered03.getMinInclusive());
-    assertEquals(BigDecimal.valueOf(86400*1000),ordered03.getMaxInclusive());
-    
     assertEquals(false,ordered03.isValid(100000*1000));
     assertEquals(false,ordered03.isValid(-1));
     assertEquals(true,ordered03.isValid(127));

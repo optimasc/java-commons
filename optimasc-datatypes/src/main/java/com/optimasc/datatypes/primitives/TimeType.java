@@ -2,6 +2,7 @@ package com.optimasc.datatypes.primitives;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
@@ -24,6 +25,7 @@ import com.optimasc.datatypes.facets.TimeUnitFacet;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.date.DateConverter;
 import com.optimasc.date.DateTime;
+import com.optimasc.date.DateTime.TimeAccuracy;
 import com.optimasc.date.DateTimeFormat;
 import com.optimasc.date.DateTime.Time;
 import com.optimasc.date.DateTimeFormat.TimeUnit;
@@ -75,7 +77,7 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedPropert
    *  and the time is 23:59:60. It includes the 
    *  leap second value.
    */
-  public static int MAX_VALUE_SECONDS = (24*60*60)+1-1;
+  public static int MAX_VALUE_SECONDS = (23*60*60) + (59*60) + 60;
   
 
   /** Maximum value for when the resolution is minutes
@@ -88,8 +90,6 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedPropert
    */
   public static int MAX_VALUE_MINUTES = (24*60)-1;
   
-  
-
   /** Minimum value for when the resolution is in milliseconds
    *  and the time is 00:00:00.0000.
    */
@@ -119,6 +119,116 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedPropert
       BigDecimal.valueOf(MAX_VALUE_MINUTES));
 
   
+  protected static final Calendar lowTime = new  GregorianDatetimeCalendar(0,0, 0, GregorianDatetimeCalendar.FIELD_UNDEFINED, 0);
+  protected static final Calendar highTime = new GregorianDatetimeCalendar(23,59, 59, GregorianDatetimeCalendar.FIELD_UNDEFINED, 0);
+  protected static final Calendar lowTimeMilli = new  GregorianDatetimeCalendar(0,0, 0, 00, 00);
+  protected static final Calendar highTimeMilli = new GregorianDatetimeCalendar(23,59, 59, 999, 00);
+  protected static final Calendar lowTimeMin = new  GregorianDatetimeCalendar(0,0, GregorianDatetimeCalendar.FIELD_UNDEFINED, GregorianDatetimeCalendar.FIELD_UNDEFINED, 00);
+  protected static final Calendar highTimeMin = new GregorianDatetimeCalendar(23,59, GregorianDatetimeCalendar.FIELD_UNDEFINED, GregorianDatetimeCalendar.FIELD_UNDEFINED, 00);
+  
+  protected static final Calendar lowTimeNoTZ = new  GregorianDatetimeCalendar(0,0, 0, GregorianDatetimeCalendar.FIELD_UNDEFINED, GregorianDatetimeCalendar.FIELD_UNDEFINED);
+  protected static final Calendar highTimeNoTZ = new GregorianDatetimeCalendar(23,59, 59, GregorianDatetimeCalendar.FIELD_UNDEFINED, GregorianDatetimeCalendar.FIELD_UNDEFINED);
+  protected static final Calendar lowTimeMilliNoTZ = new  GregorianDatetimeCalendar(0,0, 0, 00, GregorianDatetimeCalendar.FIELD_UNDEFINED);
+  protected static final Calendar highTimeMilliNoTZ = new GregorianDatetimeCalendar(23,59, 59, 999, GregorianDatetimeCalendar.FIELD_UNDEFINED);
+  protected static final Calendar lowTimeMinNoTZ = new  GregorianDatetimeCalendar(0,0, GregorianDatetimeCalendar.FIELD_UNDEFINED, GregorianDatetimeCalendar.FIELD_UNDEFINED, GregorianDatetimeCalendar.FIELD_UNDEFINED);
+  protected static final Calendar highTimeMinNoTZ = new GregorianDatetimeCalendar(23,59, GregorianDatetimeCalendar.FIELD_UNDEFINED, GregorianDatetimeCalendar.FIELD_UNDEFINED, GregorianDatetimeCalendar.FIELD_UNDEFINED);
+  
+  protected GregorianTimeComparator timeComparator;
+  
+  
+  /**
+   * A comparator that compares the fields associated with the time in calendar
+   * objects up to the specified accuracy. It supports both ignoring (when
+   * <code>localTime</code> is set) timezone or normalizing to UTC before
+   * comparing.
+   * 
+   * @author Carl Eric Codere.
+   */
+  public static class GregorianTimeComparator implements Comparator
+  {
+    protected int accuracy;
+    protected boolean localTime;
+
+    /**
+     * @param accuracy
+     *          [in] The accuracy to which the compare fields against.
+     * @param localTime
+     *          [in] If comparison will ignore timezones or not.
+     */
+    public GregorianTimeComparator(int accuracy, boolean localTime)
+    {
+      this.accuracy = accuracy;
+      this.localTime = localTime;
+    }
+
+    protected int timeCompare(Calendar left, Calendar right)
+    {
+      // Normalize both times to UTC before comparing, only if
+      // these are not local times.
+      if (localTime == false)
+      {
+        left = (Calendar) DateTime.normalize(left);
+        right = (Calendar) DateTime.normalize(right);
+      }
+
+      // Handle endOfDay sentinel for GregorianDatetimeCalendar instances,
+      // since internally 24:00:00 is stored as 00:00:00 in Calendar fields.
+    int leftHour = (left instanceof GregorianDatetimeCalendar)
+          && ((GregorianDatetimeCalendar) left).isEndOfDay() ? 24
+          : left.get(Calendar.HOUR_OF_DAY);
+      int rightHour = (right instanceof GregorianDatetimeCalendar)
+          && ((GregorianDatetimeCalendar) right).isEndOfDay() ? 24
+          : right.get(Calendar.HOUR_OF_DAY);
+
+      if (leftHour < rightHour) return -1;
+      if (leftHour > rightHour) return 1;
+
+      // Hours are equal, check minutes
+      int leftMinute = left.get(Calendar.MINUTE);
+      int rightMinute = right.get(Calendar.MINUTE);
+
+      if (accuracy == DateTime.TimeAccuracy.MINUTE)
+      {
+        if (leftMinute < rightMinute) return -1;
+        if (leftMinute > rightMinute) return 1;
+        return 0;
+      }
+
+      if (leftMinute < rightMinute) return -1;
+      if (leftMinute > rightMinute) return 1;
+
+      // Minutes are equal, check seconds
+      int leftSecond = left.get(Calendar.SECOND);
+      int rightSecond = right.get(Calendar.SECOND);
+
+      if (accuracy == DateTime.TimeAccuracy.SECOND)
+      {
+        if (leftSecond < rightSecond) return -1;
+        if (leftSecond > rightSecond) return 1;
+        return 0;
+      }
+
+      if (leftSecond < rightSecond) return -1;
+      if (leftSecond > rightSecond) return 1;
+
+      // Seconds are equal, check milliseconds
+      int leftMillis = left.get(Calendar.MILLISECOND);
+      int rightMillis = right.get(Calendar.MILLISECOND);
+
+      if (leftMillis < rightMillis) return -1;
+      if (leftMillis > rightMillis) return 1;
+      return 0;
+    }
+
+    public int compare(Object o1, Object o2)
+    {
+      return timeCompare((Calendar) o1, (Calendar) o2);
+    }
+  }
+  
+  
+  protected Calendar minValue;
+  protected Calendar maxValue;
   
 
   /** Creates a time type with an accuracy of 
@@ -144,11 +254,52 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedPropert
     validateAccuracy(accuracy);
     this.accuracy = accuracy;
     this.localTime = localTime;
-    this.enumHelper = new DateTimeEnumerationHelper(new TimeComparator(accuracy,localTime));
+    timeComparator = new GregorianTimeComparator(accuracy,localTime);
+    this.enumHelper = new DateTimeEnumerationHelper(timeComparator);
     if (choices != null)
     {
       enumHelper.setAllowedValues(choices);
     }
+    if (accuracy == TimeAccuracy.SECOND)
+    {
+      if (localTime == false)
+      {
+        minValue = lowTime;
+        maxValue = highTime;
+      } else
+      {
+        minValue = lowTimeNoTZ;
+        maxValue = highTimeNoTZ;
+        
+      }
+    }
+    if (accuracy == TimeAccuracy.MILLISECOND)
+    {
+      if (localTime == false)
+      {
+        minValue = lowTimeMilli;
+        maxValue = highTimeMilli;
+      } else
+      {
+        minValue = lowTimeMilliNoTZ;
+        maxValue = highTimeMilliNoTZ;
+        
+      }
+    }
+    if (accuracy == TimeAccuracy.MINUTE)
+    {
+      if (localTime == false)
+      {
+        minValue = lowTimeMin;
+        maxValue = highTimeMin;
+      } else
+      {
+        minValue = lowTimeMinNoTZ;
+        maxValue = highTimeMinNoTZ;
+        
+      }
+    }
+    
   }
   
 
@@ -406,14 +557,18 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedPropert
          cal.setTimeZone(GregorianDatetimeCalendar.ZULU);
       } else
       {
-        cal = new GregorianDatetimeCalendar();
+        cal = new GregorianDatetimeCalendar(true);
       }
       
       cal.set(Calendar.HOUR_OF_DAY, timeResult.hour);
       cal.set(Calendar.MINUTE, timeResult.minute);
-      cal.set(Calendar.SECOND, timeResult.second);
+      if (accuracy == DateTime.TimeAccuracy.SECOND)
+      {
+        cal.set(Calendar.SECOND, timeResult.second);
+      }
       if (accuracy == DateTime.TimeAccuracy.MILLISECOND)
       {
+        cal.set(Calendar.SECOND, timeResult.second);
         cal.set(Calendar.MILLISECOND, timeResult.millisecond);
       }
       if (isValid(cal)==false)
@@ -456,14 +611,37 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedPropert
 
   public boolean isValid(Object value)
   {
-    return enumHelper.isValid(value);
+    if (value instanceof Number)
+    {
+      TypeCheckResult result = new TypeCheckResult();
+      Calendar cal =  (Calendar) toValue(((Number)value).longValue(),result);
+      if (result.error!=null)
+        return false;
+      value = cal;
+    }
+    Calendar min = getMinInclusive();
+    Calendar max = getMaxInclusive();
+    
+    if (timeComparator.compare(min, value)>0)
+      return false;
+    if (timeComparator.compare(value,max)>0)
+      return false;
+    
+    if (enumHelper.getAllowedValues()!=null)
+    {
+      return enumHelper.isValid(value);
+    }
+    return true;
   }
   
   
   public boolean isValid(long value)
   {
     TypeCheckResult result = new TypeCheckResult();
-    return enumHelper.isValid(toValue(value,result));
+    Calendar cal = (Calendar) toValue(value,result);
+    if (result.error!=null)
+      return false;
+    return enumHelper.isValid(cal);
   }
   
 
@@ -551,12 +729,14 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedPropert
 
   public Calendar getMinInclusive()
   {
-    return enumHelper.getMinInclusive();
+    return minValue;
+//    return enumHelper.getMinInclusive();
   }
 
   public Calendar getMaxInclusive()
   {
-    return enumHelper.getMaxInclusive();
+    return maxValue;
+//    return enumHelper.getMaxInclusive();
   }
 
   public Object[] getAllowedValues()
