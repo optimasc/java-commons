@@ -279,8 +279,8 @@ public boolean isPrimitiveNumeric(Type type)
  public static final BigDecimal BIGDECIMAL_MIN_LONG = new BigDecimal(LONG_MIN_EXCLUSIVE);
  public static final BigDecimal BIGDECIMAL_MAX_LONG = new BigDecimal(LONG_MAX_EXCLUSIVE);
  
- public static final BigDecimal BIGDECIMAL_MIN_INT = new BigDecimal(Integer.MIN_VALUE-1);
- public static final BigDecimal BIGDECIMAL_MAX_INT = new BigDecimal(Integer.MAX_VALUE+1);
+ public static final BigDecimal BIGDECIMAL_MIN_INT = BigDecimal.valueOf(Integer.MIN_VALUE-1);
+ public static final BigDecimal BIGDECIMAL_MAX_INT = BigDecimal.valueOf(Integer.MAX_VALUE+1);
  
  
   /** Returns true if the value can be represented
