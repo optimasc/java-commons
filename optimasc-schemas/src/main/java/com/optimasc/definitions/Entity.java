@@ -50,7 +50,7 @@ public interface Entity extends AttributeSet
      * LDAP-NAME in ITU-T X.501. This value is mandatory and represents a descriptor.
      * In case the name is namespace aware, this is the qualified name.
      */
-    public static final String KEY_NAME = "NAME";
+    public static final String KEY_NAME = "commonName";
     
     
     /**

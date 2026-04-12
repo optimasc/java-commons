@@ -280,8 +280,8 @@ public class CoreDefinitions
    */
   public static class Attributes
   {
-    /** Object Identifier for the 'name' attribute */
-    public static final String ID_ATTRIBUTE_NAME = "2.5.4.41";
+    /** Object Identifier for the 'commonName' attribute */
+    public static final String ID_ATTRIBUTE_NAME = "2.5.4.3";
     /** Object Identifier for the 'description' attribute */
     public static final String ID_ATTRIBUTE_DESCRIPTION = "2.5.4.13";
     /** Object Identifier for the 'Object Identifier' attribute */
@@ -292,13 +292,13 @@ public class CoreDefinitions
     public static final String ID_ATTRIBUTE_OBJECT_CLASS_NAME = "2.5.4.0";
 
     /**
-     * Attribute definition for the 'name' ITU-T X.520 attribute. This defines
+     * Attribute definition for the 'commonName' ITU-T X.520 attribute. This defines
      * the {@link Definition#KEY_NAME} value.
      */
     public static final ItemDefinition ATTRIBUTE_NAME = new DefaultItemDefinition(
         // Unique Identifier, namespaceURI, qualifiedName, description, typeName, multipleValueType,
         // contextType, readOnly
-        ID_ATTRIBUTE_NAME, null, Entity.KEY_NAME, "Name", Types.ID_TYPE_STRING,
+        ID_ATTRIBUTE_NAME, null, Entity.KEY_NAME, "commonName", Types.ID_TYPE_STRING,
         DefaultItemDefinition.VALUE_TYPE_SINGLE, null, false);
 
     /** The definition of the "objectClass" attribute */
@@ -545,38 +545,6 @@ public class CoreDefinitions
 
   /** Default schema registry populated with base definitions. */
   private static EntityRegistry schemaRegistry; // = createRegistry();
-
-  /*  private static EntityRegistry createRegistry()
-    {
-      EntityRegistry registry = new EntityRegistry();
-      registry.add(Types.TYPE_BINARY);
-      registry.add(Types.TYPE_BOOLEAN);
-      registry.add(Types.TYPE_INTEGER);
-      registry.add(Types.TYPE_JAVA_CLASS);
-      registry.add(Types.TYPE_NCNAME);
-      registry.add(Types.TYPE_OID);
-      registry.add(Types.TYPE_STRING);
-      registry.add(Types.TYPE_GENERALIZEDTIME);
-      registry.add(Attributes.ATTRIBUTE_DESCRIPTION);
-      registry.add(Attributes.ATTRIBUTE_DISPLAY_NAME);
-      registry.add(Attributes.ATTRIBUTE_FORMATTER_NAME);
-      registry.add(Attributes.ATTRIBUTE_MAX_VALUE_LENGTH);
-      registry.add(Attributes.ATTRIBUTE_NAME);
-      registry.add(Attributes.ATTRIBUTE_NAME_NS_URI);
-      registry.add(Attributes.ATTRIBUTE_OBJECT_CLASS);
-      registry.add(Attributes.ATTRIBUTE_OBJECT_IDENTIFIER);
-      registry.add(Attributes.ATTRIBUTE_OBSOLETE);
-      registry.add(Attributes.ATTRIBUTE_ORIGIN);
-      registry.add(Attributes.ATTRIBUTE_READ_ONLY);
-      registry.add(Attributes.ATTRIBUTE_TYPE_JAVA_CLASS_NAME);
-      registry.add(Attributes.ATTRIBUTE_TYPE_NAME);
-      registry.add(Attributes.ATTRIBUTE_VALUE_TYPE);
-      registry.add(Classes.CLASS_ATTRIBUTE_DEFINTION);
-      registry.add(Classes.CLASS_CLASS_DEFINTION);
-      registry.add(Classes.CLASS_SYNTAX_DEFINTION);
-      registry.add(Classes.CLASS_TOP);
-      return registry;
-    }*/
 
   public static EntityRegistry getSchemaRegistry()
   {

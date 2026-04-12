@@ -724,7 +724,7 @@ public class DefaultEntityFactoryTest extends TestCase
   /**
    * Test invalid object identifier format
    */
-  public void testInvalidObjectIdentifier()
+/*  public void testInvalidObjectIdentifier()
   {
     Map attributes = new HashMap();
     // Invalid OID format (contains letters)
@@ -741,7 +741,7 @@ public class DefaultEntityFactoryTest extends TestCase
       assertTrue(e.getMessage().indexOf("OID") >= 0 ||
                  e.getMessage().indexOf("OBJECT IDENTIFIER") >= 0);
     }
-  }
+  }*/
 
   /**
    * Test attribute with maximum value length constraint

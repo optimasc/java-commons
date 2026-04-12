@@ -36,7 +36,7 @@ public class DefaultItemDefinition extends DefaultDefinition implements ItemDefi
    *          [in] The type name or syntax which represents the type associated
    *          with this item's value. This value is mandatory and must be non-null.
    *          When this value is an Object Identifier that points to a type, it supports
-   *          specifying the maximum length within brances at the end of the OBJECT IDENTIFIER
+   *          specifying the maximum length within braces at the end of the OBJECT IDENTIFIER
    *          such as 1.3.4{32} where the value in braces the maximum number of characters
    *          or octets for sequence types.
    * @param multiValueType
