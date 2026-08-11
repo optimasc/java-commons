@@ -110,7 +110,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
    * user-set. Primarily useful as a base for reflection or subclass
    * construction; most callers should use one of the field-taking constructors.
    */
-  public GregorianDatetimeCalendar()
+  protected GregorianDatetimeCalendar()
   {
     super(TimeZone.getDefault(), Locale.getDefault());
     userSet = new boolean[FIELD_COUNT];
