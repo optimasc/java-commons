@@ -1793,5 +1793,139 @@ public class StringNormalizer
 
     return result.toString();
   }
+  
+  
+  /**
+   * Checks for prohibited characters in an identifier (such as an attribute
+   * <em>localName</em>) loosely based on Unicode Standard Annex #31
+   * (<em>Unicode Identifier and Pattern Syntax</em>), augmented with the
+   * architectural restrictions required by this library's namespace
+   * concatenation model.
+   *
+   * <p>
+   * This is the strictest of the verification methods in this class. It is
+   * intended for use on identifier-class strings — names that designate a
+   * thing rather than carry content — where any whitespace, formatting
+   * character, or structural delimiter is almost certainly a bug rather
+   * than an intentional value. It is more restrictive than
+   * {@link #verifyProhibitedToken(CharSequence)}: tokens permit interior
+   * single spaces, identifiers permit none.
+   * </p>
+   *
+   * <p>
+   * Verification fails if the string is empty, or if any character has
+   * one of the following properties:
+   * </p>
+   *
+   * <ul>
+   *   <li>General_Category of Cc (Control);</li>
+   *   <li>General_Category of Cs (Surrogate);</li>
+   *   <li>General_Category of Co (Private Use);</li>
+   *   <li>General_Category of Cf (Format) — excluded per UAX #31 to prevent
+   *       confusable identifiers via bidi controls (U+200E, U+200F,
+   *       U+202A–U+202E), zero-width joiners (U+200C, U+200D), the byte
+   *       order mark (U+FEFF), and similar invisible characters;</li>
+   *   <li>General_Category of Zs, Zl, or Zp (any Separator) — identifiers
+   *       contain no whitespace of any kind, including U+00A0 NO-BREAK
+   *       SPACE and the other Unicode whitespace code points;</li>
+   *   <li>Codepoint is a non-character (PropList "# Cn" category);</li>
+   *   <li>Character is {@code ':'}, {@code '/'}, or {@code '#'} —
+   *       architectural restriction, not from UAX #31. These characters
+   *       are reserved as namespace structure delimiters: {@code ':'} is
+   *       the XML namespace prefix separator, and {@code '/'} and
+   *       {@code '#'} terminate the namespace IRI in the
+   *       {@code namespaceURI + localName} concatenation used to build
+   *       expanded names. Allowing them inside an identifier would
+   *       prevent unambiguous decomposition of the expanded name.</li>
+   * </ul>
+   *
+   * <p>
+   * Note that this method does <em>not</em> enforce a particular identifier
+   * <em>syntax</em> (such as NCName, an LDAP descriptor, or an ASCII-only
+   * subset). It enforces only the universal floor — characters that no
+   * reasonable backend would accept in an identifier. Stricter syntactic
+   * rules, if required, are the responsibility of the schema or backend
+   * adapter that consumes the identifier.
+   * </p>
+   *
+   * <p>
+   * The limitations of this compliance check are as follows:
+   * </p>
+   *
+   * <ul>
+   *   <li>Unassigned codepoint verification is not done, as they may be
+   *       assigned in the future. This follows the forward-compatibility
+   *       guidance in UAX #31.</li>
+   *   <li>Only supports character verification in the BMP (legacy UCS-2
+   *       encoding).</li>
+   * </ul>
+   *
+   * @param value
+   *          [in] The string to check. Must not be {@code null}.
+   * @throws ParseException
+   *           if {@code value} is empty, or contains a prohibited character.
+   */
+  public static void verifyProhibitedIdentifier(CharSequence value) throws ParseException
+  {
+    int maxLength = value.length();
+
+    /* Empty identifier is prohibited */
+    if (maxLength == 0)
+    {
+      throw new ParseException("Identifier must not be empty", 0);
+    }
+
+    for (int i = 0; i < maxLength; i++)
+    {
+      char ch = value.charAt(i);
+
+      /* Architectural restriction: namespace structure delimiters.
+       * Checked before category lookup so the error message is specific. */
+      if (ch == ':' || ch == '/' || ch == '#')
+      {
+        throw new ParseException("Identifier contains a prohibited reserved character ('"
+            + ch + "') at position", i);
+      }
+
+      int category = Character.getType(ch);
+      switch (category)
+      {
+      /* Surrogate general category codepoints */
+      /* Java 1.4+ versions: D800-DFFF; [SURROGATE CODES] */
+        case Character.SURROGATE:
+          throw new ParseException("Identifier contains a prohibited character (General category 'Cs') at position", i);
+          /* Private use codepoints */
+          /* Java 1.4+: E000-F8FF; [PRIVATE USE, PLANE 0]
+           * Java 1.6+: E000-F8FF; [PRIVATE USE, PLANE 0]
+           *            F0000-FFFFD; [PRIVATE USE, PLANE 15]
+           *            100000-10FFFD; [PRIVATE USE, PLANE 16]
+           */
+        case Character.PRIVATE_USE:
+          throw new ParseException("Identifier contains a prohibited character (General category 'Co') at position", i);
+        case Character.FORMAT:
+          /* Excluded per UAX #31 — bidi controls, ZWJ/ZWNJ, BOM, etc.
+           * These produce identifiers that render identically but
+           * compare unequal, a known security and usability hazard. */
+          throw new ParseException("Identifier contains a prohibited character (General category 'Cf') at position", i);
+        case Character.LINE_SEPARATOR:
+          throw new ParseException("Identifier contains a prohibited character (General category 'Zl') at position", i);
+        case Character.PARAGRAPH_SEPARATOR:
+          throw new ParseException("Identifier contains a prohibited character (General category 'Zp') at position", i);
+        case Character.SPACE_SEPARATOR:
+          /* Stricter than Token / normalizedString: identifiers contain
+           * no whitespace at all, including U+00A0 NBSP and similar. */
+          throw new ParseException("Identifier contains a prohibited character (General category 'Zs') at position", i);
+        case Character.CONTROL:
+          throw new ParseException("Identifier contains a prohibited character (General category 'Cc') at position", i);
+        default:
+          break;
+      }
+      /* Non-character code points */
+      if (IntegerSelectItems.validateValue(UNICODE_NON_CHARACTERS, ch) == true)
+      {
+        throw new ParseException("Identifier contains prohibited characters at position", i);
+      }
+    }
+  }
 
 }
