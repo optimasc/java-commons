@@ -16,7 +16,7 @@ public class SingleType extends RealType
 {
   public SingleType()
   {
-    super(7);
+    super(7,-Float.MAX_VALUE,Float.MAX_VALUE);
   }
 
     public Object accept(TypeVisitor v, Object arg)

@@ -11,6 +11,8 @@ import com.optimasc.datatypes.DatatypeException;
 import com.optimasc.datatypes.TypeUtilities;
 import com.optimasc.datatypes.TypeUtilities.TypeCheckResult;
 import com.optimasc.datatypes.visitor.TypeVisitor;
+import com.optimasc.lang.NumberSelectItem;
+import com.optimasc.lang.NumberedSelectItems;
 
 /**  Datatype that represents an approximation of a real number represented as floating point value. 
  *   The value is specified as a scaled values with a base 2 radix, hence 2^-(scale).
@@ -31,30 +33,36 @@ import com.optimasc.datatypes.visitor.TypeVisitor;
  */
 public class RealType extends AbstractNumberType
 {
-    /** Creates a real type value with the specified 
-     *  precision and scale.
-     * 
-     * @param scale The number of decimal digits.
-     */
-    public RealType(int scale)
-    {
-        super(scale);
-    }
+  /** Creates a real type value which is equal to
+   *  a double precision IEEE 754 numeric value (64-bit).
+   */
+  public RealType()
+  {
+      this(15, -Double.MAX_VALUE, Double.MAX_VALUE);
+  }
+
+  /** Creates a real type value with the specified
+   *  precision and no bounds (unbounded real).
+   *
+   * @param scale The binary precision (number of significand bits).
+   */
+  public RealType(int scale)
+  {
+      super(scale);
+      // No bounds — represents an unbounded real at this precision.
+  }  
+  
     
     protected RealType(int scale, double minValue, double maxValue)
     {
         super(scale);
+        enumHelper.setAllowedValuesAsSelectItems(new NumberSelectItem[]{
+            new NumberedSelectItems.NumberSelectRange(
+                new BigDecimal(minValue),
+                new BigDecimal(maxValue))
+        });        
     }
     
-    
-    /** Creates a real type value which is equal to 
-     *  a double precision numeric value.
-     * 
-     */
-    public RealType()
-    {
-        super(53);
-    }
     
     public Class getClassType()
     {
