@@ -269,16 +269,14 @@ public class DateTimeType extends PrimitiveType implements BoundedProperty, Time
   {
     conversionResult.reset();
     
-    // pass through to next step
     if (value instanceof java.util.Date)
     {
       java.util.Date d = (Date) value;
-      Calendar cal = new GregorianDatetimeCalendar();
-      if (localTime==false)
+      GregorianCalendar cal = new GregorianCalendar();
+      if (localTime == false)
       {
         cal.setTimeZone(DateTime.ZULU);
       }
-      // The value from date is always in UTC
       cal.setTimeInMillis(d.getTime());
       value = cal;
     }
@@ -298,59 +296,49 @@ public class DateTimeType extends PrimitiveType implements BoundedProperty, Time
     if (value instanceof GregorianCalendar)
     {
       Calendar inputCalendar = (Calendar) value;
-      Calendar cal = new GregorianDatetimeCalendar();
       if (localTime == false)
       {
-         cal.setTimeZone(DateTime.ZULU);
-         inputCalendar = DateTime.normalize(inputCalendar);
+        inputCalendar = DateTime.normalize(inputCalendar);
       }
-      // Only set the correct fields depending on the accuracy value
-      cal.set(Calendar.ERA, inputCalendar.get(Calendar.ERA));
-      cal.set(Calendar.YEAR, inputCalendar.get(Calendar.YEAR));
-      
-      if (accuracy == DateTime.TimeAccuracy.DAY)
+
+      int[] userSetFields;
+      if (accuracy == DateTime.TimeAccuracy.YEAR)
       {
-        cal.set(Calendar.MONTH, inputCalendar.get(Calendar.MONTH));
-        cal.set(Calendar.DAY_OF_MONTH, inputCalendar.get(Calendar.DAY_OF_MONTH));
+        userSetFields = new int[] { Calendar.ERA, Calendar.YEAR };
       }
-      if (accuracy == DateTime.TimeAccuracy.MINUTE)
+      else if (accuracy == DateTime.TimeAccuracy.DAY)
       {
-        cal.set(Calendar.MONTH, inputCalendar.get(Calendar.MONTH));
-        cal.set(Calendar.DAY_OF_MONTH, inputCalendar.get(Calendar.DAY_OF_MONTH));
-        cal.set(Calendar.HOUR_OF_DAY, inputCalendar.get(Calendar.HOUR_OF_DAY));
-        cal.set(Calendar.MINUTE, inputCalendar.get(Calendar.MINUTE));
+        userSetFields = new int[] { Calendar.ERA, Calendar.YEAR, Calendar.MONTH, Calendar.DAY_OF_MONTH };
       }
-      if (accuracy == DateTime.TimeAccuracy.SECOND)
+      else if (accuracy == DateTime.TimeAccuracy.MINUTE)
       {
-        cal.set(Calendar.MONTH, inputCalendar.get(Calendar.MONTH));
-        cal.set(Calendar.DAY_OF_MONTH, inputCalendar.get(Calendar.DAY_OF_MONTH));
-        cal.set(Calendar.HOUR_OF_DAY, inputCalendar.get(Calendar.HOUR_OF_DAY));
-        cal.set(Calendar.MINUTE, inputCalendar.get(Calendar.MINUTE));
-        cal.set(Calendar.SECOND, inputCalendar.get(Calendar.SECOND));
+        userSetFields = new int[] { Calendar.ERA, Calendar.YEAR, Calendar.MONTH, Calendar.DAY_OF_MONTH,
+            Calendar.HOUR_OF_DAY, Calendar.MINUTE };
       }
-      if (accuracy == DateTime.TimeAccuracy.SECOND)
+      else if (accuracy == DateTime.TimeAccuracy.SECOND)
       {
-        cal.set(Calendar.MONTH, inputCalendar.get(Calendar.MONTH));
-        cal.set(Calendar.DAY_OF_MONTH, inputCalendar.get(Calendar.DAY_OF_MONTH));
-        cal.set(Calendar.HOUR_OF_DAY, inputCalendar.get(Calendar.HOUR_OF_DAY));
-        cal.set(Calendar.MINUTE, inputCalendar.get(Calendar.MINUTE));
-        cal.set(Calendar.SECOND, inputCalendar.get(Calendar.SECOND));
+        userSetFields = new int[] { Calendar.ERA, Calendar.YEAR, Calendar.MONTH, Calendar.DAY_OF_MONTH,
+            Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND };
       }
-      if (accuracy == DateTime.TimeAccuracy.MILLISECOND)
+      else
       {
-        cal.set(Calendar.MONTH, inputCalendar.get(Calendar.MONTH));
-        cal.set(Calendar.DAY_OF_MONTH, inputCalendar.get(Calendar.DAY_OF_MONTH));
-        cal.set(Calendar.HOUR_OF_DAY, inputCalendar.get(Calendar.HOUR_OF_DAY));
-        cal.set(Calendar.MINUTE, inputCalendar.get(Calendar.MINUTE));
-        cal.set(Calendar.SECOND, inputCalendar.get(Calendar.SECOND));
-        cal.set(Calendar.MILLISECOND, inputCalendar.get(Calendar.MILLISECOND));
-      }      
-      if (isValid(cal)==false)
-      {
-        conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Value is not one of the values allowed by enumeration.");
-        return null;
+        userSetFields = new int[] { Calendar.ERA, Calendar.YEAR, Calendar.MONTH, Calendar.DAY_OF_MONTH,
+            Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND, Calendar.MILLISECOND };
       }
-      if (isValid(cal)==false)
+
+      GregorianCalendar source;
+      if (inputCalendar instanceof GregorianCalendar)
+      {
+        source = (GregorianCalendar) inputCalendar;
+      }
+      else
+      {
+        source = new GregorianCalendar(inputCalendar.getTimeZone());
+        source.setTimeInMillis(inputCalendar.getTimeInMillis());
+      }
+
+      Calendar cal = new GregorianDatetimeCalendar(source, userSetFields);
+      if (isValid(cal) == false)
       {
         conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Value is not one of the values allowed by enumeration.");
         return null;

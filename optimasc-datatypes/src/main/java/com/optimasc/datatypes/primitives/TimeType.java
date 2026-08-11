@@ -400,17 +400,14 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedPropert
     {
       conversionResult.reset();
       
-      // If date convert it to a calendar and continue and 
-      // pass through to next step
       if (value instanceof java.util.Date)
       {
         java.util.Date d = (Date) value;
-        Calendar cal = new GregorianDatetimeCalendar();
-        if (localTime==false)
+        GregorianCalendar cal = new GregorianCalendar();
+        if (localTime == false)
         {
           cal.setTimeZone(DateTime.ZULU);
         }
-        // The value from date is always in UTC
         cal.setTimeInMillis(d.getTime());
         value = cal;
       }
@@ -418,25 +415,26 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedPropert
       if (value instanceof GregorianCalendar)
       {
         Calendar inputCalendar = (Calendar) value;
-        Calendar cal = new GregorianDatetimeCalendar();
         if (localTime == false)
         {
-           cal.setTimeZone(DateTime.ZULU);
-           inputCalendar = DateTime.normalize(inputCalendar);
+          inputCalendar = DateTime.normalize(inputCalendar);
         }
-        // Only set the correct fields depending on the accuracy value
-        cal.set(Calendar.HOUR_OF_DAY, inputCalendar.get(Calendar.HOUR_OF_DAY));
-        cal.set(Calendar.MINUTE, inputCalendar.get(Calendar.MINUTE));
+        int calHour = inputCalendar.get(Calendar.HOUR_OF_DAY);
+        int calMinute = inputCalendar.get(Calendar.MINUTE);
+        int calSecond = GregorianDatetimeCalendar.FIELD_UNDEFINED;
+        int calMillis = GregorianDatetimeCalendar.FIELD_UNDEFINED;
+        int calTz = localTime ? GregorianDatetimeCalendar.FIELD_UNDEFINED : 0;
         if (accuracy == DateTime.TimeAccuracy.SECOND)
         {
-          cal.set(Calendar.SECOND, inputCalendar.get(Calendar.SECOND));
+          calSecond = inputCalendar.get(Calendar.SECOND);
         }
         if (accuracy == DateTime.TimeAccuracy.MILLISECOND)
         {
-          cal.set(Calendar.SECOND, inputCalendar.get(Calendar.SECOND));
-          cal.set(Calendar.MILLISECOND, inputCalendar.get(Calendar.MILLISECOND));
+          calSecond = inputCalendar.get(Calendar.SECOND);
+          calMillis = inputCalendar.get(Calendar.MILLISECOND);
         }
-        if (isValid(cal)==false)
+        Calendar cal = new GregorianDatetimeCalendar(calHour, calMinute, calSecond, calMillis, calTz);
+        if (isValid(cal) == false)
         {
           conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Value is not one of the values allowed by enumeration.");
           return null;
@@ -452,32 +450,30 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedPropert
       if (value instanceof Time)
       {
         Time t = (Time) value;
-        Calendar cal = new GregorianDatetimeCalendar();
-        if ((localTime==false) && (t.localTime==false))
+        if ((localTime == false) && (t.localTime == false))
         {
-          cal.setTimeZone(DateTime.ZULU);
         } else
-        if ((localTime==true) && (t.localTime==true))
+        if ((localTime == true) && (t.localTime == true))
         {
-          
         } else
         {
           conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"localTime for type and value are not compatible.");
           return null;
         }
-        
-        cal.set(Calendar.HOUR_OF_DAY, t.hour);
-        cal.set(Calendar.MINUTE, t.minute);
+        int calSecond = GregorianDatetimeCalendar.FIELD_UNDEFINED;
+        int calMillis = GregorianDatetimeCalendar.FIELD_UNDEFINED;
+        int calTz = localTime ? GregorianDatetimeCalendar.FIELD_UNDEFINED : 0;
         if (accuracy == DateTime.TimeAccuracy.SECOND)
         {
-          cal.set(Calendar.SECOND, t.second);
+          calSecond = t.second;
         }
         if (accuracy == DateTime.TimeAccuracy.MILLISECOND)
         {
-          cal.set(Calendar.SECOND, t.second);
-          cal.set(Calendar.MILLISECOND, t.millisecond);
+          calSecond = t.second;
+          calMillis = t.millisecond;
         }
-        if (isValid(cal)==false)
+        Calendar cal = new GregorianDatetimeCalendar(t.hour, t.minute, calSecond, calMillis, calTz);
+        if (isValid(cal) == false)
         {
           conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Value is not one of the values allowed by enumeration.");
           return null;
@@ -550,27 +546,19 @@ public class TimeType extends PrimitiveType implements TimeFacet, OrderedPropert
       }
         
       
-      Calendar cal;
-      if (localTime == false)
-      {
-         cal = new GregorianDatetimeCalendar();
-         cal.setTimeZone(GregorianDatetimeCalendar.ZULU);
-      } else
-      {
-        cal = new GregorianDatetimeCalendar(true);
-      }
-      
-      cal.set(Calendar.HOUR_OF_DAY, timeResult.hour);
-      cal.set(Calendar.MINUTE, timeResult.minute);
+      int calSecond = GregorianDatetimeCalendar.FIELD_UNDEFINED;
+      int calMillis = GregorianDatetimeCalendar.FIELD_UNDEFINED;
+      int calTz = localTime ? GregorianDatetimeCalendar.FIELD_UNDEFINED : 0;
       if (accuracy == DateTime.TimeAccuracy.SECOND)
       {
-        cal.set(Calendar.SECOND, timeResult.second);
+        calSecond = timeResult.second;
       }
       if (accuracy == DateTime.TimeAccuracy.MILLISECOND)
       {
-        cal.set(Calendar.SECOND, timeResult.second);
-        cal.set(Calendar.MILLISECOND, timeResult.millisecond);
+        calSecond = timeResult.second;
+        calMillis = timeResult.millisecond;
       }
+      Calendar cal = new GregorianDatetimeCalendar(timeResult.hour, timeResult.minute, calSecond, calMillis, calTz);
       if (isValid(cal)==false)
       {
         conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"The value is not within the list of allowed value as defined by"
