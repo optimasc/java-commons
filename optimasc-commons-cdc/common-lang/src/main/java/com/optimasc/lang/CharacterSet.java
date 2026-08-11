@@ -288,6 +288,10 @@ public class CharacterSet
   public boolean isRestrictionOf(CharacterSet charSet)
   {
     CharacterSet p = parent; 
+    if (charSet.equals(this))
+    {
+      return true;
+    }
     while (p != null)
     {
       if (charSet.equals(p))
@@ -334,7 +338,15 @@ public class CharacterSet
       return false;
     return true;
   }
+  
+  
 
+
+  public String toString()
+  {
+    return "CharacterSet [oid=" + oid + ", name=" + name
+        + "]";
+  }
 
   /**
    * Indicates whether {@code codePoint} is a valid Unicode code point.
