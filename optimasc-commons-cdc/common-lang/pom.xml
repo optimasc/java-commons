@@ -6,10 +6,10 @@
         <artifactId>common</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
+  <artifactId>optimasc-commons-lang</artifactId>
   <name>Common Language additional types</name>
   <url></url>
   <inceptionYear>2016</inceptionYear>
-  <artifactId>optimasc-commons-lang</artifactId>
   <description>A set of additional classes representing new datatypes compatible with CDC 1.1 Foundation profile and Java 1.4 that can be used to write portable code. </description>
   
   <licenses>
