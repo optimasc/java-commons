@@ -6,7 +6,7 @@
 
   <groupId>com.optimasc.datatypes</groupId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>Data types validators and serializers</name>
+  <name>Extended Datatype definitions and serializers</name>
   <inceptionYear>2018</inceptionYear>
   <artifactId>optimasc-datatypesex</artifactId>
   <description></description>

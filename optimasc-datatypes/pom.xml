@@ -7,7 +7,7 @@
   <groupId>com.optimasc.datatypes</groupId>
   <version>0.0.1-SNAPSHOT</version>
   <artifactId>optimasc-datatypes</artifactId>
-  <name>Data types validators</name>
+  <name>Datatype definitions</name>
   <inceptionYear>2018</inceptionYear>
   <description></description>
   <packaging>jar</packaging>
