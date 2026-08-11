@@ -1,7 +1,5 @@
 package com.optimasc.text;
 
-import java.math.BigInteger;
-import com.optimasc.utils.BaseTypeUtilities;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.FieldPosition;
@@ -12,6 +10,7 @@ import java.util.List;
 import java.util.Locale;
 
 import com.optimasc.lang.MediaType;
+import com.optimasc.utils.BaseTypeUtilities;
 
 /*
  * 
