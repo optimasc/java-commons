@@ -43,7 +43,7 @@ public class StandardDateFormatters
   );
   
   /** Date/time pattern for ISO 8601 standard date and local time (YYYY-MM-DDThh:mm:ss) */
-  public static final DateConverter ISO8601_DATETME = new DateConverter(
+  public static final DateConverter ISO8601_DATETIME = new DateConverter(
       new String[]{
           PATTERN_ISO8601_DATETIME}
   );
