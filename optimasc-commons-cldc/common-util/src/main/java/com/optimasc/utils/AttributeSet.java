@@ -32,4 +32,9 @@ public interface AttributeSet
    *  shall be returned.
    */
   public String[] getKeys();
+  
+  /** Indicates if the attribute ID or name is case-sensitive 
+   *  or not.
+   */
+  boolean isCaseIgnored();
 }
