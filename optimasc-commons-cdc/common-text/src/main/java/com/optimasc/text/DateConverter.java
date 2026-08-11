@@ -6,7 +6,6 @@ import java.text.ParseException;
 import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.SimpleTimeZone;
@@ -657,7 +656,6 @@ public class DateConverter extends DataConverter
     boolean localTZIndicator = false;
     TimeZone timeZone = null;
     ParsePosition pos = new ParsePosition(0);
-    GregorianDatetimeCalendar calendar = new GregorianDatetimeCalendar();
     String[] dateSymbols;
 
     for (int i = 0; i < patternInfo.elements.size(); i++)
@@ -978,102 +976,72 @@ public class DateConverter extends DataConverter
       throw new ParseException("Extra characters found after pattern parsing.",currentIndex);
     }
     int requiredFields = patternInfo.requiredFields;
-    // Set this to support the proleptic Gregorian calendar
-    calendar.setGregorianChange(new Date(Long.MIN_VALUE));
-    calendar.set(Calendar.ERA, GregorianCalendar.AD);
+
+    // Validate required fields
     if (year == Long.MIN_VALUE)
     {
       if ((requiredFields & FLAG_YEAR_REQUIRED) == FLAG_YEAR_REQUIRED)
         throw new IllegalArgumentException("Year value is required and is missing.");
     }
-    else
-    {
-      if (year < 0)
-      {
-        calendar.set(Calendar.YEAR, (int) (1 - year));
-        calendar.set(Calendar.ERA, GregorianCalendar.BC);
-      }
-      else
-      {
-        calendar.set(Calendar.YEAR, (int) year);
-      }
-    }
-
-    // Month
     if (month == -1)
     {
       if ((requiredFields & FLAG_MONTH_REQUIRED) == FLAG_MONTH_REQUIRED)
         throw new IllegalArgumentException("Month value is required and is missing.");
     }
-    else
-    {
-      calendar.set(Calendar.MONTH, month - 1);
-    }
-
-    // Day
     if (day == -1)
     {
       if ((requiredFields & FLAG_DAY_REQUIRED) == FLAG_DAY_REQUIRED)
         throw new IllegalArgumentException("Day value is required and is missing.");
     }
-    else
-    {
-      calendar.set(Calendar.DAY_OF_MONTH, day);
-    }
-
-    // Hour
     if (hour == -1)
     {
       if ((requiredFields & FLAG_HOUR_REQUIRED) == FLAG_HOUR_REQUIRED)
         throw new IllegalArgumentException("Hour value is required and is missing.");
     }
-    else
-    {
-      calendar.set(Calendar.HOUR_OF_DAY, hour);
-    }
-
-    // Minute
     if (minute == -1)
     {
       if ((requiredFields & FLAG_MINUTE_REQUIRED) == FLAG_MINUTE_REQUIRED)
         throw new IllegalArgumentException("Minute value is required and is missing.");
     }
-    else
-    {
-      calendar.set(Calendar.MINUTE, minute);
-    }
-
-    // Second
     if (second == -1)
     {
       if ((requiredFields & FLAG_SECOND_REQUIRED) == FLAG_SECOND_REQUIRED)
         throw new IllegalArgumentException("Second value is required and is missing.");
     }
-    else
-    {
-      calendar.set(Calendar.SECOND, second);
-    }
-
     if (millisecond == -1)
     {
       if ((requiredFields & FLAG_MILLISECOND_REQUIRED) == FLAG_MILLISECOND_REQUIRED)
         throw new IllegalArgumentException(
             "Millisecond value is required and is missing.");
     }
-    else
-    {
-      calendar.set(Calendar.MILLISECOND, millisecond);
-    }
-
     if (timeZone == null)
     {
       if (((requiredFields & FLAG_TIMEZONE_REQUIRED) == FLAG_TIMEZONE_REQUIRED)
           && (localTZIndicator == false))
         throw new IllegalArgumentException("Timezone value is required and is missing.");
     }
+
+    // Convert parsed values to GregorianDatetimeCalendar conventions:
+    // -1 (not parsed) -> FIELD_UNDEFINED, month from 1-based to 0-based
+    int calMonth = (month == -1) ? GregorianDatetimeCalendar.FIELD_UNDEFINED : month - 1;
+    int calDay = (day == -1) ? GregorianDatetimeCalendar.FIELD_UNDEFINED : day;
+    int calHour = (hour == -1) ? GregorianDatetimeCalendar.FIELD_UNDEFINED : hour;
+    int calMinute = (minute == -1) ? GregorianDatetimeCalendar.FIELD_UNDEFINED : minute;
+    int calSecond = (second == -1) ? GregorianDatetimeCalendar.FIELD_UNDEFINED : second;
+    int calMillis = (millisecond == -1) ? GregorianDatetimeCalendar.FIELD_UNDEFINED : millisecond;
+    int calTz = (timeZone == null) ? GregorianDatetimeCalendar.FIELD_UNDEFINED
+        : timeZone.getRawOffset();
+
+    GregorianDatetimeCalendar calendar;
+    if (year == Long.MIN_VALUE)
+    {
+      calendar = new GregorianDatetimeCalendar(calHour, calMinute, calSecond, calMillis,
+          calTz);
+    }
     else
     {
-      calendar.setTimeZone(timeZone);
+      calendar = new GregorianDatetimeCalendar((int) year, calMonth, calDay, calHour,
+          calMinute, calSecond, calMillis, calTz);
     }
     return calendar;
 

@@ -3,7 +3,6 @@ package com.optimasc.text;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.SimpleTimeZone;
 
 import com.optimasc.lang.GregorianDatetimeCalendar;
 
@@ -760,28 +759,15 @@ public class DateConverterTest extends TestCase
     // IETF RFC 822 Date-time
     converter.applyPattern("d MMM yy HH:mm:ss Z");
 
-    calendar = new GregorianDatetimeCalendar();
-    calendar.set(Calendar.ERA, GregorianCalendar.AD);
-    calendar.set(Calendar.YEAR, 1989);
-    calendar.set(Calendar.MONTH, Calendar.FEBRUARY);
-    calendar.set(Calendar.DAY_OF_MONTH, 01);
-    calendar.set(Calendar.HOUR_OF_DAY, 01);
-    calendar.set(Calendar.MINUTE, 45);
-    calendar.set(Calendar.SECOND, 59);
-    calendar.setTimeZone(GregorianDatetimeCalendar.ZULU);
+    calendar = new GregorianDatetimeCalendar(1989, Calendar.FEBRUARY, 1, 1, 45, 59,
+        GregorianDatetimeCalendar.FIELD_UNDEFINED, 0);
 
     result = converter.format(calendar);
     assertEquals("1 Feb 89 01:45:59 GMT", result);
 
-    calendar = new GregorianDatetimeCalendar();
-    calendar.set(Calendar.ERA, GregorianCalendar.AD);
-    calendar.set(Calendar.YEAR, 1989);
-    calendar.set(Calendar.MONTH, Calendar.FEBRUARY);
-    calendar.set(Calendar.DAY_OF_MONTH, 01);
-    calendar.set(Calendar.HOUR_OF_DAY, 01);
-    calendar.set(Calendar.MINUTE, 45);
-    calendar.set(Calendar.SECOND, 59);
-    calendar.setTimeZone(new SimpleTimeZone(-((8 * 60 * 60) + (30 * 60)) * 1000, "TST"));
+    calendar = new GregorianDatetimeCalendar(1989, Calendar.FEBRUARY, 1, 1, 45, 59,
+        GregorianDatetimeCalendar.FIELD_UNDEFINED,
+        -((8 * 60 * 60) + (30 * 60)) * 1000);
 
     result = converter.format(calendar);
     assertEquals("1 Feb 89 01:45:59 -0830", result);
@@ -797,30 +783,17 @@ public class DateConverterTest extends TestCase
     // ISO 8601 Expanded format
     converter.applyPattern("yyyy-MM-dd'T'HH:mm:ssX");
 
-    calendar = new GregorianDatetimeCalendar();
-    calendar.set(Calendar.ERA, GregorianCalendar.AD);
-    calendar.set(Calendar.YEAR, 1975);
-    calendar.set(Calendar.MONTH, Calendar.JANUARY);
-    calendar.set(Calendar.DAY_OF_MONTH, 19);
-    calendar.set(Calendar.HOUR_OF_DAY, 01);
-    calendar.set(Calendar.MINUTE, 01);
-    calendar.set(Calendar.SECOND, 12);
-    calendar.setTimeZone(GregorianDatetimeCalendar.ZULU);
+    calendar = new GregorianDatetimeCalendar(1975, Calendar.JANUARY, 19, 1, 1, 12,
+        GregorianDatetimeCalendar.FIELD_UNDEFINED, 0);
 
     result = converter.format(calendar);
     assertEquals("1975-01-19T01:01:12Z", result);
 
     //------------------------------
 
-    calendar = new GregorianDatetimeCalendar();
-    calendar.set(Calendar.ERA, GregorianCalendar.AD);
-    calendar.set(Calendar.YEAR, 1975);
-    calendar.set(Calendar.MONTH, Calendar.JANUARY);
-    calendar.set(Calendar.DAY_OF_MONTH, 19);
-    calendar.set(Calendar.HOUR_OF_DAY, 01);
-    calendar.set(Calendar.MINUTE, 01);
-    calendar.set(Calendar.SECOND, 12);
-    calendar.setTimeZone(new SimpleTimeZone(8 * 60 * 60 * 1000 + 30 * 60 * 1000, "RWA"));
+    calendar = new GregorianDatetimeCalendar(1975, Calendar.JANUARY, 19, 1, 1, 12,
+        GregorianDatetimeCalendar.FIELD_UNDEFINED,
+        8 * 60 * 60 * 1000 + 30 * 60 * 1000);
 
     result = converter.format(calendar);
     assertEquals("1975-01-19T01:01:12+08:30", result);
@@ -830,48 +803,24 @@ public class DateConverterTest extends TestCase
     // ISO 8601 Expanded format with milliseconds.
     converter.applyPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 
-    calendar = new GregorianDatetimeCalendar();
-    calendar.set(Calendar.ERA, GregorianCalendar.AD);
-    calendar.set(Calendar.YEAR, 1975);
-    calendar.set(Calendar.MONTH, Calendar.JANUARY);
-    calendar.set(Calendar.DAY_OF_MONTH, 19);
-    calendar.set(Calendar.HOUR_OF_DAY, 01);
-    calendar.set(Calendar.MINUTE, 01);
-    calendar.set(Calendar.SECOND, 12);
-    calendar.setTimeZone(GregorianDatetimeCalendar.ZULU);
-    calendar.set(Calendar.MILLISECOND, 979);
+    calendar = new GregorianDatetimeCalendar(1975, Calendar.JANUARY, 19, 1, 1, 12,
+        979, 0);
 
     result = converter.format(calendar);
     assertEquals("1975-01-19T01:01:12.979Z", result);
 
     converter.applyPattern("yyyy-MM-dd'T'HH:mm:ss.SX");
 
-    calendar = new GregorianDatetimeCalendar();
-    calendar.set(Calendar.ERA, GregorianCalendar.AD);
-    calendar.set(Calendar.YEAR, 1975);
-    calendar.set(Calendar.MONTH, Calendar.JANUARY);
-    calendar.set(Calendar.DAY_OF_MONTH, 19);
-    calendar.set(Calendar.HOUR_OF_DAY, 01);
-    calendar.set(Calendar.MINUTE, 01);
-    calendar.set(Calendar.SECOND, 12);
-    calendar.setTimeZone(GregorianDatetimeCalendar.ZULU);
-    calendar.set(Calendar.MILLISECOND, 979);
+    calendar = new GregorianDatetimeCalendar(1975, Calendar.JANUARY, 19, 1, 1, 12,
+        979, 0);
 
     result = converter.format(calendar);
     assertEquals("1975-01-19T01:01:12.9Z", result);
 
     converter.applyPattern("yyyy-MM-dd'T'HH:mm:ss.SX");
 
-    calendar = new GregorianDatetimeCalendar();
-    calendar.set(Calendar.ERA, GregorianCalendar.AD);
-    calendar.set(Calendar.YEAR, 1975);
-    calendar.set(Calendar.MONTH, Calendar.JANUARY);
-    calendar.set(Calendar.DAY_OF_MONTH, 19);
-    calendar.set(Calendar.HOUR_OF_DAY, 01);
-    calendar.set(Calendar.MINUTE, 01);
-    calendar.set(Calendar.SECOND, 12);
-    calendar.setTimeZone(GregorianDatetimeCalendar.ZULU);
-    calendar.set(Calendar.MILLISECOND, 455);
+    calendar = new GregorianDatetimeCalendar(1975, Calendar.JANUARY, 19, 1, 1, 12,
+        455, 0);
 
     result = converter.format(calendar);
     assertEquals("1975-01-19T01:01:12.5Z", result);
@@ -887,30 +836,17 @@ public class DateConverterTest extends TestCase
     // ISO 8601 Basic format
     converter.applyPattern("yyyyMMddHHmmssx");
 
-    calendar = new GregorianDatetimeCalendar();
-    calendar.set(Calendar.ERA, GregorianCalendar.AD);
-    calendar.set(Calendar.YEAR, 1975);
-    calendar.set(Calendar.MONTH, Calendar.JANUARY);
-    calendar.set(Calendar.DAY_OF_MONTH, 19);
-    calendar.set(Calendar.HOUR_OF_DAY, 01);
-    calendar.set(Calendar.MINUTE, 01);
-    calendar.set(Calendar.SECOND, 12);
-    calendar.setTimeZone(GregorianDatetimeCalendar.ZULU);
+    calendar = new GregorianDatetimeCalendar(1975, Calendar.JANUARY, 19, 1, 1, 12,
+        GregorianDatetimeCalendar.FIELD_UNDEFINED, 0);
 
     result = converter.format(calendar);
     assertEquals("19750119010112Z", result);
 
     //------------------------------
 
-    calendar = new GregorianDatetimeCalendar();
-    calendar.set(Calendar.ERA, GregorianCalendar.AD);
-    calendar.set(Calendar.YEAR, 1975);
-    calendar.set(Calendar.MONTH, Calendar.JANUARY);
-    calendar.set(Calendar.DAY_OF_MONTH, 19);
-    calendar.set(Calendar.HOUR_OF_DAY, 01);
-    calendar.set(Calendar.MINUTE, 01);
-    calendar.set(Calendar.SECOND, 12);
-    calendar.setTimeZone(new SimpleTimeZone(8 * 60 * 60 * 1000 + 30 * 60 * 1000, "RWA"));
+    calendar = new GregorianDatetimeCalendar(1975, Calendar.JANUARY, 19, 1, 1, 12,
+        GregorianDatetimeCalendar.FIELD_UNDEFINED,
+        8 * 60 * 60 * 1000 + 30 * 60 * 1000);
 
     result = converter.format(calendar);
     assertEquals("19750119010112+0830", result);
@@ -920,48 +856,24 @@ public class DateConverterTest extends TestCase
     // ISO 8601 Basic format with milliseconds.
     converter.applyPattern("yyyyMMddHHmmss.SSSx");
 
-    calendar = new GregorianDatetimeCalendar();
-    calendar.set(Calendar.ERA, GregorianCalendar.AD);
-    calendar.set(Calendar.YEAR, 1975);
-    calendar.set(Calendar.MONTH, Calendar.JANUARY);
-    calendar.set(Calendar.DAY_OF_MONTH, 19);
-    calendar.set(Calendar.HOUR_OF_DAY, 01);
-    calendar.set(Calendar.MINUTE, 01);
-    calendar.set(Calendar.SECOND, 12);
-    calendar.setTimeZone(GregorianDatetimeCalendar.ZULU);
-    calendar.set(Calendar.MILLISECOND, 979);
+    calendar = new GregorianDatetimeCalendar(1975, Calendar.JANUARY, 19, 1, 1, 12,
+        979, 0);
 
     result = converter.format(calendar);
     assertEquals("19750119010112.979Z", result);
 
     converter.applyPattern("yyyyMMddHHmmssSx");
 
-    calendar = new GregorianDatetimeCalendar();
-    calendar.set(Calendar.ERA, GregorianCalendar.AD);
-    calendar.set(Calendar.YEAR, 1975);
-    calendar.set(Calendar.MONTH, Calendar.JANUARY);
-    calendar.set(Calendar.DAY_OF_MONTH, 19);
-    calendar.set(Calendar.HOUR_OF_DAY, 01);
-    calendar.set(Calendar.MINUTE, 01);
-    calendar.set(Calendar.SECOND, 12);
-    calendar.setTimeZone(GregorianDatetimeCalendar.ZULU);
-    calendar.set(Calendar.MILLISECOND, 979);
+    calendar = new GregorianDatetimeCalendar(1975, Calendar.JANUARY, 19, 1, 1, 12,
+        979, 0);
 
     result = converter.format(calendar);
     assertEquals("197501190101129Z", result);
 
     converter.applyPattern("yyyyMMddHHmmss.Sx");
 
-    calendar = new GregorianDatetimeCalendar();
-    calendar.set(Calendar.ERA, GregorianCalendar.AD);
-    calendar.set(Calendar.YEAR, 1975);
-    calendar.set(Calendar.MONTH, Calendar.JANUARY);
-    calendar.set(Calendar.DAY_OF_MONTH, 19);
-    calendar.set(Calendar.HOUR_OF_DAY, 01);
-    calendar.set(Calendar.MINUTE, 01);
-    calendar.set(Calendar.SECOND, 12);
-    calendar.setTimeZone(GregorianDatetimeCalendar.ZULU);
-    calendar.set(Calendar.MILLISECOND, 455);
+    calendar = new GregorianDatetimeCalendar(1975, Calendar.JANUARY, 19, 1, 1, 12,
+        455, 0);
 
     result = converter.format(calendar);
     assertEquals("19750119010112.5Z", result);
