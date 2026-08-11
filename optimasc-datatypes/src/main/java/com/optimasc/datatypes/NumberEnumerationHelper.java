@@ -328,6 +328,8 @@ public class NumberEnumerationHelper implements NumberEnumerationFacet
     return values;
   }
 
+  
+  
   public void setAllowedValues(Object[] choices)
   {
     values = new NumberSelectItem[choices.length];
