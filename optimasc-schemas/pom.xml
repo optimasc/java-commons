@@ -4,12 +4,12 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   
-  <groupId>com.optimasc.schemas</groupId>
+  <groupId>com.optimasc.schema</groupId>
   <version>0.0.1-SNAPSHOT</version>
+  <artifactId>optimasc-schema</artifactId>
   <name>Schema definition objects</name>
-  <inceptionYear>2025</inceptionYear>
-  <artifactId>optimasc-schemas</artifactId>
   <description></description>
+  <inceptionYear>2025</inceptionYear>
   <packaging>jar</packaging>
 
   <url></url>
@@ -37,8 +37,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.4</maven.compiler.source>
-    <maven.compiler.target>1.4</maven.compiler.target>
+    <maven.compiler.source>1.5</maven.compiler.source>
+    <maven.compiler.target>1.5</maven.compiler.target>
   </properties>
 
   <dependencies>
@@ -48,29 +48,6 @@
 	  <version>3.8.2</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>com.optimasc.commons</groupId>
-      <artifactId>optimasc-commons-text-cldc</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>com.optimasc.commons</groupId>
-      <artifactId>optimasc-commons-text</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>com.optimasc.commons</groupId>
-      <artifactId>optimasc-commons-lang</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-     <groupId>com.optimasc.commons</groupId>
-     <artifactId>optimasc-commons-util-cldc</artifactId>
-     <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-   
-    
-    
   </dependencies>
 
 	<!-- These are the default profiles supported: 1) dev: The default, which 
