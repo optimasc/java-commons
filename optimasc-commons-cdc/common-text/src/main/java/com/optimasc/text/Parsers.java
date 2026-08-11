@@ -1,6 +1,5 @@
 package com.optimasc.text;
 
-import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
@@ -8,7 +7,6 @@ import java.text.Format;
 import java.text.ParseException;
 import java.text.ParsePosition;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Locale;
 
 import com.optimasc.util.DataUtilities;

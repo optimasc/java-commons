@@ -2,12 +2,8 @@ package com.optimasc.text;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.text.FieldPosition;
 import java.text.ParseException;
-import java.text.ParsePosition;
-import java.util.Locale;
 
 /*
  * 
