@@ -331,7 +331,7 @@
 					<target>${maven.compiler.target}</target>
 					<!-- This should be commented out to only use the default installed toolchain !-->
                     <fork>true</fork>
-                    <executable>${JAVA_1_4_HOME}/bin/javac</executable>
+                    <executable>${JAVA1_4_HOME}/bin/javac</executable>
 				</configuration>
 			</plugin>
 			<plugin>
