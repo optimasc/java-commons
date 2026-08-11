@@ -1,7 +1,5 @@
 package com.optimasc.datatypes.defined;
 
-import omg.org.astm.type.UnnamedTypeReference;
-
 import com.optimasc.datatypes.TypeFactory;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 
