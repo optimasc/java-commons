@@ -50,6 +50,13 @@ public class ClassType extends DerivableAggregateType
     {
         return v.visit(this,arg);
     }
+    
+    
+    public Class getClassType()
+    {
+      return Class.class;
+    }
+
 
     
 }
