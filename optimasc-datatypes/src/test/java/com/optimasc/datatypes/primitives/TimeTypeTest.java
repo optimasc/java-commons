@@ -172,7 +172,15 @@ public class TimeTypeTest extends DatatypeTest
   public static DateTime.Time createTime(Calendar cal)
   {
     boolean localTime = cal.getTimeZone().getRawOffset()!=0;
-    return new DateTime.Time(cal.get(Calendar.HOUR_OF_DAY), 
+    return new DateTime.Time(cal.get(Calendar.HOUR_OF_DAY),
+        cal.get(Calendar.MINUTE),
+        cal.get(Calendar.SECOND),
+        cal.get(Calendar.MILLISECOND),localTime);
+  }
+
+  public static DateTime.Time createTime(Calendar cal, boolean localTime)
+  {
+    return new DateTime.Time(cal.get(Calendar.HOUR_OF_DAY),
         cal.get(Calendar.MINUTE),
         cal.get(Calendar.SECOND),
         cal.get(Calendar.MILLISECOND),localTime);
@@ -561,15 +569,15 @@ public class TimeTypeTest extends DatatypeTest
     
     
     // Time values -- valid
-    result = (GregorianDatetimeCalendar) datatype.toValue(createTime(minCalendarValue), checkResult);
+    result = (GregorianDatetimeCalendar) datatype.toValue(createTime(minCalendarValue, true), checkResult);
     checkTime(result,0,0,0,0);
     assertEquals(null,checkResult.error);
 
-    result = (GregorianDatetimeCalendar) datatype.toValue(createTime(midCalendarValue), checkResult);
+    result = (GregorianDatetimeCalendar) datatype.toValue(createTime(midCalendarValue, true), checkResult);
     checkTime(result,13,15,59,999);
     assertEquals(null,checkResult.error);
 
-    result = (GregorianDatetimeCalendar) datatype.toValue(createTime(maxCalendarValue), checkResult);
+    result = (GregorianDatetimeCalendar) datatype.toValue(createTime(maxCalendarValue, true), checkResult);
     checkTime(result,23,59,59,999);
     assertEquals(null,checkResult.error);
 
@@ -633,13 +641,13 @@ public class TimeTypeTest extends DatatypeTest
     
     
     // Time values -- valid
-    assertEquals(null,datatype.toValue(createTime(minCalendarValue), checkResult));
+    assertEquals(null,datatype.toValue(createTime(minCalendarValue, true), checkResult));
     assertEquals(DatatypeException.ERROR_DATA_TYPE_MISMATCH,((DatatypeException)checkResult.error).getCode());
 
-    assertEquals(null,datatype.toValue(createTime(midCalendarValue), checkResult));
+    assertEquals(null,datatype.toValue(createTime(midCalendarValue, true), checkResult));
     assertEquals(DatatypeException.ERROR_DATA_TYPE_MISMATCH,((DatatypeException)checkResult.error).getCode());
 
-    result = (GregorianDatetimeCalendar) datatype.toValue(createTime(maxCalendarValue), checkResult);
+    result = (GregorianDatetimeCalendar) datatype.toValue(createTime(maxCalendarValue, true), checkResult);
     checkTime(result,23,59,59,999);
     assertEquals(null,checkResult.error);
 

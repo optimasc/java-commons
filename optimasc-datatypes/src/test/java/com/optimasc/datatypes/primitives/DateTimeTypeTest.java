@@ -151,8 +151,7 @@ public class DateTimeTypeTest  extends DatatypeTest
     if (year <= 0)
     {
       assertEquals(GregorianCalendar.BC,cal.get(Calendar.ERA));
-      year = year + 1;
-      year = -year;
+      year = 1 - year;
     } else
     {
       assertEquals(GregorianCalendar.AD,cal.get(Calendar.ERA));
