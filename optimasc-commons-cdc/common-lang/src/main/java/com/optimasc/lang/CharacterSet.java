@@ -287,11 +287,11 @@ public class CharacterSet
    */
   public boolean isRestrictionOf(CharacterSet charSet)
   {
-    CharacterSet p = parent; 
     if (charSet.equals(this))
     {
-      return true;
+      return false;
     }
+    CharacterSet p = parent;
     while (p != null)
     {
       if (charSet.equals(p))
