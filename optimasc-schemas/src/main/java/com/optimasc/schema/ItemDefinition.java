@@ -2,7 +2,7 @@ package com.optimasc.schema;
 
 import com.optimasc.schema.Definition;
 
-/** Represents the schema definition of a named item — an attribute,
+/** Represents the schema definition of a named item - an attribute,
  *  property, element, or column.
  *
  *  <p>An {@code ItemDefinition} describes the <em>rules</em> governing
@@ -16,11 +16,11 @@ import com.optimasc.schema.Definition;
  *  {@code ItemDefinition} constrain how many values the item may hold
  *  and whether their order is significant:</p>
  *  <ul>
- *    <li>{@link #VALUE_TYPE_SINGLE} — at most one value.</li>
- *    <li>{@link #VALUE_TYPE_BAG} — multiple values with no defined
+ *    <li>{@link #VALUE_TYPE_SINGLE} - at most one value.</li>
+ *    <li>{@link #VALUE_TYPE_BAG} - multiple values with no defined
  *        order.</li>
- *    <li>{@link #VALUE_TYPE_SEQ} — multiple ordered values.</li>
- *    <li>{@link #VALUE_TYPE_ALT} — multiple alternative values, each
+ *    <li>{@link #VALUE_TYPE_SEQ} - multiple ordered values.</li>
+ *    <li>{@link #VALUE_TYPE_ALT} - multiple alternative values, each
  *        keyed by a context value.</li>
  *  </ul>
  *
@@ -139,10 +139,10 @@ public interface ItemDefinition extends Definition
    *  <p>The value stored under this key is a {@link String} that must
    *  be one of:</p>
    *  <ul>
-   *    <li>{@link #VALUE_TYPE_SINGLE} — single value only</li>
-   *    <li>{@link #VALUE_TYPE_BAG}    — multiple unordered values</li>
-   *    <li>{@link #VALUE_TYPE_SEQ}    — multiple ordered values</li>
-   *    <li>{@link #VALUE_TYPE_ALT}    — alternative values with
+   *    <li>{@link #VALUE_TYPE_SINGLE} - single value only</li>
+   *    <li>{@link #VALUE_TYPE_BAG}    - multiple unordered values</li>
+   *    <li>{@link #VALUE_TYPE_SEQ}    - multiple ordered values</li>
+   *    <li>{@link #VALUE_TYPE_ALT}    - alternative values with
    *        context keys</li>
    *  </ul>
    *
@@ -155,10 +155,10 @@ public interface ItemDefinition extends Definition
    *
    *  <p>The value stored under this key is a {@link Boolean}:</p>
    *  <ul>
-   *    <li>{@code TRUE}  — values may only be modified by the
+   *    <li>{@code TRUE}  - values may only be modified by the
    *        system (equivalent to NO-USER-MODIFICATION in
    *        RFC 4512)</li>
-   *    <li>{@code FALSE} — values may be modified by user
+   *    <li>{@code FALSE} - values may be modified by user
    *        applications (default)</li>
    *  </ul>
    *
@@ -232,7 +232,7 @@ public interface ItemDefinition extends Definition
    *  type, not in place of them.</p>
    *
    *  <p>Analogous to the open and closed choice value types defined by
-   *  the XMP specification, and — for the closed case — to the
+   *  the XMP specification, and - for the closed case - to the
    *  {@code X-ENUM} extension in LDAP syntax descriptions (RFC 4512
    *  section 4.2) and to {@code xs:enumeration} facets in XML Schema
    *  simple type restrictions.</p>
@@ -356,9 +356,9 @@ public interface ItemDefinition extends Definition
    *  distinguished by location. Defined context values
    *  (case-insensitive):</p>
    *  <ul>
-   *    <li>{@code "Home"}   — home or personal location</li>
-   *    <li>{@code "Office"} — work or business location</li>
-   *    <li>{@code "Other"}  — any other location</li>
+   *    <li>{@code "Home"}   - home or personal location</li>
+   *    <li>{@code "Office"} - work or business location</li>
+   *    <li>{@code "Other"}  - any other location</li>
    *  </ul>
    */
   String CONTEXT_LOCATION = "LocationAlt";
@@ -387,12 +387,12 @@ public interface ItemDefinition extends Definition
    *
    *  <p>The returned value is always one of:</p>
    *  <ul>
-   *    <li>{@link #VALUE_TYPE_SINGLE} — exactly one value</li>
-   *    <li>{@link #VALUE_TYPE_BAG}    — zero or more unordered
+   *    <li>{@link #VALUE_TYPE_SINGLE} - exactly one value</li>
+   *    <li>{@link #VALUE_TYPE_BAG}    - zero or more unordered
    *        values</li>
-   *    <li>{@link #VALUE_TYPE_SEQ}    — zero or more ordered
+   *    <li>{@link #VALUE_TYPE_SEQ}    - zero or more ordered
    *        values</li>
-   *    <li>{@link #VALUE_TYPE_ALT}    — zero or more alternative
+   *    <li>{@link #VALUE_TYPE_ALT}    - zero or more alternative
    *        values keyed by context</li>
    *  </ul>
    *
@@ -500,7 +500,7 @@ public interface ItemDefinition extends Definition
   /** Returns the set of choice values that this item restricts its
    *  values to, or {@code null} if no choice constraint is declared.
    *
-   *  <p>Choice values are strings — controlled vocabulary terms,
+   *  <p>Choice values are strings - controlled vocabulary terms,
    *  enumeration labels, language codes, or similar textual
    *  identifiers. Numeric or structured enumerations belong on the
    *  type layer (via the type's constraining facets), not on the
