@@ -603,44 +603,90 @@ public class StandardFormatters
   }
 
   /**
-   * Type converter to native Java Objects for a Locale. A <code>Locale</code> is 
-   * represented by a Java Object of type <code>Locale</code>.
-   *  
-   * 
-   * It supports a subset of
-   * the format defined in IETF RFC 5646. The differences are specified below:
-   * 
+   * Type converter to native Java objects for a language identifier. A
+   * language identifier is represented by a Java object of type
+   * <code>Locale</code>.
+   *
+   * <p>
+   * It supports a subset of the language tag format defined in IETF RFC 5646.
+   * The differences are specified below:
+   * </p>
+   *
    * <ul>
-   * <li>Language codes are based on 2 lower-case character language code as
-   * defined by ISO 639-1.</li>
+   * <li>Language codes are based on the 2 lower-case character language code
+   * as defined by ISO 639-1. Three-letter ISO 639-2/639-3 codes are not
+   * supported.</li>
    * <li>The country code is based on the 2 upper-case character code
-   * identifying countries under ISO 3166-1.</li>
+   * identifying countries under ISO 3166-1. Numeric UN M.49 region codes are
+   * not supported.</li>
+   * <li>Script subtags, extension subtags, extended language subtags and
+   * private use tags (<code>x-</code>) are not supported, because
+   * <code>java.util.Locale</code> cannot represent them on this platform.</li>
    * </ul>
-   * 
+   *
    * <p>
    * Hence the syntax is as follows:
-   * 
+   * </p>
+   *
    * <pre>
-   *      langtag  = language
-   *                  ["-" region]
-   * 
-   *     language      = 2ALPHA   ; shortest ISO 639 code
-   *     region        = 2ALPHA   ; ISO 3166-1 code
+   *     langtag  = language
+   *                 ["-" region]
+   *
+   *     language = 2ALPHA   ; shortest ISO 639 code
+   *     region   = 2ALPHA   ; ISO 3166-1 code
    * </pre>
-   * 
+   *
    * <p>
    * In <code>lenient</code> mode, the case is automatically converted to the
    * correct expected case, and does not raise an error if not correctly set
    * initially.
    * </p>
+   *
+   * <p>
+   * The canonical string form produced by {@link #format} is the RFC 5646 tag,
+   * <em>not</em> <code>Locale.toString()</code>, which uses an underscore
+   * separator. The <code>Locale</code> constructor additionally rewrites three
+   * language codes to their deprecated forms for backward compatibility
+   * (<code>he</code> to <code>iw</code>, <code>yi</code> to <code>ji</code>,
+   * <code>id</code> to <code>in</code>); this converter maps them back to the
+   * current codes on output, so that formatting a parsed value returns the
+   * original tag. A value parsed from a deprecated code is therefore formatted
+   * using the current code.
+   * </p>
    * 
-   * 
+   * <li>Language codes are limited to the 2 lower-case character code
+   * defined by ISO 639-1. Three-letter ISO 639-2 and ISO 639-3 codes such
+   * as <code>haw</code> are rejected, although <code>Locale</code> can
+   * represent them. This is stricter than the Language syntax.</li>   * 
+   *
+   * <p>
+   * A <code>Locale</code> that cannot be represented as a tag of the subset
+   * above is rejected by {@link #format} rather than being written with the
+   * unrepresentable information silently removed.
+   * </p>
    **/
   public static class LocaleTypeConverter extends DataConverter
   {
     public static final char TAG_SEPARATOR = '-';
 
-    private static DataConverter instance;
+    /** Length in characters of a language tag without a region. */
+    private static final int LANGUAGE_LENGTH = 2;
+
+    /** Length in characters of a language tag with a region. */
+    private static final int TAG_LENGTH = 5;
+
+    /** Offset of the region subtag within a tag of {@link #TAG_LENGTH}. */
+    private static final int REGION_OFFSET = 3;
+
+    /**
+     * Language codes rewritten by the <code>Locale</code> constructor, and the
+     * current ISO 639-1 code each one corresponds to. The two arrays are
+     * parallel.
+     */
+    private static final String[] DEPRECATED_CODES = { "iw", "ji", "in" };
+    private static final String[] CURRENT_CODES = { "he", "yi", "id" };
+
+    private static final DataConverter instance = new LocaleTypeConverter();
 
     public LocaleTypeConverter()
     {
@@ -649,29 +695,39 @@ public class StandardFormatters
 
     public static DataConverter getInstance()
     {
-      if (instance == null)
+      return instance;
+    }
+
+    /**
+     * Returns the current ISO 639-1 code for a language code stored by
+     * <code>Locale</code>, or the code itself if it is not one of the three
+     * rewritten by the <code>Locale</code> constructor.
+     */
+    private static String toCurrentCode(String language)
+    {
+      for (int i = 0; i < DEPRECATED_CODES.length; i++)
       {
-        synchronized (LocaleTypeConverter.class)
+        if (DEPRECATED_CODES[i].equals(language))
         {
-          if (instance == null)
-            instance = new LocaleTypeConverter();
+          return CURRENT_CODES[i];
         }
       }
-      return instance;
+      return language;
     }
 
     public Object parseObject(CharSequence value) throws ParseException
     {
-      String language;
-      String region = null;
+      int length = value.length();
       char c1;
       char c2;
-      char output[] = new char[2];
-      int inLength = value.length();
-      if (inLength < 2)
-        throw new ParseException("Length must be at least 2 characters.", 0);
 
-      // Lenient we convert the characters ourselves to lower case.
+      if ((length != LANGUAGE_LENGTH) && (length != TAG_LENGTH))
+      {
+        throw new ParseException("Language tag must be " + LANGUAGE_LENGTH + " or "
+            + TAG_LENGTH + " characters in length.", 0);
+      }
+
+      // Lenient: we convert the characters ourselves to lower case.
       if (lenient)
       {
         c1 = Character.toLowerCase(value.charAt(0));
@@ -694,89 +750,43 @@ public class StandardFormatters
             "Language code character is not lower-case ascii letter", 1);
       }
 
-      output[0] = c1;
-      output[1] = c2;
-      language = new String(output);
-      if (inLength == 2)
+      String language = new String(new char[] { c1, c2 });
+
+      if (length == LANGUAGE_LENGTH)
       {
-        output = null;
         return new Locale(language);
       }
-      inLength = inLength - 2;
-      if (value.charAt(2) != TAG_SEPARATOR)
+
+      if (value.charAt(LANGUAGE_LENGTH) != TAG_SEPARATOR)
       {
-        throw new ParseException("Expected tag separator '" + TAG_SEPARATOR + "'", 2);
+        throw new ParseException("Expected tag separator '" + TAG_SEPARATOR + "'",
+            LANGUAGE_LENGTH);
       }
-      inLength--;
+
+      // Lenient: we convert the characters ourselves to upper case.
       if (lenient)
       {
-        if (inLength >= 1)
-        {
-          c1 = Character.toUpperCase(value.charAt(3));
-          inLength--;
-        }
-        else
-        {
-          throw new ParseException(
-              "The language tag with region is not 5 characters in length", 3);
-        }
-
-        if (inLength >= 1)
-        {
-          c2 = Character.toUpperCase(value.charAt(4));
-          inLength--;
-        }
-        else
-        {
-          throw new ParseException(
-              "The language tag with region is not 5 characters in length", 4);
-        }
-
+        c1 = Character.toUpperCase(value.charAt(REGION_OFFSET));
+        c2 = Character.toUpperCase(value.charAt(REGION_OFFSET + 1));
       }
       else
       {
-        if (inLength >= 1)
-        {
-
-          c1 = value.charAt(3);
-          inLength--;
-        }
-        else
-        {
-          throw new ParseException(
-              "The language tag with region is not 5 characters in length", 3);
-        }
-        if (inLength >= 1)
-        {
-          c2 = value.charAt(4);
-          inLength--;
-        }
-        else
-        {
-          throw new ParseException(
-              "The language tag with region is not 5 characters in length", 4);
-        }
+        c1 = value.charAt(REGION_OFFSET);
+        c2 = value.charAt(REGION_OFFSET + 1);
       }
 
       if ((c1 < 'A') || (c1 > 'Z'))
       {
         throw new ParseException("Region code character is not upper-case ascii letter",
-            3);
+            REGION_OFFSET);
       }
       if ((c2 < 'A') || (c2 > 'Z'))
       {
         throw new ParseException("Region code character is not upper-case ascii letter",
-            4);
+            REGION_OFFSET + 1);
       }
-      if (inLength != 0)
-      {
-        throw new ParseException("Extra characters after region information", 5);
-      }
-      output[0] = c1;
-      output[1] = c2;
-      region = new String(output);
-      output = null;
-      return new Locale(language, region);
+
+      return new Locale(language, new String(new char[] { c1, c2 }));
     }
 
     public StringBuffer format(Object value, StringBuffer toAppendTo, FieldPosition pos)
@@ -787,12 +797,33 @@ public class StandardFormatters
             + clz.getName() + "'");
       }
       Locale locale = (Locale) value;
+      String language = toCurrentCode(locale.getLanguage());
       String region = locale.getCountry();
-      if ((region == null) || (region.length() == 0))
+      String variant = locale.getVariant();
+
+      if (language.length() != LANGUAGE_LENGTH)
       {
-        return toAppendTo.append(locale.getLanguage());
+        throw new IllegalArgumentException("Locale language '" + language
+            + "' is not a 2 character ISO 639-1 code and cannot be represented");
       }
-      return toAppendTo.append(locale.getLanguage() + "-" + region);
+      if (variant.length() != 0)
+      {
+        throw new IllegalArgumentException("Locale variant '" + variant
+            + "' cannot be represented as a language tag");
+      }
+      if (region.length() == 0)
+      {
+        return toAppendTo.append(language);
+      }
+      if (region.length() != LANGUAGE_LENGTH)
+      {
+        throw new IllegalArgumentException("Locale region '" + region
+            + "' is not a 2 character ISO 3166-1 code and cannot be represented");
+      }
+      toAppendTo.append(language);
+      toAppendTo.append(TAG_SEPARATOR);
+      toAppendTo.append(region);
+      return toAppendTo;
     }
 
     public Object parseObject(String value) throws ParseException
@@ -800,7 +831,7 @@ public class StandardFormatters
       return parseObject((CharSequence) value);
     }
   }
-
+  
   /** Type converter to native Java Objects for an URI. This 
    *  returns a <code>java.Net.URI</code> instance 
    *  

@@ -362,7 +362,7 @@ public class NumericFormatters
    * <code>[-]?(([0-9])|([1-9][0-9]+))</code>
    * </p>
    * 
-   * and if so converts it to an {@link java.lang.Byte} object. In canonical
+   * and if so converts it to an {@link java.lang.Integer} object. In canonical
    * representation (non-lenient) parsing mode, if a '+' sign or leading 0
    * digits are present, conversion will fail. In lenient mode, the
    * above characters are accepted without raising an error. When formatting,
@@ -385,12 +385,12 @@ public class NumericFormatters
   {
     public ByteConverter()
     {
-      super(Byte.class, true, Byte.MIN_VALUE, Byte.MAX_VALUE);
+      super(Integer.class, true, Byte.MIN_VALUE, Byte.MAX_VALUE);
     }
 
     public Object parseObject(CharSequence value) throws ParseException
     {
-      return new Byte((byte)checkValue(value));
+      return new Integer((byte)checkValue(value));
     }
   }
   
@@ -404,7 +404,7 @@ public class NumericFormatters
    * <code>[-]?(([0-9])|([1-9][0-9]+))</code>
    * </p>
    * 
-   * and if so converts it to an {@link java.lang.Short} object. In canonical
+   * and if so converts it to an {@link java.lang.Integer} object. In canonical
    * representation (non-lenient) parsing mode, if a '+' sign or leading 0
    * digits are present, conversion will fail. In lenient mode, the
    * above characters are accepted without raising an error. When formatting,
@@ -427,12 +427,12 @@ public class NumericFormatters
   {
     public ShortConverter()
     {
-      super(Short.class, true,Short.MIN_VALUE,Short.MAX_VALUE);
+      super(Integer.class, true,Short.MIN_VALUE,Short.MAX_VALUE);
     }
 
     public Object parseObject(CharSequence value) throws ParseException
     {
-      return new Short((short)checkValue(value));
+      return new Integer((short)checkValue(value));
     }
   }
   
@@ -648,7 +648,7 @@ public class NumericFormatters
    * <code>[+]?(([0-9])|([1-9][0-9]+))</code>
    * </p>
    * 
-   * and if so converts it to an {@link java.lang.Short} object. In canonical
+   * and if so converts it to an {@link java.lang.Integer} object. In canonical
    * representation (non-lenient) parsing mode, if a '+' sign or leading 0
    * digits are present, conversion will fail. In <code>lenient</code> mode, the
    * above are accepted without raising an error.
@@ -672,12 +672,12 @@ public class NumericFormatters
   {
     public unsignedByteConverter()
     {
-      super(Short.class, true,0,255);
+      super(Integer.class, true,0,255);
     }
 
     public Object parseObject(CharSequence value) throws ParseException
     {
-      return new Short((short)(checkValue(value) & 0xFF));
+      return new Integer((short)(checkValue(value) & 0xFF));
     }
   }
   
