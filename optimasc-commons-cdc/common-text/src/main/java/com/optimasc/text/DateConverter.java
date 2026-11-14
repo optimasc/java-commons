@@ -372,6 +372,21 @@ public class DateConverter extends DataConverter
     return parseObject((CharSequence) value);
   }
   
+  /**
+   * Error on a value that matches a pattern, but is not valid, such as an
+   * invalid date or a value that the type does not allow. It takes precedence
+   * over the syntax errors of the other patterns.
+   */
+  protected static class InvalidValueException extends ParseException
+  {
+    private static final long serialVersionUID = 1L;
+
+    public InvalidValueException(String message, int errorOffset)
+    {
+      super(message, errorOffset);
+    }
+  }
+
   /** Information on a parsed pattern. */
   protected static class PatternInfo
   {
@@ -1016,13 +1031,13 @@ public class DateConverter extends DataConverter
 
     if ((year != Long.MIN_VALUE) && ((year < minYear) || (year > maxYear)))
     {
-      throw new ParseException("Year must be between " + minYear + " and " + maxYear + ".", 0);
+      throw new InvalidValueException("Year must be between " + minYear + " and " + maxYear + ".", 0);
     }
     if ((year != Long.MIN_VALUE) && (month != -1) && (day != -1))
     {
       if ((month < 1) || (month > 12) || (day < 1) || (day > daysInMonth(year, month)))
       {
-        throw new ParseException("The date is not a valid calendar date.", 0);
+        throw new InvalidValueException("The date is not a valid calendar date.", 0);
       }
     }
 
@@ -1049,16 +1064,25 @@ public class DateConverter extends DataConverter
       {
         if ((year < Integer.MIN_VALUE) || (year > Integer.MAX_VALUE))
         {
-          throw new ParseException("Year is out of range.", 0);
+          throw new InvalidValueException("Year is out of range.", 0);
         }
         calendar = new GregorianDatetimeCalendar((int) year, calMonth, calDay, calHour,
             calMinute, calSecond, calMillis, calTz);
       }
     } catch (IllegalArgumentException e)
     {
-      throw new ParseException(e.getMessage(), 0);
+      throw new InvalidValueException(e.getMessage(), 0);
     }
-    return adjust(calendar);
+    try
+    {
+      return adjust(calendar);
+    } catch (InvalidValueException e)
+    {
+      throw e;
+    } catch (ParseException e)
+    {
+      throw new InvalidValueException(e.getMessage(), e.getErrorOffset());
+    }
   }
 
   /**
@@ -1090,8 +1114,14 @@ public class DateConverter extends DataConverter
         return parseObject(patternInfo, value);
       } catch (ParseException e)
       {
-        // Report the error of the pattern that matched the furthest.
-        if ((error == null) || (e.getErrorOffset() > error.getErrorOffset()))
+        // Report the error of the first pattern that matched an invalid
+        // value, otherwise that of the pattern that matched the furthest.
+        if (error instanceof InvalidValueException)
+        {
+          continue;
+        }
+        if ((error == null) || (e instanceof InvalidValueException)
+            || (e.getErrorOffset() > error.getErrorOffset()))
         {
           error = e;
         }

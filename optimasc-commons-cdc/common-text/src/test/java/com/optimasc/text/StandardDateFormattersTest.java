@@ -403,4 +403,38 @@ public class StandardDateFormattersTest extends TestCase
     assertFalse(pattern.matcher("PT").matches());
     assertFalse(pattern.matcher("P").matches());
   }
+
+  /** XML Schema 1.1 date-time types do not allow leap seconds. */
+  public void testXSDRejectsLeapSecond()
+  {
+    DataConverter[] converters = { StandardDateFormatters.XSDDateTimeConverter.getInstance(),
+        StandardDateFormatters.XSDDateTimeStampConverter.getInstance(),
+        StandardDateFormatters.XSDTimeConverter.getInstance() };
+    String[] values = { "2016-12-31T23:59:60", "2016-12-31T23:59:60.5Z", "23:59:60.999" };
+    for (int i = 0; i < converters.length; i++)
+    {
+      try
+      {
+        converters[i].parseObject(values[i]);
+        fail("Leap second accepted: " + values[i]);
+      } catch (ParseException e)
+      {
+        // The reported error is the leap second, not a syntax error.
+        assertTrue(e.getMessage(), e.getMessage().indexOf("leap second") != -1);
+      }
+    }
+  }
+
+  /** A semantic error is reported rather than the syntax error of another pattern. */
+  public void testInvalidValueErrorReported()
+  {
+    try
+    {
+      StandardDateFormatters.OpenDateConverter.getInstance().parseObject("1975-02-30T10:00Z");
+      fail();
+    } catch (ParseException e)
+    {
+      assertTrue(e.getMessage(), e.getMessage().indexOf("day") != -1);
+    }
+  }
 }
