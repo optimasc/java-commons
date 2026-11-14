@@ -1247,7 +1247,7 @@ public class StandardFormattersTest extends TestCase
 
   public void testNameConverter() throws ParseException
   {
-    DataConverter converter = new StandardFormatters.NameConverter();
+    DataConverter converter = new StandardFormatters.XSDNameConverter();
     assertEquals(false, converter.isLenient());
     assertEquals(":a:b", converter.parseObject(":a:b"));
     assertEquals("_x-1.2", converter.parseObject("_x-1.2"));
@@ -1257,15 +1257,15 @@ public class StandardFormattersTest extends TestCase
     assertParseFails(converter, "", 0);
     assertEquals("a:b", converter.format("a:b"));
 
-    converter = new StandardFormatters.NameConverter(true);
+    converter = new StandardFormatters.XSDNameConverter(true);
     assertEquals("abc", converter.parseObject(" 1abc "));
-    assertSame(StandardFormatters.NameConverter.getInstance(),
-        StandardFormatters.NameConverter.getInstance());
+    assertSame(StandardFormatters.XSDNameConverter.getInstance(),
+        StandardFormatters.XSDNameConverter.getInstance());
   }
 
   public void testNMTOKENConverter() throws ParseException
   {
-    DataConverter converter = new StandardFormatters.NMTOKENConverter();
+    DataConverter converter = new StandardFormatters.XSDNMTOKENConverter();
     assertEquals(false, converter.isLenient());
     assertEquals("1abc", converter.parseObject("1abc"));
     assertEquals("-.:9", converter.parseObject("-.:9"));
@@ -1273,7 +1273,7 @@ public class StandardFormattersTest extends TestCase
     assertParseFails(converter, "a/b", 1);
     assertParseFails(converter, "", 0);
 
-    converter = new StandardFormatters.NMTOKENConverter(true);
+    converter = new StandardFormatters.XSDNMTOKENConverter(true);
     assertEquals("ab", converter.parseObject(" a b "));
   }
 

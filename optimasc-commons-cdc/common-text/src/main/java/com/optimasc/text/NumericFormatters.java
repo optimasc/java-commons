@@ -73,7 +73,14 @@ import java.text.ParseException;
  * <tr><td>Float32</td><td>-</td><td>{@link Float32Converter}</td><td>Float</td></tr>
  * <tr><td>-</td><td>double</td><td>{@link XSDDoubleConverter}</td><td>Double</td></tr>
  * <tr><td>-</td><td>float</td><td>{@link XSDFloatConverter}</td><td>Float</td></tr>
+ * <tr><td>-</td><td>decimal</td><td>{@link XSDDecimalConverter}</td><td>BigDecimal</td></tr>
  * </table>
+ *
+ * <p>
+ * For the XML Schema integer types, the classes whose name starts with
+ * <code>XSD</code> (such as {@link XSDIntConverter}) are the lenient
+ * converters of the table above under the name of the XML Schema type.
+ * </p>
  *
  * <p>
  * The shared instances MUST NOT be reconfigured.
@@ -144,10 +151,13 @@ public class NumericFormatters
         BigInteger maxValue)
     {
       super(clz, lenient);
+      // A null bound means that there is no limit in that direction.
       this.minBound = minValue;
       this.maxBound = maxValue;
-      this.minValue = (minValue.bitLength() > 63) ? Long.MIN_VALUE : minValue.longValue();
-      this.maxValue = (maxValue.bitLength() > 63) ? Long.MAX_VALUE : maxValue.longValue();
+      this.minValue = ((minValue == null) || (minValue.bitLength() > 63)) ? Long.MIN_VALUE
+          : minValue.longValue();
+      this.maxValue = ((maxValue == null) || (maxValue.bitLength() > 63)) ? Long.MAX_VALUE
+          : maxValue.longValue();
     }
 
     /**
@@ -173,11 +183,18 @@ public class NumericFormatters
         result = Parsers.parseNumberAsBigInteger(value, 0, value.length(), true, true,
             true);
       }
-      if ((result.compareTo(minBound) < 0) || (result.compareTo(maxBound) > 0))
+      if (isInRange(result) == false)
       {
         throw new ParseException("Value is not within " + minBound + " and " + maxBound, 0);
       }
       return result;
+    }
+
+    /** Returns true if the value is within the bounds. */
+    protected boolean isInRange(BigInteger value)
+    {
+      return ((minBound == null) || (value.compareTo(minBound) >= 0))
+          && ((maxBound == null) || (value.compareTo(maxBound) <= 0));
     }
 
     /**
@@ -255,7 +272,7 @@ public class NumericFormatters
     public StringBuffer format(Object value, StringBuffer toAppendTo, FieldPosition pos)
     {
       BigInteger number = toBigInteger(value);
-      if ((number.compareTo(minBound) < 0) || (number.compareTo(maxBound) > 0))
+      if (isInRange(number) == false)
       {
         throw new IllegalArgumentException("Value is not within " + minBound + " and "
             + maxBound);
@@ -1395,6 +1412,288 @@ public class NumericFormatters
     public static DataConverter getInstance()
     {
       return instance;
+    }
+  }
+
+
+  /**
+   * Converter for the W3C XML Schema Definition Language (XSD) 1.1
+   * <code>byte</code> type: the lexical representation of
+   * {@link ByteConverter} (lenient).
+   */
+  public static class XSDByteConverter extends ByteConverter
+  {
+    private static final DataConverter instance = new XSDByteConverter();
+    public XSDByteConverter() { super(true); }
+    public static DataConverter getInstance() { return instance; }
+  }
+
+  /**
+   * Converter for the W3C XML Schema Definition Language (XSD) 1.1
+   * <code>short</code> type: the lexical representation of
+   * {@link ShortConverter} (lenient).
+   */
+  public static class XSDShortConverter extends ShortConverter
+  {
+    private static final DataConverter instance = new XSDShortConverter();
+    public XSDShortConverter() { super(true); }
+    public static DataConverter getInstance() { return instance; }
+  }
+
+  /**
+   * Converter for the W3C XML Schema Definition Language (XSD) 1.1
+   * <code>int</code> type: the lexical representation of
+   * {@link IntConverter} (lenient).
+   */
+  public static class XSDIntConverter extends IntConverter
+  {
+    private static final DataConverter instance = new XSDIntConverter();
+    public XSDIntConverter() { super(true); }
+    public static DataConverter getInstance() { return instance; }
+  }
+
+  /**
+   * Converter for the W3C XML Schema Definition Language (XSD) 1.1
+   * <code>long</code> type: the lexical representation of
+   * {@link LongConverter} (lenient).
+   */
+  public static class XSDLongConverter extends LongConverter
+  {
+    private static final DataConverter instance = new XSDLongConverter();
+    public XSDLongConverter() { super(true); }
+    public static DataConverter getInstance() { return instance; }
+  }
+
+  /**
+   * Converter for the W3C XML Schema Definition Language (XSD) 1.1
+   * <code>unsignedByte</code> type: the lexical representation of
+   * {@link unsignedByteConverter} (lenient).
+   */
+  public static class XSDUnsignedByteConverter extends unsignedByteConverter
+  {
+    private static final DataConverter instance = new XSDUnsignedByteConverter();
+    public XSDUnsignedByteConverter() { super(true); }
+    public static DataConverter getInstance() { return instance; }
+  }
+
+  /**
+   * Converter for the W3C XML Schema Definition Language (XSD) 1.1
+   * <code>unsignedShort</code> type: the lexical representation of
+   * {@link unsignedShortConverter} (lenient).
+   */
+  public static class XSDUnsignedShortConverter extends unsignedShortConverter
+  {
+    private static final DataConverter instance = new XSDUnsignedShortConverter();
+    public XSDUnsignedShortConverter() { super(true); }
+    public static DataConverter getInstance() { return instance; }
+  }
+
+  /**
+   * Converter for the W3C XML Schema Definition Language (XSD) 1.1
+   * <code>unsignedInt</code> type: the lexical representation of
+   * {@link unsignedIntConverter} (lenient).
+   */
+  public static class XSDUnsignedIntConverter extends unsignedIntConverter
+  {
+    private static final DataConverter instance = new XSDUnsignedIntConverter();
+    public XSDUnsignedIntConverter() { super(true); }
+    public static DataConverter getInstance() { return instance; }
+  }
+
+  /**
+   * Converter for the W3C XML Schema Definition Language (XSD) 1.1
+   * <code>unsignedLong</code> type: the lexical representation of
+   * {@link unsignedLongConverter} (lenient).
+   */
+  public static class XSDUnsignedLongConverter extends unsignedLongConverter
+  {
+    private static final DataConverter instance = new XSDUnsignedLongConverter();
+    public XSDUnsignedLongConverter() { super(true); }
+    public static DataConverter getInstance() { return instance; }
+  }
+
+  /**
+   * Converter for the W3C XML Schema Definition Language (XSD) 1.1
+   * <code>integer</code> type, returning a {@link java.math.BigInteger}: an
+   * optional sign followed by one or more digits, leading zeros allowed.
+   * Formatting writes the canonical representation.
+   */
+  public static class XSDIntegerConverter extends IntegerNumberConverter
+  {
+    private static final DataConverter instance = new XSDIntegerConverter();
+
+    public XSDIntegerConverter()
+    {
+      super(BigInteger.class, true, (BigInteger) null, (BigInteger) null);
+    }
+
+    public static DataConverter getInstance()
+    {
+      return instance;
+    }
+  }
+
+  /**
+   * Converter for the W3C XML Schema Definition Language (XSD) 1.1
+   * <code>nonNegativeInteger</code> type, returning a
+   * {@link java.math.BigInteger}: an optional sign followed by one or more
+   * digits, leading zeros allowed, with a value of zero or more (so
+   * <code>-0</code> is allowed). Formatting writes the canonical
+   * representation.
+   */
+  public static class XSDNonNegativeIntegerConverter extends IntegerNumberConverter
+  {
+    private static final DataConverter instance = new XSDNonNegativeIntegerConverter();
+
+    public XSDNonNegativeIntegerConverter()
+    {
+      super(BigInteger.class, true, BigInteger.valueOf(0), (BigInteger) null);
+    }
+
+    public static DataConverter getInstance()
+    {
+      return instance;
+    }
+  }
+
+  /**
+   * Converter for the W3C XML Schema Definition Language (XSD) 1.1
+   * <code>decimal</code> type, returning a {@link java.math.BigDecimal}.
+   * 
+   * <p>
+   * The lexical representation is accepted:
+   * <code>(\+|-)?([0-9]+(\.[0-9]*)?|\.[0-9]+)</code>. The value returned has no
+   * trailing zeros in its fractional part, so that equal values are equal
+   * objects. Formatting writes the canonical representation of XML Schema
+   * 1.1: no sign for positive values, no leading zeros except a single
+   * <code>0</code> before the decimal point, no trailing zeros, and no decimal
+   * point for integer values (such as <code>5</code>, <code>-0.25</code>).
+   * </p>
+   */
+  public static class XSDDecimalConverter extends NumberConverter
+  {
+    private static final DataConverter instance = new XSDDecimalConverter();
+
+    private static final BigInteger TEN = BigInteger.valueOf(10);
+
+    public XSDDecimalConverter()
+    {
+      super(BigDecimal.class, true);
+    }
+
+    public static DataConverter getInstance()
+    {
+      return instance;
+    }
+
+    /** Returns the value without trailing zeros in its fractional part. */
+    static BigDecimal normalize(BigDecimal value)
+    {
+      BigInteger unscaled = value.unscaledValue();
+      int scale = value.scale();
+      if (unscaled.signum() == 0)
+      {
+        return new BigDecimal(BigInteger.valueOf(0), 0);
+      }
+      while (scale > 0)
+      {
+        BigInteger[] division = unscaled.divideAndRemainder(TEN);
+        if (division[1].signum() != 0)
+        {
+          break;
+        }
+        unscaled = division[0];
+        scale--;
+      }
+      return new BigDecimal(unscaled, scale);
+    }
+
+    public Object parseObject(CharSequence value) throws ParseException
+    {
+      int length = value.length();
+      int i = 0;
+      boolean negative = false;
+      if ((i < length) && ((value.charAt(i) == '+') || (value.charAt(i) == '-')))
+      {
+        negative = value.charAt(i) == '-';
+        i++;
+      }
+      StringBuffer digits = new StringBuffer(length);
+      while ((i < length) && (value.charAt(i) >= '0') && (value.charAt(i) <= '9'))
+      {
+        digits.append(value.charAt(i++));
+      }
+      int scale = 0;
+      if ((i < length) && (value.charAt(i) == '.'))
+      {
+        i++;
+        while ((i < length) && (value.charAt(i) >= '0') && (value.charAt(i) <= '9'))
+        {
+          digits.append(value.charAt(i++));
+          scale++;
+        }
+      }
+      if (digits.length() == 0)
+      {
+        throw new ParseException("Expecting digits.", i);
+      }
+      if (i != length)
+      {
+        throw new ParseException("Invalid decimal number syntax.", i);
+      }
+      BigInteger unscaled = new BigInteger(digits.toString());
+      if (negative)
+      {
+        unscaled = unscaled.negate();
+      }
+      return normalize(new BigDecimal(unscaled, scale));
+    }
+
+    public StringBuffer format(Object value, StringBuffer toAppendTo, FieldPosition pos)
+    {
+      BigDecimal decimal;
+      if (value instanceof BigDecimal)
+      {
+        decimal = (BigDecimal) value;
+      }
+      else if ((value instanceof BigInteger) || (value instanceof Integer)
+          || (value instanceof Long) || (value instanceof Short) || (value instanceof Byte))
+      {
+        decimal = new BigDecimal(IntegerNumberConverter.toBigInteger(value), 0);
+      }
+      else
+      {
+        throw new IllegalArgumentException("Object value is not instance of '"
+            + clz.getName() + "'");
+      }
+      decimal = normalize(decimal);
+      BigInteger unscaled = decimal.unscaledValue();
+      int scale = decimal.scale();
+      if (unscaled.signum() < 0)
+      {
+        toAppendTo.append('-');
+      }
+      String digits = unscaled.abs().toString();
+      if (scale <= 0)
+      {
+        toAppendTo.append(digits);
+        for (int i = 0; i < -scale; i++)
+        {
+          toAppendTo.append('0');
+        }
+        return toAppendTo;
+      }
+      StringBuffer padded = new StringBuffer();
+      for (int i = digits.length(); i <= scale; i++)
+      {
+        padded.append('0');
+      }
+      padded.append(digits);
+      int point = padded.length() - scale;
+      toAppendTo.append(padded.toString().substring(0, point));
+      toAppendTo.append('.');
+      toAppendTo.append(padded.toString().substring(point));
+      return toAppendTo;
     }
   }
 

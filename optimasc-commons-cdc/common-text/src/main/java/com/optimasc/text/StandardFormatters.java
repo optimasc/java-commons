@@ -154,6 +154,283 @@ public class StandardFormatters
   }
 
   /**
+   * Maps and verifies a value of the XML Schema <code>string</code> type and of
+   * the types derived from it, whose characters are the XML <code>Char</code>
+   * production: U+0009, U+000A, U+000D, U+0020 to U+D7FF, U+E000 to U+FFFD and
+   * U+10000 to U+10FFFF. Unlike {@link StringConverter Text}, private use
+   * characters and the non-characters U+FDD0 to U+FDEF are allowed, and the
+   * value is not normalized.
+   * 
+   * @param whiteSpace
+   *          [in] 0 to preserve whitespace (<code>string</code>), 1 to replace
+   *          U+0009, U+000A and U+000D by SPACE (<code>normalizedString</code>),
+   *          2 to also collapse spaces (<code>token</code>).
+   */
+  static String mapXSDString(CharSequence value, boolean lenient, int whiteSpace)
+      throws ParseException
+  {
+    int length = value.length();
+    StringBuffer out = new StringBuffer(length);
+    for (int i = 0; i < length; i++)
+    {
+      char ch = value.charAt(i);
+      if ((ch >= 0xD800) && (ch <= 0xDBFF))
+      {
+        if ((i + 1 >= length) || (value.charAt(i + 1) < 0xDC00) || (value.charAt(i + 1) > 0xDFFF))
+        {
+          throw new ParseException("String contains an unpaired surrogate character.", i);
+        }
+        out.append(ch).append(value.charAt(i + 1));
+        i++;
+        continue;
+      }
+      if ((ch >= 0xDC00) && (ch <= 0xDFFF))
+      {
+        throw new ParseException("String contains an unpaired surrogate character.", i);
+      }
+      if ((ch == 0xFFFE) || (ch == 0xFFFF))
+      {
+        throw new ParseException("String contains a character that is not an XML character.", i);
+      }
+      if ((ch == '\t') || (ch == '\n') || (ch == '\r'))
+      {
+        if (whiteSpace == 0)
+        {
+          out.append(ch);
+          continue;
+        }
+        if (lenient == false)
+        {
+          throw new ParseException("String contains a tab, line feed or carriage return.", i);
+        }
+        out.append(' ');
+        continue;
+      }
+      if (ch < 0x20)
+      {
+        if (lenient == false)
+        {
+          throw new ParseException("String contains a control character that is not an XML character.", i);
+        }
+        continue;
+      }
+      out.append(ch);
+    }
+    if (whiteSpace < 2)
+    {
+      return out.toString();
+    }
+    // Collapse: no leading, trailing or consecutive spaces.
+    StringBuffer collapsed = new StringBuffer(out.length());
+    for (int i = 0; i < out.length(); i++)
+    {
+      char c = out.charAt(i);
+      if ((c == ' ') && ((collapsed.length() == 0) || (collapsed.charAt(collapsed.length() - 1) == ' ')))
+      {
+        if (lenient == false)
+        {
+          throw new ParseException("Leading or consecutive spaces are not allowed.", i);
+        }
+        continue;
+      }
+      collapsed.append(c);
+    }
+    if ((collapsed.length() > 0) && (collapsed.charAt(collapsed.length() - 1) == ' '))
+    {
+      if (lenient == false)
+      {
+        throw new ParseException("Trailing space is not allowed.", out.length() - 1);
+      }
+      collapsed.setLength(collapsed.length() - 1);
+    }
+    return collapsed.toString();
+  }
+
+
+  /**
+   * Converter for the W3C XML Schema Definition Language (XSD) 1.1
+   * <code>string</code> type. The characters allowed are those of the XML
+   * <code>Char</code> production; the empty string is allowed and the value is
+   * not normalized.
+   * 
+   * <p>
+   * When <code>lenient</code> is <code>true</code>, which is the default,
+   * control characters that are not XML characters are removed instead of
+   * being rejected.
+   * </p>
+   */
+  public static class XSDStringConverter extends DataConverter
+  {
+    private static final DataConverter instance = new XSDStringConverter();
+
+    /** 0 (preserve), 1 (replace) or 2 (collapse). */
+    private final int whiteSpace;
+
+    public XSDStringConverter()
+    {
+      this(0);
+    }
+
+    protected XSDStringConverter(int whiteSpace)
+    {
+      super(String.class, true);
+      this.whiteSpace = whiteSpace;
+    }
+
+    public static DataConverter getInstance()
+    {
+      return instance;
+    }
+
+    public Object parseObject(CharSequence value) throws ParseException
+    {
+      return mapXSDString(value, lenient, whiteSpace);
+    }
+
+    public Object parseObject(String value) throws ParseException
+    {
+      return parseObject((CharSequence) value);
+    }
+
+    public StringBuffer format(Object value, StringBuffer toAppendTo, FieldPosition pos)
+    {
+      if ((value instanceof String) == false)
+      {
+        throw new IllegalArgumentException("Object value is not instance of '"
+            + clz.getName() + "'");
+      }
+      try
+      {
+        return toAppendTo.append(mapXSDString((String) value, false, whiteSpace));
+      } catch (ParseException e)
+      {
+        throw new IllegalArgumentException("Value cannot be represented: " + e.getMessage());
+      }
+    }
+  }
+
+
+  /**
+   * Converter for the W3C XML Schema Definition Language (XSD) 1.1
+   * <code>normalizedString</code> type: an {@link XSDStringConverter XML Schema
+   * string} without U+0009, U+000A or U+000D. When <code>lenient</code> is
+   * <code>true</code>, which is the default, these characters are replaced by
+   * SPACE, as done by XML Schema processors; otherwise they are rejected.
+   */
+  public static class XSDNormalizedStringConverter extends XSDStringConverter
+  {
+    private static final DataConverter instance = new XSDNormalizedStringConverter();
+
+    public XSDNormalizedStringConverter()
+    {
+      super(1);
+    }
+
+    public static DataConverter getInstance()
+    {
+      return instance;
+    }
+  }
+
+
+  /**
+   * Converter for the W3C XML Schema Definition Language (XSD) 1.1
+   * <code>token</code> type: an {@link XSDNormalizedStringConverter XML Schema
+   * normalizedString} without leading, trailing or consecutive spaces. When
+   * <code>lenient</code> is <code>true</code>, which is the default, the
+   * whitespace is collapsed, as done by XML Schema processors; otherwise
+   * non-collapsed values are rejected.
+   */
+  public static class XSDTokenConverter extends XSDStringConverter
+  {
+    private static final DataConverter instance = new XSDTokenConverter();
+
+    public XSDTokenConverter()
+    {
+      super(2);
+    }
+
+    public static DataConverter getInstance()
+    {
+      return instance;
+    }
+  }
+
+
+  /**
+   * Converter for the W3C XML Schema Definition Language (XSD) 1.1
+   * <code>hexBinary</code> type. It is the same as {@link HexBinaryConverter},
+   * except that the empty string, which represents a zero-length octet
+   * string, is allowed.
+   */
+  public static class XSDHexBinaryConverter extends HexBinaryConverter
+  {
+    private static final DataConverter instance = new XSDHexBinaryConverter();
+
+    public XSDHexBinaryConverter()
+    {
+      super();
+    }
+
+    public static DataConverter getInstance()
+    {
+      return instance;
+    }
+
+    public Object parseObject(CharSequence value) throws ParseException
+    {
+      if (value.length() == 0)
+      {
+        return new byte[0];
+      }
+      return super.parseObject(value);
+    }
+  }
+
+
+  /**
+   * Converter for the W3C XML Schema Definition Language (XSD) 1.1
+   * <code>base64Binary</code> type. It is the same as
+   * {@link Base64CanonicalConverter}, except that, when <code>lenient</code>
+   * is <code>true</code>, which is the default, the whitespace that the XML
+   * Schema lexical representation allows between characters is ignored. The
+   * empty string represents a zero-length octet string.
+   */
+  public static class XSDBase64BinaryConverter extends Base64CanonicalConverter
+  {
+    private static final DataConverter instance = new XSDBase64BinaryConverter();
+
+    public XSDBase64BinaryConverter()
+    {
+      super();
+    }
+
+    public static DataConverter getInstance()
+    {
+      return instance;
+    }
+
+    public Object parseObject(CharSequence value) throws ParseException
+    {
+      if (lenient == false)
+      {
+        return super.parseObject(value);
+      }
+      StringBuffer compact = new StringBuffer(value.length());
+      for (int i = 0; i < value.length(); i++)
+      {
+        char c = value.charAt(i);
+        if ((c != ' ') && (c != '\t') && (c != '\n') && (c != '\r'))
+        {
+          compact.append(c);
+        }
+      }
+      return super.parseObject(compact);
+    }
+  }
+
+
+  /**
    * Normalized String type converter, as defined by the IETF
    * draft-codere-ldapsyntax <code>Normalized String</code> syntax (OID:
    * 1.3.6.1.4.1.61799.5.40.12.4, section 2.3.8).
@@ -1272,7 +1549,7 @@ public class StandardFormatters
   
   /**
    * Base class for the converters of XML names ({@link XSDNCNameConverter},
-   * {@link NameConverter}, {@link NMTOKENConverter}, and, with the narrower
+   * {@link XSDNameConverter}, {@link XSDNMTOKENConverter}, and, with the narrower
    * character classes of the LDAP syntaxes, {@link NCNameConverter} and
    * {@link QualifiedNameConverter}). A name is represented by a Java Object of
    * type <code>String</code>.
@@ -1660,16 +1937,16 @@ public class StandardFormatters
    * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>Name</code>, canonical representation</li>
    * </ul>
    * */
-  public static class NameConverter extends XMLNameConverter
+  public static class XSDNameConverter extends XMLNameConverter
   {
-    private static final DataConverter instance = new NameConverter();
+    private static final DataConverter instance = new XSDNameConverter();
 
-    public NameConverter(boolean lenient)
+    public XSDNameConverter(boolean lenient)
     {
       super(lenient, KIND_NAME);
     }
 
-    public NameConverter()
+    public XSDNameConverter()
     {
       this(false);
     }
@@ -1701,16 +1978,16 @@ public class StandardFormatters
    * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>NMTOKEN</code>, canonical representation</li>
    * </ul>
    * */
-  public static class NMTOKENConverter extends XMLNameConverter
+  public static class XSDNMTOKENConverter extends XMLNameConverter
   {
-    private static final DataConverter instance = new NMTOKENConverter();
+    private static final DataConverter instance = new XSDNMTOKENConverter();
 
-    public NMTOKENConverter(boolean lenient)
+    public XSDNMTOKENConverter(boolean lenient)
     {
       super(lenient, KIND_NMTOKEN);
     }
 
-    public NMTOKENConverter()
+    public XSDNMTOKENConverter()
     {
       this(false);
     }

@@ -25,7 +25,7 @@ import com.optimasc.lang.GregorianDatetimeCalendar;
  * <tr><td>OpenDate (1.3.6.1.4.1.61799.5.40.14.1)</td><td>{@link OpenDateConverter}</td></tr>
  * <tr><td>Time Of Day (1.3.6.1.4.1.61799.5.40.32)</td><td>{@link TimeOfDayConverter}</td></tr>
  * <tr><td>Time Of Day with Timezone (1.3.6.1.4.1.61799.5.40.35)</td><td>{@link TimeOfDayWithTimezoneConverter}</td></tr>
- * <tr><td>xsd:date</td><td>{@link ISO8601DateConverter}</td></tr>
+ * <tr><td>xsd:date</td><td>{@link XSDDateConverter}</td></tr>
  * <tr><td>xsd:dateTime</td><td>{@link XSDDateTimeConverter}</td></tr>
  * <tr><td>xsd:dateTimeStamp</td><td>{@link XSDDateTimeStampConverter}</td></tr>
  * <tr><td>xsd:duration</td><td>{@link XSDDurationConverter}</td></tr>
@@ -221,6 +221,27 @@ public class StandardDateFormatters
     public ISO8601DateConverter()
     {
       super(new String[]{PATTERN_ISO8601_DATE});
+    }
+
+    public static DataConverter getInstance()
+    {
+      return instance;
+    }
+  }
+
+
+  /**
+   * Converter for the W3C XML Schema Definition Language (XSD) 1.1
+   * <code>date</code> type (<code>YYYY-MM-DD</code>). As required by the
+   * specification, a value with a timezone is rejected.
+   */
+  public static class XSDDateConverter extends ISO8601DateConverter
+  {
+    private static final DataConverter instance = new XSDDateConverter();
+
+    public XSDDateConverter()
+    {
+      super();
     }
 
     public static DataConverter getInstance()
