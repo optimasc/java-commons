@@ -2,6 +2,7 @@ package com.optimasc.lang;
 
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.SimpleTimeZone;
@@ -14,10 +15,13 @@ import java.util.TimeZone;
  * and ISO 8601:2004.
  *
  * <p>
- * Two features distinguish this class from {@link java.util.GregorianCalendar}:
+ * Three features distinguish this class from {@link java.util.GregorianCalendar}:
  * </p>
  *
  * <ol>
+ * <li><b>Proleptic Gregorian calendar.</b> Every instance uses the Gregorian
+ * calendar for all dates, as ISO 8601 and XML Schema do. The Julian calendar
+ * is never used, including before 15 October 1582.</li>
  * <li><b>Astronomical year numbering.</b> Per ISO 8601:2004, the year value
  * accepted by constructors and returned by {@link #getYear()} uses astronomical
  * numbering where 0 represents 1 BC, -1 represents 2 BC, and so on. Internally
@@ -79,6 +83,15 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
 
   private static final long serialVersionUID = 3816584737503218331L;
 
+  /** Lowest zone offset accepted, in milliseconds (UTC-13:00). */
+  private static final int MIN_ZONE_OFFSET = -13 * 60 * 60 * 1000;
+
+  /** Highest zone offset accepted, in milliseconds (UTC+14:00). */
+  private static final int MAX_ZONE_OFFSET = 14 * 60 * 60 * 1000;
+
+  /** Instant used as the Gregorian change date: pure (proleptic) Gregorian. */
+  private static final Date PURE_GREGORIAN = new Date(Long.MIN_VALUE);
+
   /**
    * Construction-time snapshot indicating whether each field was explicitly
    * set by the caller. Once construction completes this array is not modified.
@@ -113,6 +126,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   protected GregorianDatetimeCalendar()
   {
     super(TimeZone.getDefault(), Locale.getDefault());
+    setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
     localTime = false;
@@ -130,6 +144,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   protected GregorianDatetimeCalendar(boolean localTime)
   {
     super(TimeZone.getDefault(), Locale.getDefault());
+    setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
     this.localTime = localTime;
@@ -149,6 +164,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   public GregorianDatetimeCalendar(int year)
   {
     super(TimeZone.getDefault(), Locale.getDefault());
+    setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
     localTime = true;
@@ -172,6 +188,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   public GregorianDatetimeCalendar(int year, int month, int dayOfMonth)
   {
     super(TimeZone.getDefault(), Locale.getDefault());
+    setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
     localTime = true;
@@ -197,6 +214,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   public GregorianDatetimeCalendar(int year, int month, int dayOfMonth, TimeZone tz)
   {
     super(TimeZone.getDefault(), Locale.getDefault());
+    setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
     endOfDay = false;
@@ -228,6 +246,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
       int minute, int second)
   {
     super(TimeZone.getDefault(), Locale.getDefault());
+    setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
     localTime = true;
@@ -262,6 +281,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
       int minute, int second, int milliseconds, int tz)
   {
     super(TimeZone.getDefault(), Locale.getDefault());
+    setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
     localTime = true;
@@ -291,6 +311,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
       int tz)
   {
     super(TimeZone.getDefault(), Locale.getDefault());
+    setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
     localTime = true;
@@ -325,6 +346,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   public GregorianDatetimeCalendar(GregorianCalendar source)
   {
     super(source.getTimeZone(), Locale.getDefault());
+    setGregorianChange(PURE_GREGORIAN);
     if (source == null)
       throw new NullPointerException("source");
     userSet = new boolean[FIELD_COUNT];
@@ -361,6 +383,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   public GregorianDatetimeCalendar(GregorianCalendar source, int[] userSetFields)
   {
     super(source.getTimeZone(), Locale.getDefault());
+    setGregorianChange(PURE_GREGORIAN);
     if (source == null)
       throw new NullPointerException("source");
     if (userSetFields == null)
@@ -412,6 +435,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
     if (input == null)
       throw new NullPointerException("input");
     GregorianCalendar utc = new GregorianCalendar(ZULU);
+    utc.setGregorianChange(PURE_GREGORIAN);
     utc.setTimeInMillis(input.getTimeInMillis());
     return new GregorianDatetimeCalendar(utc);
   }
@@ -557,6 +581,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   public GregorianCalendar toGregorianCalendar()
   {
     GregorianCalendar out = new GregorianCalendar(getTimeZone());
+    out.setGregorianChange(PURE_GREGORIAN);
     out.clear();
     out.set(Calendar.ERA, get(Calendar.ERA));
     out.set(Calendar.YEAR, get(Calendar.YEAR));
@@ -641,6 +666,47 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
       throw new UnsupportedOperationException(
           "GregorianDatetimeCalendar is immutable.");
     super.setTimeZone(value);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Overrides — field ranges
+  // ---------------------------------------------------------------------------
+
+  /*
+   * For a pure Gregorian calendar, GregorianCalendar computes these ranges on
+   * a clone of this instance, which it then mutates. The clone is frozen, so
+   * the inherited implementations would throw UnsupportedOperationException.
+   * They are therefore computed on an equivalent mutable GregorianCalendar.
+   */
+
+  public int getMinimum(int field)
+  {
+    return toGregorianCalendar().getMinimum(field);
+  }
+
+  public int getMaximum(int field)
+  {
+    return toGregorianCalendar().getMaximum(field);
+  }
+
+  public int getGreatestMinimum(int field)
+  {
+    return toGregorianCalendar().getGreatestMinimum(field);
+  }
+
+  public int getLeastMaximum(int field)
+  {
+    return toGregorianCalendar().getLeastMaximum(field);
+  }
+
+  public int getActualMinimum(int field)
+  {
+    return toGregorianCalendar().getActualMinimum(field);
+  }
+
+  public int getActualMaximum(int field)
+  {
+    return toGregorianCalendar().getActualMaximum(field);
   }
 
   // ---------------------------------------------------------------------------
@@ -1000,7 +1066,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   {
     if (month == FIELD_UNDEFINED)
       return;
-    if (month < getMinimum(Calendar.MONTH) || month > getMaximum(Calendar.MONTH))
+    if (month < Calendar.JANUARY || month > Calendar.DECEMBER)
       throw new IllegalArgumentException("The month must be between 0 and 11.");
     setField(Calendar.MONTH, month);
   }
@@ -1009,8 +1075,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   {
     if (day == FIELD_UNDEFINED)
       return;
-    if (day < getMinimum(Calendar.DAY_OF_MONTH)
-        || day > getMaximum(Calendar.DAY_OF_MONTH))
+    if (day < 1 || day > 31)
       throw new IllegalArgumentException("The day of month must be between 1 and 31.");
     setField(Calendar.DAY_OF_MONTH, day);
   }
@@ -1038,28 +1103,26 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
 
     if (hour == FIELD_UNDEFINED)
       return;
-    if (hour < getMinimum(Calendar.HOUR_OF_DAY)
-        || hour > getMaximum(Calendar.HOUR_OF_DAY))
+    if (hour < 0 || hour > 23)
       throw new IllegalArgumentException("The hour of day must be between 0 and 23.");
     setField(Calendar.HOUR_OF_DAY, hour);
 
     if (minute == FIELD_UNDEFINED)
       return;
-    if (minute < getMinimum(Calendar.MINUTE) || minute > getMaximum(Calendar.MINUTE))
+    if (minute < 0 || minute > 59)
       throw new IllegalArgumentException("The minute must be between 0 and 59.");
     setField(Calendar.MINUTE, minute);
 
     if (second == FIELD_UNDEFINED)
       return;
     // Accept up to 60 to allow ISO 8601 leap seconds.
-    if (second < getMinimum(Calendar.SECOND) || second > 60)
+    if (second < 0 || second > 60)
       throw new IllegalArgumentException("The second must be between 0 and 60.");
     setField(Calendar.SECOND, second);
 
     if (milliseconds == FIELD_UNDEFINED)
       return;
-    if (milliseconds < getMinimum(Calendar.MILLISECOND)
-        || milliseconds > getMaximum(Calendar.MILLISECOND))
+    if (milliseconds < 0 || milliseconds > 999)
       throw new IllegalArgumentException("The milliseconds must be between 0 and 999.");
     setField(Calendar.MILLISECOND, milliseconds);
   }
@@ -1085,8 +1148,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   {
     if (tzMillis == FIELD_UNDEFINED)
       return;
-    if (tzMillis < getMinimum(Calendar.ZONE_OFFSET)
-        || tzMillis > getMaximum(Calendar.ZONE_OFFSET))
+    if (tzMillis < MIN_ZONE_OFFSET || tzMillis > MAX_ZONE_OFFSET)
       throw new IllegalArgumentException(
           "The timezone offset must be a valid range in milliseconds.");
     applyTimeZone(new SimpleTimeZone(tzMillis, ""));
