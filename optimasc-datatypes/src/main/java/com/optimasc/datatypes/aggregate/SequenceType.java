@@ -53,7 +53,7 @@ import com.optimasc.lang.OctetSequence;
  *
  */
 public class SequenceType extends Datatype implements LengthFacet,Restriction,
-    ConstructedSimple, EnumerationFacet
+    ConstructedSimple, EnumerationFacet, Convertable
 {
   protected TypeReference elementType;
 
