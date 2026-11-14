@@ -364,7 +364,8 @@ public class StandardFormattersTest extends TestCase
       assertEquals(strValue,converter.format(output));
     } catch (ParseException e)
       {
-        assertEquals(4,e.getErrorOffset());
+        // The local part cannot start with a digit.
+        assertEquals(3,e.getErrorOffset());
         fail = false;
       }
     assertFalse(fail);
@@ -1080,4 +1081,173 @@ public class StandardFormattersTest extends TestCase
     
   }*/
   
+
+  /* Regression tests for compliance with the Schema Value Representation
+   * Specification. */
+
+  private static void assertParseFails(DataConverter converter, String value, int offset)
+  {
+    try
+    {
+      converter.parseObject(value);
+      fail("Expected ParseException for '" + value + "'");
+    } catch (ParseException e)
+    {
+      if (offset >= 0)
+      {
+        assertEquals(offset, e.getErrorOffset());
+      }
+    }
+  }
+
+  public void testPrintableStringRepertoire() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.PrintableStringConverter();
+    converter.setLenient(false);
+    assertEquals("Az09 '()+,-./:=?", converter.parseObject("Az09 '()+,-./:=?"));
+    assertParseFails(converter, "a*b", 1);
+    assertParseFails(converter, "a@b", 1);
+    assertParseFails(converter, "caf\u00e9", 3);
+    converter.setLenient(true);
+    assertEquals("ab", converter.parseObject("a*@b"));
+  }
+
+  public void testVisibleStringRejectsDelete()
+  {
+    DataConverter converter = new StandardFormatters.VisibleStringConverter();
+    converter.setLenient(false);
+    assertParseFails(converter, "a\u007fb", 1);
+  }
+
+  public void testIA5String() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.IA5StringConverter();
+    converter.setLenient(false);
+    assertEquals("a\u0000\u007f", converter.parseObject("a\u0000\u007f"));
+    assertParseFails(converter, "caf\u00e9", 3);
+  }
+
+  public void testBase64Invalid()
+  {
+    DataConverter converter = new StandardFormatters.Base64CanonicalConverter();
+    assertParseFails(converter, "abc", 0);
+    assertParseFails(converter, "AAA\u00e9", 3);
+    assertParseFails(converter, "AAAA====", -1);
+    assertParseFails(converter, "AB==", 1);
+    assertParseFails(converter, "AAB=", 2);
+  }
+
+  public void testBase64Valid() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.Base64CanonicalConverter();
+    assertTrue(Arrays.equals(new byte[] { 0 }, (byte[]) converter.parseObject("AA==")));
+    assertTrue(Arrays.equals(new byte[] { 0, 0 }, (byte[]) converter.parseObject("AAA=")));
+    assertEquals("AQID", converter.format(new byte[] { 1, 2, 3 }));
+  }
+
+  public void testOIDCompliance() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.OIDConverter();
+    String large = "2.25.329800735698586629295641978511506172918";
+    assertEquals(large, converter.parseObject(large));
+    assertEquals(large, converter.format(large));
+    assertEquals("1.3", converter.parseObject("1.03"));
+    assertEquals("1.3", converter.format("1.03"));
+    assertParseFails(converter, "1", 1);
+    assertParseFails(converter, "3.1", 0);
+    assertParseFails(converter, "1.40", 2);
+    assertEquals("2.999", converter.parseObject("2.999"));
+    converter.setLenient(false);
+    assertParseFails(converter, "1.03", 2);
+    try
+    {
+      converter.format(new Integer(5));
+      fail();
+    } catch (IllegalArgumentException e)
+    {
+    }
+  }
+
+  public void testQualifiedNameParts() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.QualifiedNameConverter();
+    assertParseFails(converter, "a:", 2);
+    assertParseFails(converter, "a:1b", 2);
+    assertParseFails(converter, "a:-b", 2);
+    assertEquals("xs:string", converter.parseObject("xs:string"));
+
+    converter = new StandardFormatters.QualifiedNameConverter(true);
+    assertEquals("xs:string", converter.parseObject("xs:string"));
+    assertEquals("a:b", converter.parseObject("a:1b"));
+    assertEquals("ch", converter.parseObject(":ch"));
+    assertEquals("a", converter.parseObject("a:"));
+  }
+
+  public void testNCNameLenientStart() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.NCNameConverter(true);
+    assertEquals("abc", converter.parseObject("-1abc"));
+    assertEquals("", converter.parseObject(""));
+  }
+
+  public void testBooleanExactToken()
+  {
+    DataConverter converter = new StandardFormatters.BooleanConverter();
+    assertParseFails(converter, "TRUEX", 0);
+    converter.setLenient(false);
+    assertParseFails(converter, "TRUEX", 0);
+  }
+
+  public void testXSDBoolean() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.XSDBooleanConverter();
+    assertEquals(Boolean.TRUE, converter.parseObject("true"));
+    assertEquals(Boolean.TRUE, converter.parseObject("1"));
+    assertEquals(Boolean.FALSE, converter.parseObject("false"));
+    assertEquals(Boolean.FALSE, converter.parseObject("0"));
+    assertEquals("true", converter.format(Boolean.TRUE));
+    assertEquals("false", converter.format(Boolean.FALSE));
+    assertParseFails(converter, "TRUE", 0);
+    converter.setLenient(false);
+    assertParseFails(converter, "1", 0);
+  }
+
+  public void testURICompliance() throws Exception
+  {
+    DataConverter converter = new StandardFormatters.URIConverter();
+    assertEquals(new java.net.URI("http://example.com/a?b#c"),
+        converter.parseObject("http://example.com/a?b#c"));
+    assertParseFails(converter, "", 0);
+    assertParseFails(converter, "http://example.com/\u00fc", 19);
+    try
+    {
+      converter.format(new java.net.URI("http://example.com/\u00fc"));
+      fail();
+    } catch (IllegalArgumentException e)
+    {
+    }
+  }
+
+  public void testMediaTypeLength() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.MediaTypeConverter();
+    assertEquals("text/plain", converter.format(converter.parseObject("text/plain")));
+    StringBuffer buffer = new StringBuffer("text/");
+    while (buffer.length() < 256)
+    {
+      buffer.append('a');
+    }
+    assertParseFails(converter, buffer.toString(), 0);
+  }
+
+  public void testSharedInstances()
+  {
+    assertSame(StandardFormatters.OIDConverter.getInstance(),
+        StandardFormatters.OIDConverter.getInstance());
+    assertTrue(StandardFormatters.XSDBooleanConverter.getInstance()
+        instanceof StandardFormatters.XSDBooleanConverter);
+    assertTrue(StandardFormatters.MediaTypeConverter.getInstance()
+        instanceof StandardFormatters.MediaTypeConverter);
+  }
+
 }
