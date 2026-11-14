@@ -1118,8 +1118,12 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
       }
       endOfDay = true;
       setField(Calendar.HOUR_OF_DAY, 0);
-      setField(Calendar.MINUTE, 0);
-      setField(Calendar.SECOND, 0);
+      // Only the fields that were specified are user-set, so that 24:00 and
+      // 24:00:00 keep their precision.
+      if (minute != FIELD_UNDEFINED)
+        setField(Calendar.MINUTE, 0);
+      if (second != FIELD_UNDEFINED)
+        setField(Calendar.SECOND, 0);
       if (milliseconds != FIELD_UNDEFINED)
         setField(Calendar.MILLISECOND, 0);
       return;

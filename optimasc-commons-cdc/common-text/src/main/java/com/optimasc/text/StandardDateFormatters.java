@@ -344,9 +344,13 @@ public class StandardDateFormatters
    * Converter for the IETF draft-codere-ldapsyntax <code>OpenDate</code>
    * syntax (OID: 1.3.6.1.4.1.61799.5.40.14.1): the W3C NOTE-datetime formats
    * (see {@link W3CDateTimeConverter}) with a year from 1582 to 9999 and,
-   * when present, a fraction of second of 1 to 3 digits. The hour is from 00
-   * to 23 and the second from 00 to 60: as in the ASN.1 TIME type, and unlike
-   * the W3C NOTE-datetime, a leap second is allowed.
+   * when present, a fraction of second of 1 to 3 digits. As in the ASN.1
+   * TIME type, and unlike the W3C NOTE-datetime, the hour is from 00 to 24,
+   * where <code>24:00</code> and <code>24:00:00</code> represent the end of the
+   * day, and the second from 00 to 60, where 60 represents a leap second. An
+   * end of day is returned as a {@link GregorianDatetimeCalendar} whose
+   * {@link GregorianDatetimeCalendar#isEndOfDay()} is <code>true</code> and is
+   * formatted back with hour 24.
    */
   public static class OpenDateConverter extends W3CDateTimeConverter
   {
@@ -367,13 +371,9 @@ public class StandardDateFormatters
       maxYear = LDAP_MAX_YEAR;
     }
 
-    /** A leap second is allowed (ASN.1 TIME), but not the hour 24. */
+    /** A leap second and the end of day are allowed (ASN.1 TIME). */
     protected Calendar adjust(GregorianDatetimeCalendar calendar) throws ParseException
     {
-      if (calendar.isEndOfDay())
-      {
-        throw new ParseException("The hour 24 is not allowed.", 0);
-      }
       return calendar;
     }
 
