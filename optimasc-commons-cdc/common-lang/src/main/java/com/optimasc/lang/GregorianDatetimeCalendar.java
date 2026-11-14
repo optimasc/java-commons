@@ -63,7 +63,11 @@ import java.util.TimeZone;
  *
  * <p>
  * <b>Timezone handling.</b> Timezone information must be supplied via
- * constructor arguments. Months use 0-based indexing in constructor arguments
+ * constructor arguments. A local (unzoned) value is created in UTC, not in
+ * the default timezone of the virtual machine, so that its fields are never
+ * changed by a daylight saving time transition of that timezone; its
+ * instant, as returned by {@link #getTimeInMillis()}, is therefore that of the
+ * same fields in UTC. Months use 0-based indexing in constructor arguments
  * to match {@link Calendar} conventions, but {@link #getMonth()} returns
  * 1-based values matching ISO 8601 conventions.
  * </p>
@@ -125,7 +129,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
    */
   protected GregorianDatetimeCalendar()
   {
-    super(TimeZone.getDefault(), Locale.getDefault());
+    super(ZULU, Locale.getDefault());
     setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
@@ -143,7 +147,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
    */
   protected GregorianDatetimeCalendar(boolean localTime)
   {
-    super(TimeZone.getDefault(), Locale.getDefault());
+    super(ZULU, Locale.getDefault());
     setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
@@ -163,7 +167,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
    */
   public GregorianDatetimeCalendar(int year)
   {
-    super(TimeZone.getDefault(), Locale.getDefault());
+    super(ZULU, Locale.getDefault());
     setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
@@ -187,7 +191,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
    */
   public GregorianDatetimeCalendar(int year, int month, int dayOfMonth)
   {
-    super(TimeZone.getDefault(), Locale.getDefault());
+    super(ZULU, Locale.getDefault());
     setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
@@ -213,7 +217,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
    */
   public GregorianDatetimeCalendar(int year, int month, int dayOfMonth, TimeZone tz)
   {
-    super(TimeZone.getDefault(), Locale.getDefault());
+    super(ZULU, Locale.getDefault());
     setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
@@ -245,7 +249,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   public GregorianDatetimeCalendar(int year, int month, int dayOfMonth, int hour,
       int minute, int second)
   {
-    super(TimeZone.getDefault(), Locale.getDefault());
+    super(ZULU, Locale.getDefault());
     setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
@@ -280,7 +284,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   public GregorianDatetimeCalendar(int year, int month, int dayOfMonth, int hour,
       int minute, int second, int milliseconds, int tz)
   {
-    super(TimeZone.getDefault(), Locale.getDefault());
+    super(ZULU, Locale.getDefault());
     setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
@@ -310,7 +314,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   public GregorianDatetimeCalendar(int hour, int minute, int second, int milliseconds,
       int tz)
   {
-    super(TimeZone.getDefault(), Locale.getDefault());
+    super(ZULU, Locale.getDefault());
     setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();

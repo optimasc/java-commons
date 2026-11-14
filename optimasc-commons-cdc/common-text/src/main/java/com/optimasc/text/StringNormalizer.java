@@ -1191,6 +1191,43 @@ public class StringNormalizer
   }
 
   /**
+   * Verifies the supplementary character encoded as a surrogate pair at the
+   * given index. The pair is rejected if the high surrogate is not followed by
+   * a low surrogate, if the character is a private use character (planes 15
+   * and 16) or if it is a non-character (U+nFFFE and U+nFFFF).
+   * 
+   * <p>
+   * The general category of supplementary characters is not otherwise
+   * verified, as it is not available on all supported platforms.
+   * </p>
+   *
+   * @param value
+   *          [in] The string to check
+   * @param index
+   *          [in] The index of the high surrogate
+   * @throws ParseException
+   *           if the pair is invalid or the character is prohibited
+   */
+  protected static void verifySupplementary(CharSequence value, int index) throws ParseException
+  {
+    char high = value.charAt(index);
+    if ((index + 1 >= value.length()) || (value.charAt(index + 1) < 0xDC00)
+        || (value.charAt(index + 1) > 0xDFFF))
+    {
+      throw new ParseException("String contains an unpaired surrogate character at position", index);
+    }
+    int codePoint = 0x10000 + ((high - 0xD800) << 10) + (value.charAt(index + 1) - 0xDC00);
+    if (codePoint >= 0xF0000)
+    {
+      throw new ParseException("String contains a prohibited character (General category 'Co') at position", index);
+    }
+    if ((codePoint & 0xFFFE) == 0xFFFE)
+    {
+      throw new ParseException("String contains prohibited characters at position", index);
+    }
+  }
+
+  /**
    * Checks for prohibited characters according to IETF RFC draft-codere-ldapsyntax. 
    * This is much stricter than then XML 1.1 Specification but provides better compatibility
    * (XML allows private use characters, some non-characters and text direction
@@ -1213,8 +1250,8 @@ public class StringNormalizer
    * <ul>
    * <li>Unassigned codepoint verification are not done, as they may be assigned
    * in the future.</li>
-   * <li>Only supports character verification in the BMP (legacy UCS-2
-   * encoding).</li>
+   * <li>Characters outside the BMP, encoded as surrogate pairs, are only
+   * verified to be well-formed, not private use and not non-characters.</li>
    * </ul>
    * 
    * @param value
@@ -1228,6 +1265,13 @@ public class StringNormalizer
     for (int i = 0; i < maxLength; i++)
     {
       char ch = value.charAt(i);
+      /* Supplementary character: a high surrogate followed by a low surrogate. */
+      if ((ch >= 0xD800) && (ch <= 0xDBFF))
+      {
+        verifySupplementary(value, i);
+        i++;
+        continue;
+      }
       int category = Character.getType(ch);
       switch (category)
       {
@@ -1284,8 +1328,8 @@ public class StringNormalizer
    * <ul>
    * <li>Unassigned codepoint verification are not done, as they may be assigned
    * in the future.</li>
-   * <li>Only supports character verification in the BMP (legacy UCS-2
-   * encoding).</li>
+   * <li>Characters outside the BMP, encoded as surrogate pairs, are only
+   * verified to be well-formed, not private use and not non-characters.</li>
    * </ul>
    * 
    * @param value
@@ -1299,6 +1343,13 @@ public class StringNormalizer
     for (int i = 0; i < maxLength; i++)
     {
       char ch = value.charAt(i);
+      /* Supplementary character: a high surrogate followed by a low surrogate. */
+      if ((ch >= 0xD800) && (ch <= 0xDBFF))
+      {
+        verifySupplementary(value, i);
+        i++;
+        continue;
+      }
       int category = Character.getType(ch);
       // Space character is good - go to next character.
       if (ch == ' ')
@@ -1355,8 +1406,8 @@ public class StringNormalizer
    * <ul>
    * <li>Unassigned codepoint verification are not done, as they may be assigned
    * in the future.</li>
-   * <li>Only supports character verification in the BMP (legacy UCS-2
-   * encoding).</li>
+   * <li>Characters outside the BMP, encoded as surrogate pairs, are only
+   * verified to be well-formed, not private use and not non-characters.</li>
    * </ul>
    *
    * @param value
@@ -1384,6 +1435,13 @@ public class StringNormalizer
     for (int i = 0; i < maxLength; i++)
     {
       char ch = value.charAt(i);
+      /* Supplementary character: a high surrogate followed by a low surrogate. */
+      if ((ch >= 0xD800) && (ch <= 0xDBFF))
+      {
+        verifySupplementary(value, i);
+        i++;
+        continue;
+      }
       int category = Character.getType(ch);
 
       if (ch == ' ')
@@ -1473,6 +1531,15 @@ public class StringNormalizer
     for (int i = 0; i < maxLength; i++)
     {
       char ch = value.charAt(i);
+      /* Supplementary character: a high surrogate followed by a low surrogate. */
+      if ((ch >= 0xD800) && (ch <= 0xDBFF))
+      {
+        verifySupplementary(value, i);
+        buffer[outIndex++] = ch;
+        buffer[outIndex++] = value.charAt(i + 1);
+        i++;
+        continue;
+      }
       // ZERO WIDTH SPACE
       if (ch == '\u200B')
         continue;
@@ -1584,6 +1651,15 @@ public class StringNormalizer
     for (int i = 0; i < maxLength; i++)
     {
       char ch = value.charAt(i);
+      /* Supplementary character: a high surrogate followed by a low surrogate. */
+      if ((ch >= 0xD800) && (ch <= 0xDBFF))
+      {
+        verifySupplementary(value, i);
+        buffer[outIndex++] = ch;
+        buffer[outIndex++] = value.charAt(i + 1);
+        i++;
+        continue;
+      }
       // ZERO WIDTH SPACE
       if (ch == '\u200B')
         continue;
@@ -1856,8 +1932,8 @@ public class StringNormalizer
    *   <li>Unassigned codepoint verification is not done, as they may be
    *       assigned in the future. This follows the forward-compatibility
    *       guidance in UAX #31.</li>
-   *   <li>Only supports character verification in the BMP (legacy UCS-2
-   *       encoding).</li>
+   *   <li>Characters outside the BMP, encoded as surrogate pairs, are only
+   *       verified to be well-formed, not private use and not non-characters.</li>
    * </ul>
    *
    * @param value
@@ -1878,6 +1954,13 @@ public class StringNormalizer
     for (int i = 0; i < maxLength; i++)
     {
       char ch = value.charAt(i);
+      /* Supplementary character: a high surrogate followed by a low surrogate. */
+      if ((ch >= 0xD800) && (ch <= 0xDBFF))
+      {
+        verifySupplementary(value, i);
+        i++;
+        continue;
+      }
 
       /* Architectural restriction: namespace structure delimiters.
        * Checked before category lookup so the error message is specific. */

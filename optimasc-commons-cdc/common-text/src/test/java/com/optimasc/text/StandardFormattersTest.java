@@ -1250,4 +1250,65 @@ public class StandardFormattersTest extends TestCase
         instanceof StandardFormatters.MediaTypeConverter);
   }
 
+
+  public void testTextConverter() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.TextConverter();
+    converter.setLenient(false);
+    // Supplementary characters (U+1F600) are allowed.
+    assertEquals("a\ud83d\ude00b", converter.parseObject("a\ud83d\ude00b"));
+    // Unpaired surrogates, plane 15 private use and non-characters are not.
+    assertParseFails(converter, "a\ud83db", 1);
+    assertParseFails(converter, "a\udb80\udc00", 1);
+    assertParseFails(converter, "a\ud83f\udffe", 1);
+    assertParseFails(converter, "a\u0001", 1);
+    assertSame(StandardFormatters.TextConverter.getInstance(),
+        StandardFormatters.TextConverter.getInstance());
+  }
+
+  public void testNameCharacters() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.NCNameConverter();
+    // Combining marks (Devanagari vowel sign) and supplementary characters.
+    assertEquals("\u0928\u092e\u0938\u094d\u0924\u0947",
+        converter.parseObject("\u0928\u092e\u0938\u094d\u0924\u0947"));
+    assertEquals("a\ud840\udc00", converter.parseObject("a\ud840\udc00"));
+    assertEquals("e\u0301", converter.parseObject("e\u0301"));
+    assertParseFails(converter, "\u0301e", 0);
+    assertParseFails(converter, "a:b", 1);
+    assertParseFails(converter, "a\u00d7", 1);
+  }
+
+  public void testNameConverter() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.NameConverter();
+    assertEquals(false, converter.isLenient());
+    assertEquals(":a:b", converter.parseObject(":a:b"));
+    assertEquals("_x-1.2", converter.parseObject("_x-1.2"));
+    assertParseFails(converter, "1abc", 0);
+    assertParseFails(converter, "-abc", 0);
+    assertParseFails(converter, "a b", 1);
+    assertParseFails(converter, "", 0);
+    assertEquals("a:b", converter.format("a:b"));
+
+    converter = new StandardFormatters.NameConverter(true);
+    assertEquals("abc", converter.parseObject(" 1abc "));
+    assertSame(StandardFormatters.NameConverter.getInstance(),
+        StandardFormatters.NameConverter.getInstance());
+  }
+
+  public void testNMTOKENConverter() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.NMTOKENConverter();
+    assertEquals(false, converter.isLenient());
+    assertEquals("1abc", converter.parseObject("1abc"));
+    assertEquals("-.:9", converter.parseObject("-.:9"));
+    assertParseFails(converter, "a b", 1);
+    assertParseFails(converter, "a/b", 1);
+    assertParseFails(converter, "", 0);
+
+    converter = new StandardFormatters.NMTOKENConverter(true);
+    assertEquals("ab", converter.parseObject(" a b "));
+  }
+
 }

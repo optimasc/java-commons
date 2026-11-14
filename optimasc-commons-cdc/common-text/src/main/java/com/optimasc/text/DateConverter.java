@@ -18,7 +18,7 @@ import com.optimasc.lang.GregorianDatetimeCalendar;
  * Class for formatting and parsing dates according to a specific pattern. It
  * allows for formatting (date -> text), parsing (text -> date), and
  * normalisation. It supports both {@link com.optimasc.lang.GregorianDatetimeCalendar}
- * and {@link java.lang.util.GregorianCalendar} objects for {@link #format(Object, StringBuffer, FieldPosition)}
+ * and {@link java.util.GregorianCalendar} objects for {@link #format(Object, StringBuffer, FieldPosition)}
  * and {@link #parseObject(CharSequence)}.
  * 
  * @author Carl Eric Codere
@@ -79,22 +79,10 @@ import com.optimasc.lang.GregorianDatetimeCalendar;
  *         <td>978</td>
  *         </tr>
  *         <tr valign=top>
- *         <td>D</td>
- *         <td>day in year</td>
- *         <td>(Number)</td>
- *         <td>189</td>
- *         </tr>
- *         <tr valign=top bgcolor="#eeeeff">
- *         <td>w</td>
- *         <td>week in year</td>
- *         <td>(Number)</td>
- *         <td>27</td>
- *         </tr>
- *         <tr valign=top>
- *         <td>z</td>
- *         <td>time zone</td>
+ *         <td>E</td>
+ *         <td>day of week (English abbreviation)</td>
  *         <td>(Text)</td>
- *         <td>Pacific Standard Time</td>
+ *         <td>Tue</td>
  *         </tr>
  *         <tr valign=top bgcolor="#eeeeff">
  *         <td>Z</td>
@@ -141,9 +129,11 @@ import com.optimasc.lang.GregorianDatetimeCalendar;
  *         required, left padded with zeros as required. The maximum number of
  *         digits depends on the actual field value.</li>
  *         <li>Fractional digits are handled specially, for parsing the pattern
- *         indicates the minimum number of digits required. There is no padding
- *         and the maximum number of digits is {@link java.lang.Byte#MAX_VALUE}.
- *         For formatting, it indicates the number of digits to output.</li>
+ *         indicates the minimum number of digits required. Any number of digits
+ *         is accepted, and digits beyond the millisecond are truncated, not
+ *         rounded. For formatting, it indicates the minimum number of digits to
+ *         output; more digits, up to 3, are written when needed to represent
+ *         the milliseconds exactly.</li>
  *         <li>Year is handled specially; that is, if the count of 'y' is 2, the
  *         year will be truncated to 2 digits when formatting and parsing will
  *         expect 2 digits. When parsing and the value of year is 2 digits, the
@@ -213,7 +203,13 @@ import com.optimasc.lang.GregorianDatetimeCalendar;
  *         Gregorian Calendar</li>
  *         <li>The ERA will be set according to the sign of the (the year will
  *         be converted to BCE/BC with a positive year if the original year was
- *         negative).</li></li>
+ *         negative).</li>
+ *         <li>Values that do not represent a valid date, such as 31 February,
+ *         are rejected.</li>
+ *         <li>All errors are reported as {@link java.text.ParseException}. When
+ *         several patterns are specified, the error reported is the one of the
+ *         pattern that matched the input the furthest.</li>
+ *         </ul>
  * 
  *         <h4>Formatting values</h4>
  * 
@@ -231,8 +227,15 @@ import com.optimasc.lang.GregorianDatetimeCalendar;
  *         interpreted according to IETF RFC 2822.</li>
  *         <li>If the formatting requires an ISO 8601 Basic timezone
  *         information, both the hours and minutes will be output.</li>
- *         <li>Only the first pattern specified if multiple patterns are specified will
- *         be used for formatting the output.</li>
+ *         <li>When multiple patterns are specified, the pattern used for
+ *         formatting is the one that uses the most fields available in the
+ *         value, the first one in case of equality. A millisecond value of zero
+ *         is considered not available, so that whole seconds are written
+ *         without a fraction when a pattern without fraction exists.</li>
+ *         <li>For a plain <code>Calendar</code>, the timezone offset written
+ *         includes daylight saving time.</li>
+ *         <li>A {@link com.optimasc.lang.GregorianDatetimeCalendar} whose
+ *         time is the end of day is written with hour 24.</li>
  *         </ul>
  * 
  * 
@@ -241,6 +244,11 @@ public class DateConverter extends DataConverter
 {
   protected String pattern[];
   protected PatternInfo patterns[];
+  /**
+   * Patterns used for formatting, or <code>null</code> to use the parsing
+   * patterns.
+   */
+  protected PatternInfo formatPatterns[];
   protected DateFormatSymbols symbols;
   public static final DateFormatSymbols RFC822Symbols;
 
@@ -265,18 +273,26 @@ public class DateConverter extends DataConverter
       | FLAG_SECOND_REQUIRED | FLAG_MILLISECOND_REQUIRED;
 
 
-  /** Unicode minus sign character. */
-  protected static final char UNICODE_MINUS = '\u2122';
+  /** Unicode minus sign character (U+2212). */
+  protected static final char UNICODE_MINUS = '−';
+
+  /** Lowest astronomical year accepted when parsing. */
+  protected int minYear = Integer.MIN_VALUE;
+  /** Highest astronomical year accepted when parsing. */
+  protected int maxYear = Integer.MAX_VALUE;
 
   static
   {
-    RFC822Symbols = new DateFormatSymbols();
+    RFC822Symbols = new DateFormatSymbols(java.util.Locale.US);
     final String shortMonths[] = new String[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
     RFC822Symbols.setShortMonths(shortMonths);
     final String months[] = new String[] { "January", "February", "March", "April",
         "May", "June", "July", "August", "September", "October", "November", "December" };
     RFC822Symbols.setMonths(months);
+    final String shortWeekdays[] = new String[] { "", "Sun", "Mon", "Tue", "Wed", "Thu",
+        "Fri", "Sat" };
+    RFC822Symbols.setShortWeekdays(shortWeekdays);
   }
 
   // RFC822 named Timezones
@@ -290,9 +306,6 @@ public class DateConverter extends DataConverter
       new SimpleTimeZone(-7 * 60 * 60 * 1000, "MST"),
       new SimpleTimeZone(-7 * 60 * 60 * 1000, "PDT"),
       new SimpleTimeZone(-8 * 60 * 60 * 1000, "PST") };
-
-  /** Used for formatting 2 digit integer values. */
-  protected static final PrintfFormat INTEGER_2DIGIT = new PrintfFormat("%02d");
 
   public DateConverter()
   {
@@ -379,10 +392,14 @@ public class DateConverter extends DataConverter
       throw new IllegalArgumentException("Illegal token value, expected \"'\" character.");
     }
     startPos++;
-    while (((c = sequence.charAt(startPos)) != '\'') && (startPos < sequence.length()))
+    while ((startPos < sequence.length()) && ((c = sequence.charAt(startPos)) != '\''))
     {
       startPos++;
       buffer.append(c);
+    }
+    if (startPos >= sequence.length())
+    {
+      throw new IllegalArgumentException("Unterminated quoted literal in pattern.");
     }
     return buffer.toString();
   }
@@ -417,6 +434,7 @@ public class DateConverter extends DataConverter
       tempPatterns[i] = evaluatePattern(stringPatterns[i]);
     }
     this.patterns = tempPatterns;
+    this.formatPatterns = null;
   }
 
   protected PatternInfo evaluatePattern(String pattern)
@@ -431,7 +449,7 @@ public class DateConverter extends DataConverter
     PatternInfo patternInfo = new PatternInfo();
     List patterns = patternInfo.elements;
 
-    char c = pattern.charAt(patternIndex);
+    char c;
 
     // Start 
     while (patternIndex < patternLength)
@@ -443,7 +461,7 @@ public class DateConverter extends DataConverter
           token = getToken('S', pattern, patternIndex);
           patternIndex = patternIndex + token.length();
           patterns.add(new FieldComponent(Calendar.MILLISECOND, token.length(),
-              Byte.MAX_VALUE));
+              Integer.MAX_VALUE));
           patternInfo.requiredFields |= FLAG_MILLISECOND_REQUIRED;
           break;
         case 's':
@@ -471,6 +489,12 @@ public class DateConverter extends DataConverter
           patternIndex = patternIndex + token.length();
           patterns.add(new FieldComponent(Calendar.DAY_OF_MONTH, minLength, maxLength));
           patternInfo.requiredFields |= FLAG_DAY_REQUIRED;
+          break;
+        case 'E':
+          token = getToken('E', pattern, patternIndex);
+          patternIndex = patternIndex + token.length();
+          patterns.add(new FieldComponent(Calendar.DAY_OF_WEEK, token.length(), token
+              .length()));
           break;
         case 'H':
           token = getToken('H', pattern, patternIndex);
@@ -552,18 +576,41 @@ public class DateConverter extends DataConverter
         default:
           if ((c >= 'A') && (c <= 'Z') || (c >= 'a') && (c <= 'z'))
           {
-            patternIndex++;
+            throw new IllegalArgumentException("Unsupported pattern letter '" + c
+                + "' in pattern '" + pattern + "'");
           }
-          else
-          {
-            chars[0] = c;
-            patterns.add(new String(chars));
-            patternIndex++;
-          }
+          chars[0] = c;
+          patterns.add(new String(chars));
+          patternIndex++;
           break;
       }
     }
     return patternInfo;
+  }
+
+  /**
+   * Sets the patterns used for formatting, when they differ from the patterns
+   * accepted for parsing.
+   * 
+   * @param stringPatterns
+   *          [in] The patterns to use for formatting, or <code>null</code> to
+   *          use the parsing patterns.
+   * @throws IllegalArgumentException
+   *           Thrown if the format or syntax of a pattern is invalid.
+   */
+  public void applyFormatPatterns(String stringPatterns[]) throws IllegalArgumentException
+  {
+    if (stringPatterns == null)
+    {
+      formatPatterns = null;
+      return;
+    }
+    PatternInfo tempPatterns[] = new PatternInfo[stringPatterns.length];
+    for (int i = 0; i < stringPatterns.length; i++)
+    {
+      tempPatterns[i] = evaluatePattern(stringPatterns[i]);
+    }
+    formatPatterns = tempPatterns;
   }
 
   /**
@@ -578,6 +625,7 @@ public class DateConverter extends DataConverter
   {
     patterns = new PatternInfo[1];
     patterns[0] = evaluatePattern(pattern);
+    formatPatterns = null;
   }
 
   /**
@@ -601,7 +649,8 @@ public class DateConverter extends DataConverter
     for (int j = 0; j < symbols.length; j++)
     {
       // Is the pattern a match
-      if (Parsers.indexOf(sequence, symbols[j], startPos) == startPos)
+      if ((symbols[j].length() > 0)
+          && (Parsers.indexOf(sequence, symbols[j], startPos) == startPos))
       {
         foundIndex = j;
         break;
@@ -610,19 +659,103 @@ public class DateConverter extends DataConverter
     if (foundIndex == -1)
     {
       throw new ParseException(
-          "Could not find short form month string matching date symbols.", startPos);
+          "Could not find a string matching date symbols.", startPos);
     }
     return foundIndex;
   }
 
-  private static int power(int precision)
+  /**
+   * Returns <code>true</code> if the astronomical year is a leap year in the
+   * proleptic Gregorian calendar.
+   */
+  protected static boolean isLeapYear(long year)
   {
-    int tmp = 10;
-    for (int i = 1; i < precision; i++)
+    long mod4 = ((year % 4) + 4) % 4;
+    long mod100 = ((year % 100) + 100) % 100;
+    long mod400 = ((year % 400) + 400) % 400;
+    return (mod4 == 0) && ((mod100 != 0) || (mod400 == 0));
+  }
+
+  /**
+   * Returns the number of days in a month of the proleptic Gregorian calendar.
+   * 
+   * @param year
+   *          [in] The astronomical year
+   * @param month
+   *          [in] The month, from 1 to 12
+   */
+  protected static int daysInMonth(long year, int month)
+  {
+    switch (month)
     {
-      tmp *= 10;
+      case 2:
+        return isLeapYear(year) ? 29 : 28;
+      case 4:
+      case 6:
+      case 9:
+      case 11:
+        return 30;
+      default:
+        return 31;
     }
-    return tmp;
+  }
+
+  private static void checkAvailable(CharSequence value, int index, String what)
+      throws ParseException
+  {
+    if (index >= value.length())
+    {
+      throw new ParseException("Expecting " + what + ", but end of string found.", index);
+    }
+  }
+
+  /**
+   * Parses a timezone offset of the form <code>hh[[:]mm]</code> after the sign
+   * at <code>index</code>.
+   * 
+   * @return the offset in milliseconds, with the sign applied, and sets the
+   *         end index in <code>pos</code>.
+   */
+  private static int parseOffset(CharSequence value, int index, boolean separator,
+      boolean minutesRequired, ParsePosition pos) throws ParseException
+  {
+    int zoneIndex = index;
+    char sign = value.charAt(index);
+    boolean negative = (sign == '-') || (sign == UNICODE_MINUS);
+    index++;
+    pos.setIndex(index);
+    int houroffset = Parsers.parsePositiveNumber(value, pos, 2, 2);
+    index = pos.getIndex();
+    int minoffset = 0;
+    if (separator)
+    {
+      if (index >= value.length() || (value.charAt(index) != ':'))
+      {
+        throw new ParseException("Expecting character ':' in Timezone field.", zoneIndex);
+      }
+      index++;
+      pos.setIndex(index);
+      minoffset = Parsers.parsePositiveNumber(value, pos, 2, 2);
+    }
+    else if (minutesRequired || (index + 2 <= value.length()))
+    {
+      minoffset = Parsers.parsePositiveNumber(value, pos, 2, 2);
+    }
+    if (minoffset > 59)
+    {
+      throw new ParseException("Timezone minutes must be between 00 and 59.", index);
+    }
+    int zoneoffset = (houroffset * 60 + minoffset) * 60 * 1000;
+    if (negative)
+    {
+      if ((zoneoffset == 0) && (minutesRequired == false))
+      {
+        throw new ParseException(
+            "Negative offset with value of zero is not allowed in ISO 8601.", zoneIndex);
+      }
+      zoneoffset = -zoneoffset;
+    }
+    return zoneoffset;
   }
 
   /** Parses the value according to the specified pattern specification.
@@ -637,8 +770,6 @@ public class DateConverter extends DataConverter
       throws ParseException
   {
     int currentIndex = 0;
-    boolean negative = false;
-    int scratchInt;
     long year = Long.MIN_VALUE;
     int month = -1;
     int day = -1;
@@ -649,14 +780,13 @@ public class DateConverter extends DataConverter
     // Timezone character index
     int zoneIndex;
     // Timezone in milliseconds
-    int zoneoffset = -1;
-    int houroffset = -1;
-    int minoffset = -1;
+    int zoneoffset;
     // Indicates if this TZ indicates a local timezone, only used in IETF RFC 2822
     boolean localTZIndicator = false;
     TimeZone timeZone = null;
     ParsePosition pos = new ParsePosition(0);
     String[] dateSymbols;
+    char c;
 
     for (int i = 0; i < patternInfo.elements.size(); i++)
     {
@@ -669,305 +799,194 @@ public class DateConverter extends DataConverter
           throw new ParseException("Expected '" + expected + "'", currentIndex);
         }
         currentIndex = currentIndex + expected.length();
+        continue;
       }
-      else if (o instanceof FieldComponent)
+      FieldComponent field = (FieldComponent) o;
+      switch (field.field)
       {
-        FieldComponent field = (FieldComponent) o;
-        switch (field.field)
-        {
-          case TZ_RFC822:
-            zoneIndex = currentIndex;
-            if ((value.charAt(currentIndex) == '-')
-                || (value.charAt(currentIndex) == '+'))
+        case TZ_RFC822:
+          zoneIndex = currentIndex;
+          checkAvailable(value, currentIndex, "timezone");
+          c = value.charAt(currentIndex);
+          if ((c == '-') || (c == '+'))
+          {
+            zoneoffset = parseOffset(value, currentIndex, false, true, pos);
+            currentIndex = pos.getIndex();
+            // Special case if value is -0000 as specified
+            // in IETF RFC 2822, then it indicates that 
+            // the value is actually local, there is no actual
+            // timezone information
+            if ((zoneoffset == 0) && (c == '-'))
             {
-              if (value.charAt(currentIndex) == '-')
-              {
-                negative = true;
-              }
-              currentIndex++;
-              pos.setIndex(currentIndex);
-              // Hour 
-              houroffset = Parsers.parsePositiveNumber(value, pos, 2, 2);
-              currentIndex = currentIndex + 2;
-              pos.setIndex(currentIndex);
-              // Minutes
-              minoffset = Parsers.parsePositiveNumber(value, pos, 2, 2);
-              currentIndex = currentIndex + 2;
-              zoneoffset = (houroffset * 60 + minoffset) * 60 * 1000;
-              if (negative)
-              {
-                // Special case if value is -0000 as specified
-                // in IETF RFC 2822, then it indicates that 
-                // the value is actually local, and we must do nothing
-                // and stop the parsing, since there is no actual
-                // timezone information
-                if (zoneoffset == 0)
-                {
-                  pos.setIndex(currentIndex);
-                  zoneoffset = -1;
-                  localTZIndicator = true;
-                  break;
-                }
-                zoneoffset = -zoneoffset;
-              }
-              timeZone = new SimpleTimeZone(zoneoffset, "GMT+"
-                  + Integer.toString(zoneoffset));
+              localTZIndicator = true;
             }
             else
             {
-              // Other format as strings
-              for (int k = 0; k < RFC822TimeZones.length; k++)
+              timeZone = new SimpleTimeZone(zoneoffset, "GMT+" + Integer.toString(zoneoffset));
+            }
+          }
+          else
+          {
+            // Other format as strings
+            for (int k = 0; k < RFC822TimeZones.length; k++)
+            {
+              if (Parsers.indexOf(value, RFC822TimeZones[k].getID(), currentIndex) == currentIndex)
               {
-                if (Parsers.indexOf(value, RFC822TimeZones[k].getID(), currentIndex) == currentIndex)
-                {
-                  timeZone = RFC822TimeZones[k];
-                  currentIndex = currentIndex + RFC822TimeZones[k].getID().length();
-                  break;
-                }
+                timeZone = RFC822TimeZones[k];
+                currentIndex = currentIndex + RFC822TimeZones[k].getID().length();
+                break;
               }
             }
             if (timeZone == null)
             {
               throw new ParseException("IETF RFC 2822 Timezone is invalid.", zoneIndex);
             }
-            pos.setIndex(currentIndex);
-            break;
-          case TZ_ISO8601_BASIC:
-            zoneIndex = currentIndex;
-            if ((value.charAt(currentIndex) == '-')
-                || (value.charAt(currentIndex) == '+')
-                || ((value.charAt(currentIndex) == UNICODE_MINUS)))
-            {
-              if ((value.charAt(currentIndex) == '-')
-                  || (value.charAt(currentIndex) == UNICODE_MINUS))
-              {
-                negative = true;
-              }
-              currentIndex++;
-              pos.setIndex(currentIndex);
-              // Hour 
-              houroffset = Parsers.parsePositiveNumber(value, pos, 2, 2);
-              currentIndex = currentIndex + 2;
-              pos.setIndex(currentIndex);
-              minoffset = 0;
-              // Minutes (optional value)
-              if (currentIndex + 2 <= value.length())
-              {
-                minoffset = Parsers.parsePositiveNumber(value, pos, 2, 2);
-                currentIndex = currentIndex + 2;
-              }
-              zoneoffset = (houroffset * 60 + minoffset) * 60 * 1000;
-              if (negative)
-              {
-                // Special case if value is -0000 is specified
-                // it is not permitted.
-                if (zoneoffset == 0)
-                {
-                  throw new ParseException(
-                      "Negative offset with value of zero is not allowed in ISO 8601.",
-                      zoneIndex);
-                }
-                zoneoffset = -zoneoffset;
-              }
-              timeZone = new SimpleTimeZone(zoneoffset, "GMT+"
-                  + Integer.toString(zoneoffset));
-            }
-            else
-            {
-              if (Parsers.indexOf(value, GregorianDatetimeCalendar.ZULU.getID(),
-                  currentIndex) == currentIndex)
-              {
-                timeZone = GregorianDatetimeCalendar.ZULU;
-                currentIndex = currentIndex
-                    + GregorianDatetimeCalendar.ZULU.getID().length();
-              }
-            }
-            if (timeZone == null)
-            {
-              throw new ParseException("ISO 8601 compact timezone is invalid.", zoneIndex);
-            }
-            pos.setIndex(currentIndex);
-            break;
-          // According to ISO 8601:2004: +hh:mm  | -hh:mm | Z   
-          case TZ_ISO8601_EXTENDED:
-            zoneIndex = currentIndex;
-            if (currentIndex >= value.length())
-            {
-              throw new ParseException("Excepting ISO 8601 timezone information, but end of string found.",currentIndex);
-            }
-            if ((value.charAt(currentIndex) == '-')
-                || (value.charAt(currentIndex) == '+')
-                || ((value.charAt(currentIndex) == UNICODE_MINUS)))
-            {
-              if ((value.charAt(currentIndex) == '-')
-                  || (value.charAt(currentIndex) == UNICODE_MINUS))
-              {
-                negative = true;
-              }
-              currentIndex++;
-              pos.setIndex(currentIndex);
-              // Hour 
-              houroffset = Parsers.parsePositiveNumber(value, pos, 2, 2);
-              currentIndex = currentIndex + 2;
-              pos.setIndex(currentIndex);
-              minoffset = 0;
+          }
+          break;
+        case TZ_ISO8601_BASIC:
+        case TZ_ISO8601_EXTENDED:
+          zoneIndex = currentIndex;
+          checkAvailable(value, currentIndex, "ISO 8601 timezone information");
+          c = value.charAt(currentIndex);
+          if ((c == '-') || (c == '+') || (c == UNICODE_MINUS))
+          {
+            zoneoffset = parseOffset(value, currentIndex,
+                field.field == TZ_ISO8601_EXTENDED, false, pos);
+            currentIndex = pos.getIndex();
+            timeZone = new SimpleTimeZone(zoneoffset, "GMT+" + Integer.toString(zoneoffset));
+          }
+          else if (c == 'Z')
+          {
+            timeZone = GregorianDatetimeCalendar.ZULU;
+            currentIndex++;
+          }
+          else
+          {
+            throw new ParseException("ISO 8601 timezone is invalid.", zoneIndex);
+          }
+          break;
 
-              // Minutes (mandatory value)
-              if (currentIndex >= value.length() || (value.charAt(currentIndex) != ':'))
-              {
-                throw new ParseException("Expecting character ':' in Timezone field.",
-                    zoneIndex);
-              }
-              currentIndex++;
-              pos.setIndex(currentIndex);
-              minoffset = Parsers.parsePositiveNumber(value, pos, 2, 2);
-              currentIndex = currentIndex + 2;
-              zoneoffset = (houroffset * 60 + minoffset) * 60 * 1000;
-              if (negative)
-              {
-                // Special case if value is -0000 is specified
-                // it is not permitted.
-                if (zoneoffset == 0)
-                {
-                  throw new ParseException(
-                      "Negative offset with value of zero is not allowed in ISO 8601.",
-                      zoneIndex);
-                }
-                zoneoffset = -zoneoffset;
-              }
-              timeZone = new SimpleTimeZone(zoneoffset, "GMT+"
-                  + Integer.toString(zoneoffset));
+        case Calendar.YEAR:
+          boolean negative = false;
+          checkAvailable(value, currentIndex, "year");
+          if (value.charAt(currentIndex) == '-')
+          {
+            if (field.allowNegative == false)
+            {
+              throw new ParseException(
+                  "A negative sign is present where it should not be.", currentIndex);
+            }
+            currentIndex++;
+            negative = true;
+          }
+          pos.setIndex(currentIndex);
+          year = Parsers.parsePositiveNumber(value, pos, field.minDigits,
+              field.maxDigits);
+          if ((field.maxDigits == 2) && (negative == false))
+          {
+            // Special handing for special values with 2 digit years.
+            // See IETF RFC 2822 obsolete date time:
+            // If a two digit year is encountered whose value is between 
+            // 00 and 49, the year is interpreted by adding 2000, 
+            // ending up with a value between 2000 and 2049. 
+            // If a two digit year is encountered with a value between 50 and 99, 
+            // is encountered, the year is interpreted by adding 1900.      
+            if (year <= 49)
+            {
+              year = year + 2000;
             }
             else
             {
-              if (Parsers.indexOf(value, GregorianDatetimeCalendar.ZULU.getID(),
-                  currentIndex) == currentIndex)
-              {
-                timeZone = GregorianDatetimeCalendar.ZULU;
-                currentIndex = currentIndex
-                    + GregorianDatetimeCalendar.ZULU.getID().length();
-              }
+              year = year + 1900;
             }
-            if (timeZone == null)
-            {
-              throw new ParseException("ISO 8601 compact timezone is invalid.", zoneIndex);
-            }
-            pos.setIndex(currentIndex);
-            break;
-
-          case Calendar.YEAR:
-            if (value.charAt(currentIndex) == '-')
-            {
-              if (field.allowNegative == false)
-              {
-                throw new ParseException(
-                    "A negative sign is present where it should not be.", currentIndex);
-              }
-              currentIndex++;
-              negative = true;
-            }
-            pos.setIndex(currentIndex);
-            year = Parsers.parsePositiveNumber(value, pos, field.minDigits,
+          }
+          if (negative)
+          {
+            year = -year;
+          }
+          currentIndex = pos.getIndex();
+          break;
+        case Calendar.MONTH:
+          // Numeric value
+          pos.setIndex(currentIndex);
+          if (field.minDigits <= 2)
+          {
+            month = Parsers.parsePositiveNumber(value, pos, field.minDigits,
                 field.maxDigits);
-            if (negative)
+            if ((month < 1) || (month > 12))
             {
-              year = -year;
+              throw new ParseException("Month must be between 1 and 12.", currentIndex);
             }
-            if ((field.maxDigits == 2) && (year > 0))
-            {
-              // Special handing for special values with 2 digit years.
-              // See IETF RFC 2822 obsolete date time:
-              // If a two digit year is encountered whose value is between 
-              // 00 and 49, the year is interpreted by adding 2000, 
-              // ending up with a value between 2000 and 2049. 
-              // If a two digit year is encountered with a value between 50 and 99, 
-              // is encountered, the year is interpreted by adding 1900.      
-              if ((year >= 00) && (year <= 49))
-              {
-                year = year + 2000;
-              }
-              else
-              {
-                year = year + 1900;
-              }
-            }
-
             currentIndex = pos.getIndex();
-            break;
-          case Calendar.MONTH:
-            // Numeric value
-            pos.setIndex(currentIndex);
-            if (field.minDigits <= 2)
-            {
-              month = Parsers.parsePositiveNumber(value, pos, field.minDigits,
-                  field.maxDigits);
-              currentIndex = pos.getIndex();
-            }
-            else
-            // Short form  
-            if (field.minDigits == 3)
-            {
-              int foundIndex = -1;
-              dateSymbols = symbols.getShortMonths();
-              foundIndex = matchSymbol(symbols.getShortMonths(), value, currentIndex);
-              month = foundIndex + 1;
-              currentIndex = currentIndex + dateSymbols[foundIndex].length();
-              break;
-            }
-            else
-            // Long form  
-            if (field.minDigits > 3)
-            {
-              int foundIndex = -1;
-              dateSymbols = symbols.getMonths();
-              foundIndex = matchSymbol(symbols.getShortMonths(), value, currentIndex);
-              month = foundIndex + 1;
-              currentIndex = currentIndex + dateSymbols[foundIndex].length();
-              break;
-            }
-            break;
-          case Calendar.DAY_OF_MONTH:
-            // Numeric value
-            pos.setIndex(currentIndex);
-            day = Parsers.parsePositiveNumber(value, pos, field.minDigits,
-                field.maxDigits);
-            currentIndex = pos.getIndex();
-            break;
-          case Calendar.HOUR_OF_DAY:
-            // Numeric value
-            pos.setIndex(currentIndex);
-            hour = Parsers.parsePositiveNumber(value, pos, field.minDigits,
-                field.maxDigits);
-            currentIndex = pos.getIndex();
-            break;
-          case Calendar.MINUTE:
-            // Numeric value
-            pos.setIndex(currentIndex);
-            minute = Parsers.parsePositiveNumber(value, pos, field.minDigits,
-                field.maxDigits);
-            currentIndex = pos.getIndex();
-            break;
-          case Calendar.SECOND:
-            // Numeric value
-            pos.setIndex(currentIndex);
-            second = Parsers.parsePositiveNumber(value, pos, field.minDigits,
-                field.maxDigits);
-            currentIndex = pos.getIndex();
-            break;
-          case Calendar.MILLISECOND:
-            // Numeric value
-            pos.setIndex(currentIndex);
-            // Get fractional of seconds
-            scratchInt = Parsers.parsePositiveNumber(value, pos, field.minDigits,
-                field.maxDigits);
-            String intStr = Integer.toString(scratchInt);
-            // Get the fractional value
-            int divisor = power(intStr.length());
-            double dval = ((double) scratchInt / (double) divisor) * 1000.0;
-            millisecond = (int) Math.round(dval);
-            currentIndex = pos.getIndex();
-            break;
-        }
+          }
+          else
+          {
+            // Short form (3 letters) or long form
+            dateSymbols = (field.minDigits == 3) ? symbols.getShortMonths() : symbols
+                .getMonths();
+            int foundIndex = matchSymbol(dateSymbols, value, currentIndex);
+            month = foundIndex + 1;
+            currentIndex = currentIndex + dateSymbols[foundIndex].length();
+          }
+          break;
+        case Calendar.DAY_OF_WEEK:
+          // The day of week is verified to be a valid name, but its
+          // consistency with the date is not verified.
+          dateSymbols = symbols.getShortWeekdays();
+          currentIndex = currentIndex
+              + dateSymbols[matchSymbol(dateSymbols, value, currentIndex)].length();
+          break;
+        case Calendar.DAY_OF_MONTH:
+          // Numeric value
+          pos.setIndex(currentIndex);
+          day = Parsers.parsePositiveNumber(value, pos, field.minDigits,
+              field.maxDigits);
+          if ((day < 1) || (day > 31) || ((year != Long.MIN_VALUE) && (month != -1)
+              && (day > daysInMonth(year, month))))
+          {
+            throw new ParseException("The day is not valid for the month.", currentIndex);
+          }
+          currentIndex = pos.getIndex();
+          break;
+        case Calendar.HOUR_OF_DAY:
+          // Numeric value
+          pos.setIndex(currentIndex);
+          hour = Parsers.parsePositiveNumber(value, pos, field.minDigits,
+              field.maxDigits);
+          currentIndex = pos.getIndex();
+          break;
+        case Calendar.MINUTE:
+          // Numeric value
+          pos.setIndex(currentIndex);
+          minute = Parsers.parsePositiveNumber(value, pos, field.minDigits,
+              field.maxDigits);
+          currentIndex = pos.getIndex();
+          break;
+        case Calendar.SECOND:
+          // Numeric value
+          pos.setIndex(currentIndex);
+          second = Parsers.parsePositiveNumber(value, pos, field.minDigits,
+              field.maxDigits);
+          currentIndex = pos.getIndex();
+          break;
+        case Calendar.MILLISECOND:
+          // Fraction of second: any number of digits, truncated to milliseconds.
+          int start = currentIndex;
+          millisecond = 0;
+          int scale = 100;
+          while ((currentIndex < value.length()) && (value.charAt(currentIndex) >= '0')
+              && (value.charAt(currentIndex) <= '9'))
+          {
+            millisecond = millisecond + (value.charAt(currentIndex) - '0') * scale;
+            scale = scale / 10;
+            currentIndex++;
+          }
+          if (currentIndex - start < field.minDigits)
+          {
+            throw new ParseException("Fraction of second must contain at least "
+                + field.minDigits + " digits.", currentIndex);
+          }
+          break;
       }
     }
     
@@ -975,50 +994,17 @@ public class DateConverter extends DataConverter
     {
       throw new ParseException("Extra characters found after pattern parsing.",currentIndex);
     }
-    int requiredFields = patternInfo.requiredFields;
 
-    // Validate required fields
-    if (year == Long.MIN_VALUE)
+    if ((year != Long.MIN_VALUE) && ((year < minYear) || (year > maxYear)))
     {
-      if ((requiredFields & FLAG_YEAR_REQUIRED) == FLAG_YEAR_REQUIRED)
-        throw new IllegalArgumentException("Year value is required and is missing.");
+      throw new ParseException("Year must be between " + minYear + " and " + maxYear + ".", 0);
     }
-    if (month == -1)
+    if ((year != Long.MIN_VALUE) && (month != -1) && (day != -1))
     {
-      if ((requiredFields & FLAG_MONTH_REQUIRED) == FLAG_MONTH_REQUIRED)
-        throw new IllegalArgumentException("Month value is required and is missing.");
-    }
-    if (day == -1)
-    {
-      if ((requiredFields & FLAG_DAY_REQUIRED) == FLAG_DAY_REQUIRED)
-        throw new IllegalArgumentException("Day value is required and is missing.");
-    }
-    if (hour == -1)
-    {
-      if ((requiredFields & FLAG_HOUR_REQUIRED) == FLAG_HOUR_REQUIRED)
-        throw new IllegalArgumentException("Hour value is required and is missing.");
-    }
-    if (minute == -1)
-    {
-      if ((requiredFields & FLAG_MINUTE_REQUIRED) == FLAG_MINUTE_REQUIRED)
-        throw new IllegalArgumentException("Minute value is required and is missing.");
-    }
-    if (second == -1)
-    {
-      if ((requiredFields & FLAG_SECOND_REQUIRED) == FLAG_SECOND_REQUIRED)
-        throw new IllegalArgumentException("Second value is required and is missing.");
-    }
-    if (millisecond == -1)
-    {
-      if ((requiredFields & FLAG_MILLISECOND_REQUIRED) == FLAG_MILLISECOND_REQUIRED)
-        throw new IllegalArgumentException(
-            "Millisecond value is required and is missing.");
-    }
-    if (timeZone == null)
-    {
-      if (((requiredFields & FLAG_TIMEZONE_REQUIRED) == FLAG_TIMEZONE_REQUIRED)
-          && (localTZIndicator == false))
-        throw new IllegalArgumentException("Timezone value is required and is missing.");
+      if ((month < 1) || (month > 12) || (day < 1) || (day > daysInMonth(year, month)))
+      {
+        throw new ParseException("The date is not a valid calendar date.", 0);
+      }
     }
 
     // Convert parsed values to GregorianDatetimeCalendar conventions:
@@ -1033,18 +1019,43 @@ public class DateConverter extends DataConverter
         : timeZone.getRawOffset();
 
     GregorianDatetimeCalendar calendar;
-    if (year == Long.MIN_VALUE)
+    try
     {
-      calendar = new GregorianDatetimeCalendar(calHour, calMinute, calSecond, calMillis,
-          calTz);
-    }
-    else
+      if (year == Long.MIN_VALUE)
+      {
+        calendar = new GregorianDatetimeCalendar(calHour, calMinute, calSecond, calMillis,
+            calTz);
+      }
+      else
+      {
+        if ((year < Integer.MIN_VALUE) || (year > Integer.MAX_VALUE))
+        {
+          throw new ParseException("Year is out of range.", 0);
+        }
+        calendar = new GregorianDatetimeCalendar((int) year, calMonth, calDay, calHour,
+            calMinute, calSecond, calMillis, calTz);
+      }
+    } catch (IllegalArgumentException e)
     {
-      calendar = new GregorianDatetimeCalendar((int) year, calMonth, calDay, calHour,
-          calMinute, calSecond, calMillis, calTz);
+      throw new ParseException(e.getMessage(), 0);
     }
-    return calendar;
+    return adjust(calendar);
+  }
 
+  /**
+   * Called with the result of a successful parse, to apply the further
+   * constraints or conversions of a specific type. The default implementation
+   * returns the calendar unchanged.
+   * 
+   * @param calendar
+   *          [in] The parsed value
+   * @return The value to return to the caller
+   * @throws ParseException
+   *           if the value is not valid for the type
+   */
+  protected Calendar adjust(GregorianDatetimeCalendar calendar) throws ParseException
+  {
+    return calendar;
   }
 
   public Object parseObject(CharSequence value) throws ParseException
@@ -1060,29 +1071,78 @@ public class DateConverter extends DataConverter
         return parseObject(patternInfo, value);
       } catch (ParseException e)
       {
-           error = e;        
+        // Report the error of the pattern that matched the furthest.
+        if ((error == null) || (e.getErrorOffset() > error.getErrorOffset()))
+        {
+          error = e;
+        }
+      } catch (RuntimeException e)
+      {
+        ParseException pe = new ParseException(String.valueOf(e.getMessage()), 0);
+        if (error == null)
+        {
+          error = pe;
+        }
       }
     }
     throw error;
   }
 
+  /** Returns the number of bits set in a value. */
+  private static int bitCount(int value)
+  {
+    int count = 0;
+    while (value != 0)
+    {
+      count += value & 1;
+      value = value >>> 1;
+    }
+    return count;
+  }
 
+  /** Appends a number padded on the left with zeros to <code>digits</code>. */
+  private static void appendPadded(StringBuffer buffer, long value, int digits)
+  {
+    if (value < 0)
+    {
+      buffer.append('-');
+      value = -value;
+    }
+    String str = Long.toString(value);
+    for (int i = str.length(); i < digits; i++)
+    {
+      buffer.append('0');
+    }
+    buffer.append(str);
+  }
+
+  /** Appends a timezone offset in milliseconds as <code>+hh[:]mm</code>. */
+  private static void appendOffset(StringBuffer buffer, int zoneoffset, boolean separator)
+  {
+    int minutes = Math.abs(zoneoffset) / (60 * 1000);
+    buffer.append((zoneoffset < 0) ? '-' : '+');
+    appendPadded(buffer, minutes / 60, 2);
+    if (separator)
+    {
+      buffer.append(':');
+    }
+    appendPadded(buffer, minutes % 60, 2);
+  }
 
   public StringBuffer format(Object obj, StringBuffer toAppendTo, FieldPosition pos)
   {
     long year = Long.MIN_VALUE;
     int month = -1;
     int day = -1;
+    int dayOfWeek = -1;
     int hour = -1;
     int minute = -1;
     int second = -1;
     int millisecond = -1;
     // Timezone in milliseconds
-    int zoneoffset = -1;
-    int houroffset = -1;
-    int minoffset = -1;
+    int zoneoffset = 0;
+    boolean zoneSet = false;
     String[] dateSymbols;
-    PrintfFormat fmt;
 
     // Set the values accordingly
     if (obj instanceof GregorianDatetimeCalendar)
@@ -1092,13 +1152,10 @@ public class DateConverter extends DataConverter
       if (cal.isUserSet(Calendar.YEAR))
       {
         year = cal.get(Calendar.YEAR);
-        if (cal.isUserSet(Calendar.ERA))
+        // Astronomical year numbering
+        if (cal.get(Calendar.ERA) == GregorianCalendar.BC)
         {
-          // Negative year value
-          if (cal.get(Calendar.ERA) == GregorianCalendar.BC)
-          {
-            year = -year + 1;
-          }
+          year = -year + 1;
         }
       }
       if (cal.isUserSet(Calendar.MONTH))
@@ -1108,10 +1165,11 @@ public class DateConverter extends DataConverter
       if (cal.isUserSet(Calendar.DAY_OF_MONTH))
       {
         day = cal.get(Calendar.DAY_OF_MONTH);
+        dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
       }
       if (cal.isUserSet(Calendar.HOUR_OF_DAY))
       {
-        hour = cal.get(Calendar.HOUR_OF_DAY);
+        hour = cal.isEndOfDay() ? 24 : cal.get(Calendar.HOUR_OF_DAY);
       }
       if (cal.isUserSet(Calendar.MINUTE))
       {
@@ -1127,221 +1185,214 @@ public class DateConverter extends DataConverter
       }
       if (cal.isUserSet(Calendar.ZONE_OFFSET))
       {
+        zoneSet = true;
         zoneoffset = cal.get(Calendar.ZONE_OFFSET);
+        if (cal.isUserSet(Calendar.DST_OFFSET))
+        {
+          zoneoffset += cal.get(Calendar.DST_OFFSET);
+        }
       }
     }
-    else if (obj instanceof GregorianCalendar)
+    else if (obj instanceof Calendar)
     {
-      GregorianCalendar cal = (GregorianCalendar) obj;
+      Calendar cal = (Calendar) obj;
       year = cal.get(Calendar.YEAR);
+      if (cal.get(Calendar.ERA) == GregorianCalendar.BC)
+      {
+        year = -year + 1;
+      }
       month = cal.get(Calendar.MONTH) + 1;
       day = cal.get(Calendar.DAY_OF_MONTH);
+      dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
       hour = cal.get(Calendar.HOUR_OF_DAY);
       minute = cal.get(Calendar.MINUTE);
       second = cal.get(Calendar.SECOND);
       millisecond = cal.get(Calendar.MILLISECOND);
-      zoneoffset = cal.get(Calendar.ZONE_OFFSET);
+      zoneSet = true;
+      zoneoffset = cal.get(Calendar.ZONE_OFFSET) + cal.get(Calendar.DST_OFFSET);
     }
-    List patternList = patterns[0].elements;
+    else
+    {
+      throw new IllegalArgumentException("Object value is not instance of '"
+          + clz.getName() + "'");
+    }
+
+    // Select the pattern that uses the most fields available.
+    int available = 0;
+    if (year != Long.MIN_VALUE)
+      available |= FLAG_YEAR_REQUIRED;
+    if (month != -1)
+      available |= FLAG_MONTH_REQUIRED;
+    if (day != -1)
+      available |= FLAG_DAY_REQUIRED;
+    if (hour != -1)
+      available |= FLAG_HOUR_REQUIRED;
+    if (minute != -1)
+      available |= FLAG_MINUTE_REQUIRED;
+    if (second != -1)
+      available |= FLAG_SECOND_REQUIRED;
+    if (millisecond > 0)
+      available |= FLAG_MILLISECOND_REQUIRED;
+    if (zoneSet)
+      available |= FLAG_TIMEZONE_REQUIRED;
+    PatternInfo candidates[] = (formatPatterns != null) ? formatPatterns : patterns;
+    PatternInfo selected = candidates[0];
+    int bestCount = -1;
+    for (int i = 0; i < candidates.length; i++)
+    {
+      int required = candidates[i].requiredFields;
+      if (((required & ~available) == 0) && (bitCount(required) > bestCount))
+      {
+        selected = candidates[i];
+        bestCount = bitCount(required);
+      }
+    }
+
+    List patternList = selected.elements;
     for (int i = 0; i < patternList.size(); i++)
     {
       Object o = patternList.get(i);
       if (o instanceof String)
       {
         toAppendTo.append((String) o);
+        continue;
       }
-      else if (o instanceof FieldComponent)
+      FieldComponent field = (FieldComponent) o;
+      switch (field.field)
       {
-        FieldComponent field = (FieldComponent) o;
-        switch (field.field)
-        {
-          case TZ_RFC822:
-            if (zoneoffset == -1)
+        case TZ_RFC822:
+        case TZ_ISO8601_BASIC:
+        case TZ_ISO8601_EXTENDED:
+          if (zoneSet == false)
+          {
+            throw new IllegalArgumentException(
+                "The timezone is not set, while it is included in the output pattern.");
+          }
+          if ((zoneoffset == 0) && (field.field != TZ_RFC822))
+          {
+            toAppendTo.append(GregorianDatetimeCalendar.ZULU.getID());
+            break;
+          }
+          appendOffset(toAppendTo, zoneoffset, field.field == TZ_ISO8601_EXTENDED);
+          break;
+        case Calendar.YEAR:
+          if (year == Long.MIN_VALUE)
+          {
+            throw new IllegalArgumentException(
+                "Calendar year value is not valid, and trying to format it.");
+          }
+          if ((field.allowNegative == false) && (year < 0))
+          {
+            throw new IllegalArgumentException(
+                "The year is negative, which is not permitted in the pattern.");
+          }
+          if (field.maxDigits == 2)
+          {
+            // 2 digit years: see IETF RFC 2822 obsolete date time.
+            if ((year >= 2000) && (year <= 2049))
             {
-              throw new IllegalArgumentException(
-                  "The timezone is not set, while it is included in the output pattern.");
+              appendPadded(toAppendTo, year - 2000, 2);
             }
-            if (zoneoffset == 0)
+            else if ((year >= 1950) && (year <= 1999))
             {
-              toAppendTo.append("GMT");
-              break;
-            }
-            minoffset = Math.abs(zoneoffset / (1000 * 60)) % 60;
-            houroffset = Math.abs(zoneoffset / (1000 * 60 * 60));
-            if (zoneoffset < 0)
-            {
-              toAppendTo.append('-');
+              appendPadded(toAppendTo, year - 1900, 2);
             }
             else
             {
-              toAppendTo.append('+');
-            }
-            toAppendTo.append(INTEGER_2DIGIT.sprintf(houroffset));
-            toAppendTo.append(INTEGER_2DIGIT.sprintf(minoffset));
-            break;
-          // According to ISO 8601:2004: +hhmm  | -hhmm | +hh | -hh | Z   
-          case TZ_ISO8601_BASIC:
-            if (zoneoffset == -1)
-            {
               throw new IllegalArgumentException(
-                  "The timezone is not set, while it is included in the output pattern.");
-            }
-            if (zoneoffset == 0)
-            {
-              toAppendTo.append(GregorianDatetimeCalendar.ZULU.getID());
-              break;
-            }
-            minoffset = Math.abs(zoneoffset / (1000 * 60)) % 60;
-            houroffset = Math.abs(zoneoffset / (1000 * 60 * 60));
-            if (zoneoffset < 0)
-            {
-              toAppendTo.append('-');
-            }
-            else
-            {
-              toAppendTo.append('+');
-            }
-            toAppendTo.append(INTEGER_2DIGIT.sprintf(houroffset));
-            toAppendTo.append(INTEGER_2DIGIT.sprintf(minoffset));
-            break;
-          // According to ISO 8601:2004: +hh:mm  | -hh:mm | Z   
-          case TZ_ISO8601_EXTENDED:
-            if (zoneoffset == -1)
-            {
-              throw new IllegalArgumentException(
-                  "The timezone is not set, while it is included in the output pattern.");
-            }
-            if (zoneoffset == 0)
-            {
-              toAppendTo.append(GregorianDatetimeCalendar.ZULU.getID());
-              break;
-            }
-            minoffset = Math.abs(zoneoffset / (1000 * 60)) % 60;
-            houroffset = Math.abs(zoneoffset / (1000 * 60 * 60));
-            if (zoneoffset < 0)
-            {
-              toAppendTo.append('-');
-            }
-            else
-            {
-              toAppendTo.append('+');
-            }
-            toAppendTo.append(INTEGER_2DIGIT.sprintf(houroffset));
-            toAppendTo.append(':');
-            toAppendTo.append(INTEGER_2DIGIT.sprintf(minoffset));
-            break;
-          case Calendar.YEAR:
-            if ((field.allowNegative == false) && (year < 0))
-            {
-              throw new IllegalArgumentException(
-                  "The year is negative, which is not permitted in the pattern.");
-            }
-            if ((field.maxDigits == 2) && (year < 0))
-            {
-              throw new IllegalArgumentException(
-                  "The year is negative and the year output is on 2 digits.");
-            }
-            if ((field.maxDigits == 2) && (year >= 0))
-            {
-              // Special handing for special values with 2 digit years.
-              // See IETF RFC 2822 obsolete date time:
-              // If a two digit year is encountered whose value is between 
-              // 00 and 49, the year is interpreted by adding 2000, 
-              // ending up with a value between 2000 and 2049. 
-              // If a two digit year is encountered with a value between 50 and 99, 
-              // is encountered, the year is interpreted by adding 1900.      
-              if ((year >= 2000) && (year <= 2049))
-              {
-                toAppendTo.append(INTEGER_2DIGIT.sprintf(year - 2000));
-              }
-              else
-              {
-                toAppendTo.append(INTEGER_2DIGIT.sprintf(year - 1900));
-              }
-              break;
-            }
-            fmt = new PrintfFormat("%0" + Integer.toString(field.maxDigits) + "d");
-            toAppendTo.append(fmt.sprintf(year));
-            break;
-          case Calendar.MONTH:
-            if (month == -1)
-            {
-              throw new IllegalArgumentException(
-                  "Calendar month value is not valid, and trying to format it.");
-            }
-            // Numeric value
-            if (field.minDigits <= 2)
-            {
-              fmt = new PrintfFormat("%0" + Integer.toString(field.minDigits) + "d");
-              toAppendTo.append(fmt.sprintf(month));
-            }
-            else
-            // Short form  
-            if (field.minDigits == 3)
-            {
-              dateSymbols = symbols.getShortMonths();
-              toAppendTo.append(dateSymbols[month - 1]);
-              break;
-            }
-            else
-            // Long form  
-            if (field.minDigits > 3)
-            {
-              dateSymbols = symbols.getMonths();
-              toAppendTo.append(dateSymbols[month - 1]);
-              break;
+                  "The year cannot be represented on 2 digits.");
             }
             break;
-          case Calendar.DAY_OF_MONTH:
-            // Numeric value
-            if (day == -1)
-            {
-              throw new IllegalArgumentException(
-                  "Calendar day value is not valid, and trying to format it.");
-            }
-            fmt = new PrintfFormat("%0" + Integer.toString(field.minDigits) + "d");
-            toAppendTo.append(fmt.sprintf(day));
-            break;
-          case Calendar.HOUR_OF_DAY:
-            if (hour == -1)
-            {
-              throw new IllegalArgumentException(
-                  "Calendar hour value is not valid, and trying to format it.");
-            }
-            fmt = new PrintfFormat("%0" + Integer.toString(field.minDigits) + "d");
-            toAppendTo.append(fmt.sprintf(hour));
-            break;
-          case Calendar.MINUTE:
-            if (minute == -1)
-            {
-              throw new IllegalArgumentException(
-                  "Calendar minute value is not valid, and trying to format it.");
-            }
-            fmt = new PrintfFormat("%0" + Integer.toString(field.minDigits) + "d");
-            toAppendTo.append(fmt.sprintf(minute));
-            break;
-          case Calendar.SECOND:
-            // Numeric value
-            if (second == -1)
-            {
-              throw new IllegalArgumentException(
-                  "Calendar second value is not valid, and trying to format it.");
-            }
-            fmt = new PrintfFormat("%0" + Integer.toString(field.minDigits) + "d");
-            toAppendTo.append(fmt.sprintf(second));
-            break;
-          case Calendar.MILLISECOND:
-            float fractional = (float) (millisecond / 1000.0);
-            // Adjust for 1 digit only, no rollever allowed
-            if ((field.minDigits == 1) && (fractional > 0.95d))
-            {
-              fractional = (float) 0.9;
-            }
-            fmt = new PrintfFormat("%." + Integer.toString(field.minDigits) + "f");
-            String output = fmt.sprintf(fractional).substring(2);
-            toAppendTo.append(output);
-            break;
-        }
+          }
+          if (Long.toString(Math.abs(year)).length() > field.maxDigits)
+          {
+            throw new IllegalArgumentException("The year " + year
+                + " cannot be represented on " + field.maxDigits + " digits.");
+          }
+          appendPadded(toAppendTo, year, field.minDigits);
+          break;
+        case Calendar.MONTH:
+          if (month == -1)
+          {
+            throw new IllegalArgumentException(
+                "Calendar month value is not valid, and trying to format it.");
+          }
+          // Numeric value
+          if (field.minDigits <= 2)
+          {
+            appendPadded(toAppendTo, month, field.minDigits);
+          }
+          else
+          {
+            dateSymbols = (field.minDigits == 3) ? symbols.getShortMonths() : symbols
+                .getMonths();
+            toAppendTo.append(dateSymbols[month - 1]);
+          }
+          break;
+        case Calendar.DAY_OF_WEEK:
+          if (dayOfWeek == -1)
+          {
+            throw new IllegalArgumentException(
+                "Calendar day value is not valid, and trying to format the day of week.");
+          }
+          toAppendTo.append(symbols.getShortWeekdays()[dayOfWeek]);
+          break;
+        case Calendar.DAY_OF_MONTH:
+          // Numeric value
+          if (day == -1)
+          {
+            throw new IllegalArgumentException(
+                "Calendar day value is not valid, and trying to format it.");
+          }
+          appendPadded(toAppendTo, day, field.minDigits);
+          break;
+        case Calendar.HOUR_OF_DAY:
+          if (hour == -1)
+          {
+            throw new IllegalArgumentException(
+                "Calendar hour value is not valid, and trying to format it.");
+          }
+          appendPadded(toAppendTo, hour, field.minDigits);
+          break;
+        case Calendar.MINUTE:
+          if (minute == -1)
+          {
+            throw new IllegalArgumentException(
+                "Calendar minute value is not valid, and trying to format it.");
+          }
+          appendPadded(toAppendTo, minute, field.minDigits);
+          break;
+        case Calendar.SECOND:
+          // Numeric value
+          if (second == -1)
+          {
+            throw new IllegalArgumentException(
+                "Calendar second value is not valid, and trying to format it.");
+          }
+          appendPadded(toAppendTo, second, field.minDigits);
+          break;
+        case Calendar.MILLISECOND:
+          if (millisecond == -1)
+          {
+            throw new IllegalArgumentException(
+                "Calendar millisecond value is not valid, and trying to format it.");
+          }
+          // Exact value: three digits without trailing zeros, but at least
+          // the number of digits of the pattern.
+          StringBuffer fraction = new StringBuffer();
+          appendPadded(fraction, millisecond, 3);
+          int length = 3;
+          while ((length > field.minDigits) && (fraction.charAt(length - 1) == '0'))
+          {
+            length--;
+          }
+          fraction.setLength(length);
+          for (int k = length; k < field.minDigits; k++)
+          {
+            fraction.append('0');
+          }
+          toAppendTo.append(fraction.toString());
+          break;
       }
     }
     return toAppendTo;

@@ -243,8 +243,8 @@ public class Parsers
       }
       startPos++;
     }
-    // Optional values, go to max Length or maxDigits
-    int maxLength = Math.min(maxDigits, value.length()-startPos+1);
+    // Optional values, up to maxDigits digits in total or the end of the value
+    int maxLength = minDigits + Math.min(maxDigits - minDigits, value.length() - startPos);
     for (int i=minDigits; i < maxLength; i++)
     {
       c = value.charAt(startPos);
@@ -255,8 +255,15 @@ public class Parsers
       startPos++;
     }
     String strValue = value.subSequence(pos.getIndex(),startPos).toString();
+    try
+    {
+      finalValue = Integer.parseInt(strValue);
+    } catch (NumberFormatException e)
+    {
+      pos.setErrorIndex(pos.getIndex());
+      throw new ParseException("Numeric value is too large.", pos.getIndex());
+    }
     pos.setIndex(startPos);
-    finalValue = Integer.parseInt(strValue);
     return finalValue;
   }
   

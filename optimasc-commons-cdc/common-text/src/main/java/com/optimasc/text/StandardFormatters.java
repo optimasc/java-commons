@@ -81,9 +81,14 @@ public class StandardFormatters
    * </p>
    * 
    * <p>
-   * Restriction: characters are checked one UTF-16 code unit at a time, so
-   * characters outside the Basic Multilingual Plane, which Java represents as
-   * surrogate pairs, are rejected.
+   * Characters outside the Basic Multilingual Plane, which Java represents as
+   * surrogate pairs, are accepted when the pair is well-formed and the
+   * character is neither a private use character nor a non-character.
+   * </p>
+   * 
+   * <p>
+   * {@link TextConverter} is the same converter under the name used by the
+   * specification for the Text type.
    * </p>
    * 
    * The converter is compliant with the following syntaxes, with the
@@ -149,6 +154,27 @@ public class StandardFormatters
       return instance;
     }
     
+  }
+
+  /**
+   * Text type converter. This is the format of the IETF
+   * draft-codere-ldapsyntax <code>Text</code> syntax (OID:
+   * 1.3.6.1.4.1.61799.5.40.12.3); it behaves exactly as
+   * {@link StringConverter}.
+   */
+  public static class TextConverter extends StringConverter
+  {
+    private static final DataConverter instance = new TextConverter();
+
+    public TextConverter()
+    {
+      super();
+    }
+
+    public static DataConverter getInstance()
+    {
+      return instance;
+    }
   }
 
   /**
@@ -1236,190 +1262,95 @@ public class StandardFormatters
   
   
   /**
-   * Type converter to native Java Objects for NCName definition is a strict subset
-   * of the XMLSchema datatype specification. A <code>NCName</code> is represented by a
-   * Java Object of type <code>String</code>.
+   * Base class for the converters of XML names ({@link NCNameConverter},
+   * {@link QualifiedNameConverter}, {@link NameConverter} and
+   * {@link NMTOKENConverter}). A name is represented by a Java Object of type
+   * <code>String</code>.
    * 
    * <p>
-   * Name values must begin with a unicode letter, non-digit number, ideograph, underscore ("_"), and may 
-   * be followed by any number of letters, numbers, ideographs, connector punctuations,  
-   * hyphens ("-"), underscores ("_") and periods (".").
+   * The characters allowed are the <code>NameStartChar</code> and
+   * <code>NameChar</code> productions of the W3C Extensible Markup Language
+   * (XML) 1.1 specification, which are also those of XML 1.0 Fifth Edition and
+   * hence of the W3C XML Schema 1.1 name types. Characters outside the Basic
+   * Multilingual Plane (U+10000 to U+EFFFF) are allowed and are represented as
+   * surrogate pairs.
    * </p>
    * 
-   * When in <code>lenient</code> mode, all invalid characters automatically
-   * removed and empty strings are allowed. 
-   *
-   * The default mode is not lenient.
-   * 
-   * */
-  public static class NCNameConverter extends DataConverter
+   * <p>
+   * When in <code>lenient</code> mode, invalid characters are removed, so that
+   * the result is a valid name, and empty strings are allowed. Otherwise
+   * invalid characters cause an exception.
+   * </p>
+   */
+  public static abstract class XMLNameConverter extends DataConverter
   {
-    private static final DataConverter instance = new NCNameConverter();
-    
-    /**
-     * Verifies if the character is a subset of XML NAME type.
-     * 
-     * @param ch
-     *          [in] The character to verify. Only supports
-     *          characters in the Basic Multilanguage Plane (BMP).
-     * @return true if character is valid, false otherwise.
-     */
-    public static boolean isNameChar(char ch)
+    /** Name without a colon (NCName). */
+    protected static final int KIND_NCNAME = 0;
+    /** Name with an optional prefix separated by a single colon (QName). */
+    protected static final int KIND_QNAME = 1;
+    /** Name in which colons are ordinary name characters (Name). */
+    protected static final int KIND_NAME = 2;
+    /** Sequence of name characters without a start character rule (NMTOKEN). */
+    protected static final int KIND_NMTOKEN = 3;
+
+    /** One of the <code>KIND_xxx</code> constants. */
+    private final int kind;
+
+    protected XMLNameConverter(boolean lenient, int kind)
     {
-      //@formatter:off
-      /* \p{L} or _ */
-      if (isNameStartChar(ch)==true) return true;
-      switch (Character.getType(ch))
-      {
-        /* \p{Nd} */
-        case Character.DECIMAL_DIGIT_NUMBER:
-          /* \p{Pc} */
-        case Character.CONNECTOR_PUNCTUATION:
-          return true;
-        default:
-          break;
-      }
-      if (ch=='-') return true;
-      if (ch=='.') return true;
-      if (ch==0xB7) return true;
-      //@formatter:on
-      return false;
+      super(String.class, lenient);
+      this.kind = kind;
     }
 
     /**
-     * Verifies if the start character is a subset of XML NAME type.
+     * Verifies if the character is an XML 1.1 <code>NameStartChar</code>,
+     * excluding the colon. Only supports characters in the Basic Multilingual
+     * Plane (BMP).
      * 
      * @param ch
-     *          [in] The character to verify. Only supports
-     *          characters in the Basic Multilanguage Plane (BMP).
+     *          [in] The character to verify.
      * @return true if character is valid, false otherwise.
      */
     public static boolean isNameStartChar(char ch)
     {
       //@formatter:off
-      /* \p{L} */
-      if (Character.isLetter(ch)) return true;
-      /* \p{Nl} */
-      if (Character.getType(ch)==Character.LETTER_NUMBER) return true;
+      if ((ch >= 'A') && (ch <= 'Z')) return true;
+      if ((ch >= 'a') && (ch <= 'z')) return true;
       if (ch == '_') return true;
+      if ((ch >= 0xC0) && (ch <= 0xD6)) return true;
+      if ((ch >= 0xD8) && (ch <= 0xF6)) return true;
+      if ((ch >= 0xF8) && (ch <= 0x2FF)) return true;
+      if ((ch >= 0x370) && (ch <= 0x37D)) return true;
+      if ((ch >= 0x37F) && (ch <= 0x1FFF)) return true;
+      if ((ch >= 0x200C) && (ch <= 0x200D)) return true;
+      if ((ch >= 0x2070) && (ch <= 0x218F)) return true;
+      if ((ch >= 0x2C00) && (ch <= 0x2FEF)) return true;
+      if ((ch >= 0x3001) && (ch <= 0xD7FF)) return true;
+      if ((ch >= 0xF900) && (ch <= 0xFDCF)) return true;
+      if ((ch >= 0xFDF0) && (ch <= 0xFFFD)) return true;
       return false;
       //@formatter:on
     }
 
-    public NCNameConverter(boolean lenient)
+    /**
+     * Verifies if the character is an XML 1.1 <code>NameChar</code>,
+     * excluding the colon. Only supports characters in the Basic Multilingual
+     * Plane (BMP).
+     * 
+     * @param ch
+     *          [in] The character to verify.
+     * @return true if character is valid, false otherwise.
+     */
+    public static boolean isNameChar(char ch)
     {
-      super(String.class, lenient);
-    }
-
-    public NCNameConverter()
-    {
-      this(false);
-    }
-
-    public Object parseObject(CharSequence value) throws ParseException
-    {
-      int inLength = value.length();
-      int outOffset;
-      if ((inLength == 0) && (lenient == false))
-      {
-        throw new ParseException("Empty string are not allowed.", 0);
-      }
-      char c;
-      char[] outBuffer = new char[inLength];
-      if (lenient == false)
-      {
-        outOffset = inLength;
-        c = value.charAt(0);
-        if (isNameStartChar(c) == false)
-        {
-          throw new ParseException("Illegal character '" + c + "' found.", 0);
-        }
-        outBuffer[0] = c;
-        for (int i = 1; i < value.length(); i++)
-        {
-          c = value.charAt(i);
-          if (isNameChar(c) == false)
-          {
-            throw new ParseException("Illegal character '" + c + "' found.", i);
-          }
-          outBuffer[i] = c;
-        }
-      }
-      else
-      {
-        // Invalid characters are removed; the first character kept must be
-        // a valid start character, so that the result is a valid name.
-        outOffset = 0;
-        for (int i = 0; i < inLength; i++)
-        {
-          c = value.charAt(i);
-          if (((outOffset == 0) && (isNameStartChar(c) == false)) || (isNameChar(c) == false))
-          {
-            continue;
-          }
-          outBuffer[outOffset++] = c;
-        }
-      }
-      String result = new String(outBuffer, 0, outOffset);
-      outBuffer = null;
-      return result;
-    }
-
-    public Object parseObject(String value) throws ParseException
-    {
-      return parseObject((CharSequence) value);
-    }
-
-    public StringBuffer format(Object value, StringBuffer toAppendTo, FieldPosition pos)
-    {
-      if ((value instanceof CharSequence) == false)
-      {
-        throw new IllegalArgumentException("Object value is not instance of '"
-            + clz.getName() + "'");
-      }
-      return toAppendTo.append(value.toString());
-    }
-    
-    public static DataConverter getInstance()
-    {
-      return instance;
-    }
-    
-  }
-  
-  
-  /**
-   * Type converter to native Java Objects for QualifiedName definition is a strict subset
-   * of the XML Namespaces specification. A <code>QName</code> is represented by a
-   * Java Object of type <code>String</code>.
-   * 
-   * <p>
-   * Name values must begin with a unicode letter, non-digit number, ideograph, underscore ("_"), and may 
-   * be followed by any number of letters, numbers, ideographs, connector punctuations,  
-   * hyphens ("-"), underscores ("_") and periods ("."). It is possible to have a (":") character
-   * that separates the prefix from the local part. When present, both the prefix and the
-   * local part must be valid names as defined in {@link NCNameConverter}.
-   * </p>
-   * 
-   * When in <code>lenient</code> mode, all invalid characters automatically
-   * removed and empty strings are allowed. 
-   *
-   * The default mode is not lenient.
-   * 
-   * */
-  public static class QualifiedNameConverter extends DataConverter
-  {
-    private static final DataConverter instance = new QualifiedNameConverter();
-    
-
-    public QualifiedNameConverter(boolean lenient)
-    {
-      super(String.class, lenient);
-    }
-
-    public QualifiedNameConverter()
-    {
-      this(false);
+      //@formatter:off
+      if (isNameStartChar(ch)) return true;
+      if ((ch == '-') || (ch == '.') || (ch == 0xB7)) return true;
+      if ((ch >= '0') && (ch <= '9')) return true;
+      if ((ch >= 0x300) && (ch <= 0x36F)) return true;
+      if ((ch >= 0x203F) && (ch <= 0x2040)) return true;
+      return false;
+      //@formatter:on
     }
 
     public Object parseObject(CharSequence value) throws ParseException
@@ -1429,28 +1360,47 @@ public class StandardFormatters
       {
         throw new ParseException("Empty string are not allowed.", 0);
       }
-      char c;
-      char[] outBuffer = new char[inLength];
-      int outOffset = 0;
-      // Offset in outBuffer where the current part (prefix or local part) starts.
+      StringBuffer out = new StringBuffer(inLength);
+      // Length of out where the current part (prefix or local part) starts.
       int partStart = 0;
       boolean foundColon = false;
-      for (int i = 0; i < inLength; i++)
+      int i = 0;
+      while (i < inLength)
       {
-        c = value.charAt(i);
+        char c = value.charAt(i);
+        int count = 1;
         boolean valid;
-        if (c == ':')
+        if ((c >= 0xD800) && (c <= 0xDB7F) && (i + 1 < inLength)
+            && (value.charAt(i + 1) >= 0xDC00) && (value.charAt(i + 1) <= 0xDFFF))
         {
-          // Only one colon, and only after a non-empty prefix.
-          valid = (foundColon == false) && (outOffset > partStart);
+          // U+10000 to U+EFFFF: both a start character and a name character.
+          count = 2;
+          valid = true;
         }
-        else if (outOffset == partStart)
+        else if (c == ':')
         {
-          valid = NCNameConverter.isNameStartChar(c);
+          switch (kind)
+          {
+            case KIND_NAME:
+            case KIND_NMTOKEN:
+              valid = true;
+              break;
+            case KIND_QNAME:
+              // Only one colon, and only after a non-empty prefix.
+              valid = (foundColon == false) && (out.length() > partStart);
+              break;
+            default:
+              valid = false;
+              break;
+          }
+        }
+        else if ((kind != KIND_NMTOKEN) && (out.length() == partStart))
+        {
+          valid = isNameStartChar(c);
         }
         else
         {
-          valid = NCNameConverter.isNameChar(c);
+          valid = isNameChar(c);
         }
         if (valid == false)
         {
@@ -1458,27 +1408,30 @@ public class StandardFormatters
           {
             throw new ParseException("Illegal character '" + c + "' found.", i);
           }
+          i++;
           continue;
         }
-        outBuffer[outOffset++] = c;
-        if (c == ':')
+        for (int j = 0; j < count; j++)
+        {
+          out.append(value.charAt(i + j));
+        }
+        if ((c == ':') && (kind == KIND_QNAME))
         {
           foundColon = true;
-          partStart = outOffset;
+          partStart = out.length();
         }
+        i += count;
       }
-      // The local part must not be empty.
-      if (foundColon && (outOffset == partStart))
+      // The local part of a QName must not be empty.
+      if (foundColon && (out.length() == partStart))
       {
         if (lenient == false)
         {
           throw new ParseException("Missing local part after ':'.", inLength);
         }
-        outOffset--;
+        out.setLength(out.length() - 1);
       }
-      String result = new String(outBuffer, 0, outOffset);
-      outBuffer = null;
-      return result;
+      return out.toString();
     }
 
     public Object parseObject(String value) throws ParseException
@@ -1495,15 +1448,162 @@ public class StandardFormatters
       }
       return toAppendTo.append(value.toString());
     }
-    
+  }
+
+
+  /**
+   * Type converter to native Java Objects for an XML non-colonized name
+   * (<code>NCName</code>). See {@link XMLNameConverter} for the characters
+   * allowed.
+   * 
+   * <p>
+   * Name values must begin with a <code>NameStartChar</code> and may be
+   * followed by any number of <code>NameChar</code>; colons are not allowed.
+   * </p>
+   * 
+   * The default mode is not lenient.
+   * 
+   * This is equivalent to the following syntaxes:
+   * <ul>
+   * <li>IETF draft-codere-ldapsyntax <code>NCName</code> syntax (OID: 1.3.6.1.4.1.61799.5.40.12.6)</li>
+   * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>NCName</code>, canonical representation</li>
+   * </ul>
+   * */
+  public static class NCNameConverter extends XMLNameConverter
+  {
+    private static final DataConverter instance = new NCNameConverter();
+
+    public NCNameConverter(boolean lenient)
+    {
+      super(lenient, KIND_NCNAME);
+    }
+
+    public NCNameConverter()
+    {
+      this(false);
+    }
+
     public static DataConverter getInstance()
     {
       return instance;
     }
-    
   }
   
   
+  /**
+   * Type converter to native Java Objects for an XML qualified name of the
+   * form <code>prefix:local-part</code> or <code>local-part</code>, where both
+   * parts are names as defined in {@link NCNameConverter}.
+   * 
+   * The default mode is not lenient.
+   * 
+   * This is equivalent to the following syntaxes:
+   * <ul>
+   * <li>IETF draft-codere-ldapsyntax <code>QualifiedName</code> syntax (OID: 1.3.6.1.4.1.61799.5.40.12.7)</li>
+   * <li>W3C Namespaces in XML 1.1 <code>QName</code></li>
+   * </ul>
+   * */
+  public static class QualifiedNameConverter extends XMLNameConverter
+  {
+    private static final DataConverter instance = new QualifiedNameConverter();
+
+    public QualifiedNameConverter(boolean lenient)
+    {
+      super(lenient, KIND_QNAME);
+    }
+
+    public QualifiedNameConverter()
+    {
+      this(false);
+    }
+
+    public static DataConverter getInstance()
+    {
+      return instance;
+    }
+  }
+
+
+  /**
+   * Type converter to native Java Objects for an XML name (<code>Name</code>):
+   * a <code>NameStartChar</code> or colon followed by any number of
+   * <code>NameChar</code> or colons. See {@link XMLNameConverter} for the
+   * characters allowed.
+   * 
+   * <p>
+   * In XML Schema the whitespace of a <code>Name</code> is collapsed before
+   * validation. This converter only accepts the canonical representation, so
+   * leading and trailing whitespace is rejected, or removed in
+   * <code>lenient</code> mode.
+   * </p>
+   * 
+   * The default mode is not lenient.
+   * 
+   * This is equivalent to the following syntaxes:
+   * <ul>
+   * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>Name</code>, canonical representation</li>
+   * </ul>
+   * */
+  public static class NameConverter extends XMLNameConverter
+  {
+    private static final DataConverter instance = new NameConverter();
+
+    public NameConverter(boolean lenient)
+    {
+      super(lenient, KIND_NAME);
+    }
+
+    public NameConverter()
+    {
+      this(false);
+    }
+
+    public static DataConverter getInstance()
+    {
+      return instance;
+    }
+  }
+
+
+  /**
+   * Type converter to native Java Objects for an XML name token
+   * (<code>NMTOKEN</code>): one or more <code>NameChar</code> or colons, with
+   * no rule on the first character. See {@link XMLNameConverter} for the
+   * characters allowed.
+   * 
+   * <p>
+   * In XML Schema the whitespace of a <code>NMTOKEN</code> is collapsed before
+   * validation. This converter only accepts the canonical representation, so
+   * leading and trailing whitespace is rejected, or removed in
+   * <code>lenient</code> mode.
+   * </p>
+   * 
+   * The default mode is not lenient.
+   * 
+   * This is equivalent to the following syntaxes:
+   * <ul>
+   * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>NMTOKEN</code>, canonical representation</li>
+   * </ul>
+   * */
+  public static class NMTOKENConverter extends XMLNameConverter
+  {
+    private static final DataConverter instance = new NMTOKENConverter();
+
+    public NMTOKENConverter(boolean lenient)
+    {
+      super(lenient, KIND_NMTOKEN);
+    }
+
+    public NMTOKENConverter()
+    {
+      this(false);
+    }
+
+    public static DataConverter getInstance()
+    {
+      return instance;
+    }
+  }
   
   
   /**
