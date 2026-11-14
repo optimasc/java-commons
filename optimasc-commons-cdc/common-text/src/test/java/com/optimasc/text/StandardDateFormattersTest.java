@@ -139,18 +139,27 @@ public class StandardDateFormattersTest extends TestCase
     roundTrip(converter, "1975-01-19T19:20Z");
     roundTrip(converter, "1975-01-19T19:20:30+01:00");
     roundTrip(converter, "1975-01-19T19:20:30.451Z");
-    roundTrip(converter, "1975-01-19T19:20:30.45+01:00");
-    roundTrip(converter, "1975-01-19T19:20:30.5Z");
-    // The fraction has 1 to 3 digits.
-    assertEquals("1975-01-19T19:20:30.45Z",
-        converter.format(converter.parseObject("1975-01-19T19:20:30.450Z")));
+    roundTrip(converter, "1975-01-19T19:20:30.450+01:00");
+    roundTrip(converter, "1975-01-19T19:20:30.005Z");
+    // Lenient (default): 1 to 3 digits, always formatted with 3 digits.
+    assertEquals("1975-01-19T19:20:30.450Z",
+        converter.format(converter.parseObject("1975-01-19T19:20:30.45Z")));
+    assertEquals("1975-01-19T19:20:30.500Z",
+        converter.format(converter.parseObject("1975-01-19T19:20:30.5Z")));
     assertParseFails(converter, "1975-01-19T19:20:30.4567Z");
     assertParseFails(converter, "1975-01-19T19:20:30.Z");
+    // Strict: exactly 3 digits (Time=HMSF3).
+    DataConverter strict = new StandardDateFormatters.OpenDateConverter();
+    strict.setLenient(false);
+    roundTrip(strict, "1975-01-19T19:20:30.451Z");
+    assertParseFails(strict, "1975-01-19T19:20:30.45Z");
+    assertParseFails(strict, "1975-01-19T19:20:30.5Z");
+    assertParseFails(strict, "1975-01-19T19:20:30.4567Z");
     // A leap second and the end of day are allowed (ASN.1 TIME).
     GregorianDatetimeCalendar leap = (GregorianDatetimeCalendar) roundTrip(converter,
         "2016-12-31T23:59:60Z");
     assertTrue(leap.isLeapSecond());
-    roundTrip(converter, "2016-12-31T23:59:60.5+01:00");
+    roundTrip(converter, "2016-12-31T23:59:60.500+01:00");
     GregorianDatetimeCalendar end = (GregorianDatetimeCalendar) roundTrip(converter,
         "1975-01-19T24:00:00Z");
     assertTrue(end.isEndOfDay());

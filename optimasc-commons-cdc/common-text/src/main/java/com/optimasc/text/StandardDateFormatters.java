@@ -344,7 +344,10 @@ public class StandardDateFormatters
    * Converter for the IETF draft-codere-ldapsyntax <code>OpenDate</code>
    * syntax (OID: 1.3.6.1.4.1.61799.5.40.14.1): the W3C NOTE-datetime formats
    * (see {@link W3CDateTimeConverter}) with a year from 1582 to 9999 and,
-   * when present, a fraction of second of 1 to 3 digits. As in the ASN.1
+   * when present, a fraction of second of exactly 3 digits (ASN.1
+   * <code>Time=HMSF3</code>). In <code>lenient</code> mode, which is the
+   * default, a fraction of 1 or 2 digits is also accepted. A fraction is
+   * always formatted with 3 digits, and is omitted when it is zero. As in the ASN.1
    * TIME type, and unlike the W3C NOTE-datetime, the hour is from 00 to 24,
    * where <code>24:00</code> and <code>24:00:00</code> represent the end of the
    * day, and the second from 00 to 60, where 60 represents a leap second. An
@@ -361,12 +364,13 @@ public class StandardDateFormatters
       super();
       applyPatterns(new String[] {
           "yyyy",
-          "yyyy-MM-dd'T'HH:mm:ss.SX",
+          "yyyy-MM-dd'T'HH:mm:ss.SSSX",
           "yyyy-MM-dd'T'HH:mm:ssX",
           "yyyy-MM-dd'T'HH:mmX",
           "yyyy-MM-dd",
           "yyyy-MM"});
       maxFractionDigits = 3;
+      lenientFractionDigits = true;
       minYear = LDAP_MIN_YEAR;
       maxYear = LDAP_MAX_YEAR;
     }

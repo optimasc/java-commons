@@ -283,6 +283,12 @@ public class DateConverter extends DataConverter
    */
   protected int maxFractionDigits = Integer.MAX_VALUE;
 
+  /**
+   * When <code>true</code> and the converter is lenient, a fraction of second
+   * may have fewer digits than the pattern requires (at least one).
+   */
+  protected boolean lenientFractionDigits = false;
+
   /** Lowest astronomical year accepted when parsing. */
   protected int minYear = Integer.MIN_VALUE;
   /** Highest astronomical year accepted when parsing. */
@@ -993,10 +999,11 @@ public class DateConverter extends DataConverter
             throw new ParseException("Fraction of second must contain at most "
                 + maxFractionDigits + " digits.", start + maxFractionDigits);
           }
-          if (currentIndex - start < field.minDigits)
+          int minFractionDigits = (lenient && lenientFractionDigits) ? 1 : field.minDigits;
+          if (currentIndex - start < minFractionDigits)
           {
             throw new ParseException("Fraction of second must contain at least "
-                + field.minDigits + " digits.", currentIndex);
+                + minFractionDigits + " digits.", currentIndex);
           }
           break;
       }
