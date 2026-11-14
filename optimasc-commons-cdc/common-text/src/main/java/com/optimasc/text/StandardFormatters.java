@@ -62,28 +62,22 @@ public class StandardFormatters
   }
   
   /**
-   * Text type converter. 
-   * 
-   * The parsing does the following operations:
-   * 
-   * <ul>
-   *    <li>Verifies that string does not contains surrogate characters (General category "Cs")</li>
-   *    <li>Verifies that string does not contain private use characters (General category "Co")</li>
-   *    <li>Verifies that string does not contain non-characters (PropList "# Cn" category)</li>
-   *    <li>Verifies that string does not contain control characters (General category "Cc")
-   *      other than CHARACTER TABULATION (U+0009), LINE FEED (U+000A) and CARRIAGE RETURN (U+000D)</li>
-   *    <li>Convert all other characters to Unicode normalization form C (NFC)</li>   
-   * </ul>
+   * Text type converter, as defined by the IETF draft-codere-ldapsyntax
+   * <code>Text</code> syntax (section 2.3.7).
    * 
    * <p>
-   * When <code>lenient</code> is <code>true</code>, which is the default, prohibited
-   * control and format characters are removed instead of being rejected.
+   * A value must not contain control characters (General_Category Cc) other
+   * than CHARACTER TABULATION (U+0009), LINE FEED (U+000A) and CARRIAGE RETURN
+   * (U+000D), surrogates (Cs), private use characters (Co) or non-characters.
+   * All other characters, including format characters (Cf) and the empty
+   * string, are allowed. Characters outside the Basic Multilingual Plane are
+   * represented as surrogate pairs. The value is converted to Unicode
+   * normalization form C (NFC).
    * </p>
    * 
    * <p>
-   * Characters outside the Basic Multilingual Plane, which Java represents as
-   * surrogate pairs, are accepted when the pair is well-formed and the
-   * character is neither a private use character nor a non-character.
+   * When <code>lenient</code> is <code>true</code>, which is the default,
+   * prohibited control characters are removed instead of being rejected.
    * </p>
    * 
    * <p>
@@ -91,8 +85,7 @@ public class StandardFormatters
    * specification for the Text type.
    * </p>
    * 
-   * The converter is compliant with the following syntaxes, with the
-   * restriction above:
+   * The converter is compliant with the following syntaxes:
    * <ul>
    * <li>IETF draft-codere-ldapsyntax <code>Text</code> syntax (OID: 1.3.6.1.4.1.61799.5.40.12.3)</li>
    * </ul>
@@ -114,24 +107,7 @@ public class StandardFormatters
 
     public Object parseObject(CharSequence value) throws ParseException
     {
-      int inLength = value.length();
-
-      if ((inLength == 0) && (lenient == false))
-      {
-        throw new ParseException("Empty string are not allowed.", 0);
-      }
-      
-      String resultString = null; 
-      if (lenient == true)
-      {
-       resultString = StringNormalizer.mapAndVerifyString(value, false);
-      } else
-      {
-        StringNormalizer.verifyProhibitedString(value);
-        resultString = value.toString();
-      }
-      resultString = StringNormalizer.toNFC(resultString);
-      return resultString;
+      return StringNormalizer.toNFC(StringNormalizer.mapText(value, lenient));
     }
 
     public Object parseObject(String value) throws ParseException
@@ -178,23 +154,24 @@ public class StandardFormatters
   }
 
   /**
-   * Normalized String type converter. 
+   * Normalized String type converter, as defined by the IETF
+   * draft-codere-ldapsyntax <code>Normalized String</code> syntax (OID:
+   * 1.3.6.1.4.1.61799.5.40.12.4, section 2.3.8).
    * 
-   * The parsing does the following operations:
+   * <p>
+   * CHARACTER TABULATION (U+0009), LINE FEED (U+000A), CARRIAGE RETURN
+   * (U+000D) and the separators of General_Category Zs (other than SPACE), Zl
+   * and Zp are mapped to SPACE (U+0020); the result must then satisfy the
+   * restrictions of {@link StringConverter Text}. The value is converted to
+   * Unicode normalization form C (NFC).
+   * </p>
    * 
-   * <ul>
-   *    <li>Verifies that string does not contains surrogate characters (General category "Cs")</li>
-   *    <li>Verifies that string does not contain private use characters (General category "Co")</li>
-   *    <li>Verifies that string does not contain non-characters (PropList "# Cn" category)</li>
-   *    <li>Verifies that string does not contain bidirectional markers or deprecated charters</li>
-   *    <li>Removes all control characters </li>
-   *    <li>All other control code (e.g., Cc) points or code points with a control function (e.g., Cf) are ignored and removed.</li>
-   *    <li>ZERO WIDTH SPACE (U+200B) is ignored and removed.</li>
-   *    <li>All other code points with Separator (space, line, or paragraph) property (e.g., Zs, Zl, or Zp) are converted to SPACE (U+0020)</li>
-   *      <li>CHARACTER TABULATION (U+0009), LINE FEED (LF) (U+000A), LINE TABULATION (U+000B), FORM FEED (FF) (U+000C), CARRIAGE RETURN (CR) (U+000D), and NEXT
-   *       LINE (NEL) (U+0085) are converted to SPACE (U+0020).</li>
-   *    <li>Convert all other characters to Unicode normalization form C (NFC)</li>   
-   * </ul>
+   * <p>
+   * When <code>lenient</code> is <code>false</code>, only the canonical form,
+   * in which SPACE is the only whitespace character, is accepted. When
+   * <code>lenient</code> is <code>true</code>, which is the default, whitespace
+   * is mapped to SPACE and prohibited control characters are removed.
+   * </p>
    * 
    * The converter is stricter but similar to the the following syntaxes:
    * <ul>
@@ -223,42 +200,24 @@ public class StandardFormatters
 
     public Object parseObject(CharSequence value) throws ParseException
     {
-      int inLength = value.length();
-      if ((inLength == 0) && (lenient == false))
-      {
-        throw new ParseException("Empty string are not allowed.", 0);
-      }
-
-      if (lenient == false)
-      {
-        StringNormalizer.verifyProhibitedNormalizedString(value);
-      }
-      String resultString = StringNormalizer.mapAndVerifyNormalizedString(value,false);
-      resultString = StringNormalizer.toNFC(resultString);
-      return resultString;
+      return StringNormalizer.toNFC(StringNormalizer.mapNormalizedString(value, lenient));
     }
   }
 
   /**
-   * Token String type converter. 
+   * Token type converter, as defined by the IETF draft-codere-ldapsyntax
+   * <code>Token</code> syntax (OID: 1.3.6.1.4.1.61799.5.40.12.5, section
+   * 2.3.9): a {@link NormalizedStringConverter Normalized String} without
+   * leading, trailing or consecutive SPACE characters. The empty string is
+   * allowed.
    * 
-   * The parsing does the following operations:
-   * 
-   * <ul>
-   *    <li>Verifies that string does not contains surrogate characters (General category "Cs")</li>
-   *    <li>Verifies that string does not contain private use characters (General category "Co")</li>
-   *    <li>Verifies that string does not contain non-characters (PropList "# Cn" category)</li>
-   *    <li>Verifies that string does not contain bidirectional markers or deprecated charters</li>
-   *    <li>Removes all control characters </li>
-   *    <li>All other control code (e.g., Cc) points or code points with a control function (e.g., Cf) are ignored and removed.</li>
-   *    <li>ZERO WIDTH SPACE (U+200B) is ignored and removed.</li>
-   *    <li>All other code points with Separator (space, line, or paragraph) property (e.g., Zs, Zl, or Zp) are converted to SPACE (U+0020)</li>
-   *      <li>CHARACTER TABULATION (U+0009), LINE FEED (LF) (U+000A), LINE TABULATION (U+000B), FORM FEED (FF) (U+000C), CARRIAGE RETURN (CR) (U+000D), and NEXT
-   *       LINE (NEL) (U+0085) are converted to SPACE (U+0020).</li>
-   *    <li>Convert all other characters to Unicode normalization form C (NFC)</li>   
-   *    <li>Removes all contiguous SPACE characters</li>   
-   *    <li>Removes all leading and trailing SPACE characters</li>   
-   * </ul>
+   * <p>
+   * When <code>lenient</code> is <code>false</code>, only the canonical form
+   * is accepted. When <code>lenient</code> is <code>true</code>, which is the
+   * default, whitespace is mapped to SPACE, prohibited control characters are
+   * removed, leading and trailing spaces are removed and consecutive spaces
+   * are collapsed.
+   * </p>
    * 
    * The converter is stricter but similar to the the following syntaxes:
    * <ul>
@@ -283,19 +242,47 @@ public class StandardFormatters
     public Object parseObject(CharSequence value) throws ParseException
     {
       int inLength = value.length();
-
-      if ((inLength == 0) && (lenient == false))
-      {
-        throw new ParseException("Empty string are not allowed.", 0);
-      }
-      
       if (lenient == false)
       {
-        StringNormalizer.verifyProhibitedToken(value);
+        // Canonical form: no leading, trailing or consecutive SPACE.
+        if ((inLength > 0) && (value.charAt(0) == ' '))
+        {
+          throw new ParseException("Leading space is not allowed.", 0);
+        }
+        if ((inLength > 0) && (value.charAt(inLength - 1) == ' '))
+        {
+          throw new ParseException("Trailing space is not allowed.", inLength - 1);
+        }
+        for (int i = 0; i + 1 < inLength; i++)
+        {
+          if ((value.charAt(i) == ' ') && (value.charAt(i + 1) == ' '))
+          {
+            throw new ParseException("Consecutive spaces are not allowed.", i);
+          }
+        }
       }
-      String resultString = StringNormalizer.mapAndVerifyNormalizedString(value,false);
-      resultString = StringNormalizer.toNFC(resultString);
-      return StringNormalizer.collapseWhitespace(resultString.trim());
+      String mapped = StringNormalizer.toNFC(StringNormalizer.mapNormalizedString(value,
+          lenient));
+      if (lenient == false)
+      {
+        return mapped;
+      }
+      // Remove leading and trailing spaces, and collapse consecutive spaces.
+      StringBuffer out = new StringBuffer(mapped.length());
+      for (int i = 0; i < mapped.length(); i++)
+      {
+        char c = mapped.charAt(i);
+        if ((c == ' ') && ((out.length() == 0) || (out.charAt(out.length() - 1) == ' ')))
+        {
+          continue;
+        }
+        out.append(c);
+      }
+      if ((out.length() > 0) && (out.charAt(out.length() - 1) == ' '))
+      {
+        out.setLength(out.length() - 1);
+      }
+      return out.toString();
     }
     
     
@@ -640,38 +627,31 @@ public class StandardFormatters
    * <code>Locale</code>.
    *
    * <p>
-   * It supports a subset of the language tag format defined in IETF RFC 5646.
-   * The differences are specified below:
-   * </p>
-   *
-   * <ul>
-   * <li>Language codes are based on the 2 lower-case character language code
-   * as defined by ISO 639-1. Three-letter ISO 639-2/639-3 codes are not
-   * supported.</li>
-   * <li>The country code is based on the 2 upper-case character code
-   * identifying countries under ISO 3166-1. Numeric UN M.49 region codes are
-   * not supported.</li>
-   * <li>Script subtags, extension subtags, extended language subtags and
-   * private use tags (<code>x-</code>) are not supported, because
-   * <code>java.util.Locale</code> cannot represent them on this platform.</li>
-   * </ul>
-   *
-   * <p>
-   * Hence the syntax is as follows:
+   * It supports the subset of the language tags of IETF RFC 5646 that
+   * <code>java.util.Locale</code> can represent without loss on all supported
+   * platforms:
    * </p>
    *
    * <pre>
    *     langtag  = language
    *                 ["-" region]
    *
-   *     language = 2ALPHA   ; shortest ISO 639 code
-   *     region   = 2ALPHA   ; ISO 3166-1 code
+   *     language = 2*3ALPHA          ; ISO 639 code
+   *     region   = 2ALPHA            ; ISO 3166-1 code
+   *              / 3DIGIT            ; UN M.49 code
    * </pre>
    *
    * <p>
-   * In <code>lenient</code> mode, the case is automatically converted to the
-   * correct expected case, and does not raise an error if not correctly set
-   * initially.
+   * Script subtags, extended language subtags, variants, extensions, private
+   * use tags (<code>x-</code>), grandfathered tags and languages of 4 to 8
+   * letters are rejected, as required by the specification for values that
+   * cannot be represented without loss.
+   * </p>
+   *
+   * <p>
+   * In <code>lenient</code> mode, which is the default, the case is
+   * automatically converted to the canonical case (lower case language, upper
+   * case region). Otherwise only the canonical case is accepted.
    * </p>
    *
    * <p>
@@ -685,31 +665,22 @@ public class StandardFormatters
    * original tag. A value parsed from a deprecated code is therefore formatted
    * using the current code.
    * </p>
-   * 
-   * <p>
-   * Three-letter ISO 639-2 and ISO 639-3 codes such as <code>haw</code> are
-   * rejected, although <code>Locale</code> can represent them. This is
-   * stricter than the Language syntax.
-   * </p>
    *
    * <p>
    * A <code>Locale</code> that cannot be represented as a tag of the subset
    * above is rejected by {@link #format} rather than being written with the
    * unrepresentable information silently removed.
    * </p>
+   *
+   * This is compliant, with the restrictions above, with the following syntaxes:
+   * <ul>
+   * <li>IETF draft-codere-ldapsyntax <code>Language</code> syntax (OID: 1.3.6.1.4.1.61799.5.40.19.1)</li>
+   * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>language</code></li>
+   * </ul>
    **/
   public static class LocaleTypeConverter extends DataConverter
   {
     public static final char TAG_SEPARATOR = '-';
-
-    /** Length in characters of a language tag without a region. */
-    private static final int LANGUAGE_LENGTH = 2;
-
-    /** Length in characters of a language tag with a region. */
-    private static final int TAG_LENGTH = 5;
-
-    /** Offset of the region subtag within a tag of {@link #TAG_LENGTH}. */
-    private static final int REGION_OFFSET = 3;
 
     /**
      * Language codes rewritten by the <code>Locale</code> constructor, and the
@@ -748,86 +719,124 @@ public class StandardFormatters
       return language;
     }
 
+    private static boolean isAsciiLetter(char c)
+    {
+      return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z'));
+    }
+
+    private static boolean isDigit(char c)
+    {
+      return (c >= '0') && (c <= '9');
+    }
+
+    /** Returns true if the value is a valid language subtag in canonical case. */
+    private static boolean isLanguage(String language)
+    {
+      if ((language.length() < 2) || (language.length() > 3))
+      {
+        return false;
+      }
+      for (int i = 0; i < language.length(); i++)
+      {
+        char c = language.charAt(i);
+        if ((c < 'a') || (c > 'z'))
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    /** Returns true if the value is a valid region subtag in canonical case. */
+    private static boolean isRegion(String region)
+    {
+      if (region.length() == 2)
+      {
+        return (region.charAt(0) >= 'A') && (region.charAt(0) <= 'Z')
+            && (region.charAt(1) >= 'A') && (region.charAt(1) <= 'Z');
+      }
+      return (region.length() == 3) && isDigit(region.charAt(0))
+          && isDigit(region.charAt(1)) && isDigit(region.charAt(2));
+    }
+
     public Object parseObject(CharSequence value) throws ParseException
     {
       int length = value.length();
-      char c1;
-      char c2;
-
-      // The error offset is the position where the input stops being a
-      // valid tag.
-      if (length < LANGUAGE_LENGTH)
+      int i = 0;
+      // Language: 2 or 3 letters.
+      StringBuffer language = new StringBuffer(3);
+      while ((i < length) && isAsciiLetter(value.charAt(i)))
       {
-        int offset = ((length == 1) && (Character.isLetter(value.charAt(0)))) ? 1 : 0;
-        throw new ParseException("Language tag must be " + LANGUAGE_LENGTH + " or "
-            + TAG_LENGTH + " characters in length.", offset);
+        char c = value.charAt(i);
+        if (lenient)
+        {
+          c = Character.toLowerCase(c);
+        }
+        else if ((c < 'a') || (c > 'z'))
+        {
+          throw new ParseException("Language code character is not lower-case ascii letter", i);
+        }
+        language.append(c);
+        i++;
       }
-
-      // Lenient: we convert the characters ourselves to lower case.
-      if (lenient)
+      if (language.length() < 2)
       {
-        c1 = Character.toLowerCase(value.charAt(0));
-        c2 = Character.toLowerCase(value.charAt(1));
+        throw new ParseException("Language code must have 2 or 3 letters.", i);
       }
-      else
+      if (language.length() > 3)
       {
-        c1 = value.charAt(0);
-        c2 = value.charAt(1);
+        throw new ParseException("Language codes of more than 3 letters are not supported.", 3);
       }
-
-      if ((c1 < 'a') || (c1 > 'z'))
+      if (i == length)
       {
-        throw new ParseException(
-            "Language code character is not lower-case ascii letter", 0);
+        return new Locale(language.toString());
       }
-      if ((c2 < 'a') || (c2 > 'z'))
+      if (value.charAt(i) != TAG_SEPARATOR)
       {
-        throw new ParseException(
-            "Language code character is not lower-case ascii letter", 1);
+        throw new ParseException("Expected tag separator '" + TAG_SEPARATOR + "'", i);
       }
-
-      String language = new String(new char[] { c1, c2 });
-
-      if (length == LANGUAGE_LENGTH)
+      i++;
+      // Region: 2 letters or 3 digits.
+      int regionStart = i;
+      StringBuffer region = new StringBuffer(3);
+      if ((i < length) && isDigit(value.charAt(i)))
       {
-        return new Locale(language);
-      }
-
-      if (value.charAt(LANGUAGE_LENGTH) != TAG_SEPARATOR)
-      {
-        throw new ParseException("Expected tag separator '" + TAG_SEPARATOR + "'",
-            LANGUAGE_LENGTH);
-      }
-      if (length != TAG_LENGTH)
-      {
-        throw new ParseException("Language tag must be " + LANGUAGE_LENGTH + " or "
-            + TAG_LENGTH + " characters in length.", Math.min(length, TAG_LENGTH));
-      }
-
-      // Lenient: we convert the characters ourselves to upper case.
-      if (lenient)
-      {
-        c1 = Character.toUpperCase(value.charAt(REGION_OFFSET));
-        c2 = Character.toUpperCase(value.charAt(REGION_OFFSET + 1));
+        while ((i < length) && (i - regionStart < 3) && isDigit(value.charAt(i)))
+        {
+          region.append(value.charAt(i));
+          i++;
+        }
+        if (region.length() != 3)
+        {
+          throw new ParseException("Numeric region code must have 3 digits.", i);
+        }
       }
       else
       {
-        c1 = value.charAt(REGION_OFFSET);
-        c2 = value.charAt(REGION_OFFSET + 1);
+        while ((i < length) && (i - regionStart < 2) && isAsciiLetter(value.charAt(i)))
+        {
+          char c = value.charAt(i);
+          if (lenient)
+          {
+            c = Character.toUpperCase(c);
+          }
+          else if ((c < 'A') || (c > 'Z'))
+          {
+            throw new ParseException("Region code character is not upper-case ascii letter", i);
+          }
+          region.append(c);
+          i++;
+        }
+        if (region.length() != 2)
+        {
+          throw new ParseException("Region code must have 2 letters or 3 digits.", i);
+        }
       }
-
-      if ((c1 < 'A') || (c1 > 'Z'))
+      if (i != length)
       {
-        throw new ParseException("Region code character is not upper-case ascii letter",
-            REGION_OFFSET);
+        throw new ParseException("Only a language and a region are supported.", i);
       }
-      if ((c2 < 'A') || (c2 > 'Z'))
-      {
-        throw new ParseException("Region code character is not upper-case ascii letter",
-            REGION_OFFSET + 1);
-      }
-
-      return new Locale(language, new String(new char[] { c1, c2 }));
+      return new Locale(language.toString(), region.toString());
     }
 
     public StringBuffer format(Object value, StringBuffer toAppendTo, FieldPosition pos)
@@ -842,26 +851,26 @@ public class StandardFormatters
       String region = locale.getCountry();
       String variant = locale.getVariant();
 
-      if (language.length() != LANGUAGE_LENGTH)
+      if (isLanguage(language) == false)
       {
         throw new IllegalArgumentException("Locale language '" + language
-            + "' is not a 2 character ISO 639-1 code and cannot be represented");
+            + "' is not a 2 or 3 letter ISO 639 code and cannot be represented");
       }
       if (variant.length() != 0)
       {
         throw new IllegalArgumentException("Locale variant '" + variant
             + "' cannot be represented as a language tag");
       }
+      toAppendTo.append(language);
       if (region.length() == 0)
       {
-        return toAppendTo.append(language);
+        return toAppendTo;
       }
-      if (region.length() != LANGUAGE_LENGTH)
+      if (isRegion(region) == false)
       {
         throw new IllegalArgumentException("Locale region '" + region
-            + "' is not a 2 character ISO 3166-1 code and cannot be represented");
+            + "' is not an ISO 3166-1 or UN M.49 code and cannot be represented");
       }
-      toAppendTo.append(language);
       toAppendTo.append(TAG_SEPARATOR);
       toAppendTo.append(region);
       return toAppendTo;
@@ -1262,10 +1271,11 @@ public class StandardFormatters
   
   
   /**
-   * Base class for the converters of XML names ({@link NCNameConverter},
-   * {@link QualifiedNameConverter}, {@link NameConverter} and
-   * {@link NMTOKENConverter}). A name is represented by a Java Object of type
-   * <code>String</code>.
+   * Base class for the converters of XML names ({@link XSDNCNameConverter},
+   * {@link NameConverter}, {@link NMTOKENConverter}, and, with the narrower
+   * character classes of the LDAP syntaxes, {@link NCNameConverter} and
+   * {@link QualifiedNameConverter}). A name is represented by a Java Object of
+   * type <code>String</code>.
    * 
    * <p>
    * The characters allowed are the <code>NameStartChar</code> and
@@ -1353,6 +1363,36 @@ public class StandardFormatters
       //@formatter:on
     }
 
+    /**
+     * Returns <code>true</code> if the character may start a name or the local
+     * part of a qualified name. The default implementation uses
+     * {@link #isNameStartChar(char)}.
+     */
+    protected boolean isStartCharacter(char ch)
+    {
+      return isNameStartChar(ch);
+    }
+
+    /**
+     * Returns <code>true</code> if the character may appear in a name after
+     * its first character, the colon excepted. The default implementation
+     * uses {@link #isNameChar(char)}.
+     */
+    protected boolean isNameCharacter(char ch)
+    {
+      return isNameChar(ch);
+    }
+
+    /**
+     * Returns <code>true</code> if characters U+10000 to U+EFFFF, encoded as
+     * surrogate pairs, are allowed. The default implementation returns
+     * <code>true</code>.
+     */
+    protected boolean allowSupplementary()
+    {
+      return true;
+    }
+
     public Object parseObject(CharSequence value) throws ParseException
     {
       int inLength = value.length();
@@ -1370,7 +1410,7 @@ public class StandardFormatters
         char c = value.charAt(i);
         int count = 1;
         boolean valid;
-        if ((c >= 0xD800) && (c <= 0xDB7F) && (i + 1 < inLength)
+        if (allowSupplementary() && (c >= 0xD800) && (c <= 0xDB7F) && (i + 1 < inLength)
             && (value.charAt(i + 1) >= 0xDC00) && (value.charAt(i + 1) <= 0xDFFF))
         {
           // U+10000 to U+EFFFF: both a start character and a name character.
@@ -1396,11 +1436,11 @@ public class StandardFormatters
         }
         else if ((kind != KIND_NMTOKEN) && (out.length() == partStart))
         {
-          valid = isNameStartChar(c);
+          valid = isStartCharacter(c);
         }
         else
         {
-          valid = isNameChar(c);
+          valid = isNameCharacter(c);
         }
         if (valid == false)
         {
@@ -1452,22 +1492,26 @@ public class StandardFormatters
 
 
   /**
-   * Type converter to native Java Objects for an XML non-colonized name
-   * (<code>NCName</code>). See {@link XMLNameConverter} for the characters
-   * allowed.
+   * Type converter to native Java Objects for the IETF draft-codere-ldapsyntax
+   * <code>NCName</code> syntax (OID: 1.3.6.1.4.1.61799.5.40.12.6), a subset of
+   * the XML non-colonized name. A value conforms to the regular expression
+   * <code>[\p{L}\p{Nl}_][\p{L}\p{Nl}\p{Nd}._-]*</code>.
    * 
    * <p>
-   * Name values must begin with a <code>NameStartChar</code> and may be
-   * followed by any number of <code>NameChar</code>; colons are not allowed.
+   * Restriction: characters outside the Basic Multilingual Plane are rejected,
+   * as their General_Category is not available on all supported platforms.
    * </p>
    * 
-   * The default mode is not lenient.
+   * <p>
+   * When in <code>lenient</code> mode, invalid characters are removed, so that
+   * the result is a valid name, and empty strings are allowed. The default
+   * mode is not lenient.
+   * </p>
    * 
-   * This is equivalent to the following syntaxes:
-   * <ul>
-   * <li>IETF draft-codere-ldapsyntax <code>NCName</code> syntax (OID: 1.3.6.1.4.1.61799.5.40.12.6)</li>
-   * <li>W3C XML Schema Definition Language (XSD) 1.1 <code>NCName</code>, canonical representation</li>
-   * </ul>
+   * <p>
+   * Use {@link XSDNCNameConverter} for the XML Schema <code>NCName</code> type,
+   * which allows more characters.
+   * </p>
    * */
   public static class NCNameConverter extends XMLNameConverter
   {
@@ -1483,6 +1527,83 @@ public class StandardFormatters
       this(false);
     }
 
+    protected NCNameConverter(boolean lenient, int kind)
+    {
+      super(lenient, kind);
+    }
+
+    /**
+     * Verifies if the character matches <code>[\p{L}\p{Nl}_]</code>, the
+     * first character of a name of the NCName syntax.
+     * 
+     * @param ch
+     *          [in] The character to verify.
+     * @return true if character is valid, false otherwise.
+     */
+    public static boolean isNameStartChar(char ch)
+    {
+      return Character.isLetter(ch) || (Character.getType(ch) == Character.LETTER_NUMBER)
+          || (ch == '_');
+    }
+
+    /**
+     * Verifies if the character matches
+     * <code>[\p{L}\p{Nl}\p{Nd}._-]</code>, the other characters of a name of
+     * the NCName syntax.
+     * 
+     * @param ch
+     *          [in] The character to verify.
+     * @return true if character is valid, false otherwise.
+     */
+    public static boolean isNameChar(char ch)
+    {
+      return isNameStartChar(ch) || (Character.getType(ch) == Character.DECIMAL_DIGIT_NUMBER)
+          || (ch == '.') || (ch == '-');
+    }
+
+    protected boolean isStartCharacter(char ch)
+    {
+      return isNameStartChar(ch);
+    }
+
+    protected boolean isNameCharacter(char ch)
+    {
+      return isNameChar(ch);
+    }
+
+    protected boolean allowSupplementary()
+    {
+      return false;
+    }
+
+    public static DataConverter getInstance()
+    {
+      return instance;
+    }
+  }
+
+
+  /**
+   * Type converter to native Java Objects for the W3C XML Schema Definition
+   * Language (XSD) 1.1 <code>NCName</code> type, canonical representation: an
+   * XML name without colon, using the characters of {@link XMLNameConverter}.
+   * 
+   * The default mode is not lenient.
+   * */
+  public static class XSDNCNameConverter extends XMLNameConverter
+  {
+    private static final DataConverter instance = new XSDNCNameConverter();
+
+    public XSDNCNameConverter(boolean lenient)
+    {
+      super(lenient, KIND_NCNAME);
+    }
+
+    public XSDNCNameConverter()
+    {
+      this(false);
+    }
+
     public static DataConverter getInstance()
     {
       return instance;
@@ -1491,19 +1612,14 @@ public class StandardFormatters
   
   
   /**
-   * Type converter to native Java Objects for an XML qualified name of the
-   * form <code>prefix:local-part</code> or <code>local-part</code>, where both
-   * parts are names as defined in {@link NCNameConverter}.
+   * Type converter to native Java Objects for the IETF draft-codere-ldapsyntax
+   * <code>Qualified Name</code> syntax (OID: 1.3.6.1.4.1.61799.5.40.12.7), of
+   * the form <code>prefix:local-part</code> or <code>local-part</code>, where
+   * both parts are names as defined in {@link NCNameConverter}.
    * 
    * The default mode is not lenient.
-   * 
-   * This is equivalent to the following syntaxes:
-   * <ul>
-   * <li>IETF draft-codere-ldapsyntax <code>QualifiedName</code> syntax (OID: 1.3.6.1.4.1.61799.5.40.12.7)</li>
-   * <li>W3C Namespaces in XML 1.1 <code>QName</code></li>
-   * </ul>
    * */
-  public static class QualifiedNameConverter extends XMLNameConverter
+  public static class QualifiedNameConverter extends NCNameConverter
   {
     private static final DataConverter instance = new QualifiedNameConverter();
 
@@ -1612,7 +1728,17 @@ public class StandardFormatters
    * {@link com.optimasc.lang.MediaType}.
    * 
    * <p>
-   * The string representation is limited to 3 to 255 characters.
+   * As defined by the IETF draft-codere-ldapsyntax <code>Media Type</code>
+   * syntax (OID: 1.3.6.1.4.1.61799.5.40.26.5), a value is a type and a subtype
+   * separated by <code>'/'</code>, each matching the
+   * <code>restricted-name</code> of IETF RFC 6838:
+   * <code>[A-Za-z0-9][A-Za-z0-9!#$&amp;^_.+-]{0,126}</code>. The value is
+   * limited to 3 to 255 characters.
+   * </p>
+   * 
+   * <p>
+   * Parameters (<code>;name=value</code>) following the subtype are also
+   * accepted; their syntax is verified by {@link com.optimasc.lang.MediaType}.
    * </p>
    */
   public static class MediaTypeConverter extends DataConverter 
@@ -1634,12 +1760,65 @@ public class StandardFormatters
       return instance;
     }
 
+    /** Maximum length in characters of the type or of the subtype. */
+    private static final int MAX_NAME_LENGTH = 127;
+
+    /**
+     * Verifies that the value starts with a <code>type/subtype</code> pair of
+     * RFC 6838 restricted names, optionally followed by parameters starting
+     * with <code>';'</code>, which are not verified here.
+     * 
+     * @return -1 if the value is valid, otherwise the index of the error.
+     */
+    private static int indexOfError(String value)
+    {
+      int length = value.length();
+      if ((length < MIN_LENGTH) || (length > MAX_LENGTH))
+      {
+        return 0;
+      }
+      int separator = value.indexOf('/');
+      if (separator == -1)
+      {
+        return length;
+      }
+      int error = indexOfNameError(value, 0, separator);
+      if (error != -1)
+      {
+        return error;
+      }
+      int parameters = value.indexOf(';', separator + 1);
+      return indexOfNameError(value, separator + 1, (parameters == -1) ? length : parameters);
+    }
+
+    /** Verifies a restricted name between start and end. */
+    private static int indexOfNameError(String value, int start, int end)
+    {
+      if ((end <= start) || (end - start > MAX_NAME_LENGTH))
+      {
+        return start;
+      }
+      for (int i = start; i < end; i++)
+      {
+        char c = value.charAt(i);
+        boolean alphaNumeric = ((c >= 'A') && (c <= 'Z')) || ((c >= 'a') && (c <= 'z'))
+            || ((c >= '0') && (c <= '9'));
+        if (alphaNumeric || ((i > start) && ("!#$&^_.+-".indexOf(c) != -1)))
+        {
+          continue;
+        }
+        return i;
+      }
+      return -1;
+    }
+
     public Object parseObject(String value) throws ParseException
     {
-      if ((value.length() < MIN_LENGTH) || (value.length() > MAX_LENGTH))
+      int error = indexOfError(value);
+      if (error != -1)
       {
-        throw new ParseException("Media type must be between " + MIN_LENGTH + " and "
-            + MAX_LENGTH + " characters in length.", 0);
+        throw new ParseException("Media type must be a type/subtype pair of restricted names, "
+            + "optionally followed by parameters, of 3 to 255 characters.", error);
       }
       return new MediaType(value);
     }
@@ -1659,10 +1838,11 @@ public class StandardFormatters
       }
       mt = (MediaType) value;
       String s = mt.toString();
-      if ((s.length() < MIN_LENGTH) || (s.length() > MAX_LENGTH))
+      if (indexOfError(s) != -1)
       {
         throw new IllegalArgumentException("Media type '" + s
-            + "' is not between " + MIN_LENGTH + " and " + MAX_LENGTH + " characters in length");
+            + "' cannot be represented: the type and subtype must be restricted names, "
+            + "and the value must have 3 to 255 characters");
       }
       return toAppendTo.append(s);
     }
@@ -1680,8 +1860,8 @@ public class StandardFormatters
    * </p>
    * 
    * When in <code>lenient</code> mode, which is the default, characters
-   * outside the repertoire are removed and empty strings are allowed.
-   * Otherwise they cause an exception.
+   * outside the repertoire are removed. Otherwise they cause an exception.
+   * The empty string is allowed.
    * 
    * This is equivalent to the following syntax:
    * 
@@ -1713,10 +1893,6 @@ public class StandardFormatters
     {
       int inLength = value.length();
       int outOffset;
-      if ((inLength == 0) && (lenient == false))
-      {
-        throw new ParseException("Empty string are not allowed.", 0);
-      }
       char c;
       char[] outBuffer = new char[inLength];
       if (lenient == false)
@@ -1775,8 +1951,8 @@ public class StandardFormatters
    * a Java Object of type <code>String</code>.
    * 
    * When in <code>lenient</code> mode, which is the default, characters
-   * outside the repertoire are removed and empty strings are allowed.
-   * Otherwise they cause an exception.
+   * outside the repertoire are removed. Otherwise they cause an exception.
+   * The empty string is allowed.
    * 
    * This is equivalent to the following syntax:
    * 
@@ -1806,10 +1982,6 @@ public class StandardFormatters
     public Object parseObject(CharSequence value) throws ParseException
     {
       int inLength = value.length();
-      if ((inLength == 0) && (lenient == false))
-      {
-        throw new ParseException("Empty string are not allowed.", 0);
-      }
       char[] outBuffer = new char[inLength];
       int outOffset = 0;
       for (int i = 0; i < inLength; i++)

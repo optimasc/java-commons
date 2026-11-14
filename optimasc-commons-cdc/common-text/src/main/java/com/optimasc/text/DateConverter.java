@@ -235,7 +235,8 @@ import com.optimasc.lang.GregorianDatetimeCalendar;
  *         <li>For a plain <code>Calendar</code>, the timezone offset written
  *         includes daylight saving time.</li>
  *         <li>A {@link com.optimasc.lang.GregorianDatetimeCalendar} whose
- *         time is the end of day is written with hour 24.</li>
+ *         time is the end of day is written with hour 24, and one that is a
+ *         leap second is written with second 60.</li>
  *         </ul>
  * 
  * 
@@ -275,6 +276,12 @@ public class DateConverter extends DataConverter
 
   /** Unicode minus sign character (U+2212). */
   protected static final char UNICODE_MINUS = '−';
+
+  /**
+   * Maximum number of digits accepted in a fraction of second when parsing.
+   * Digits beyond the millisecond are truncated.
+   */
+  protected int maxFractionDigits = Integer.MAX_VALUE;
 
   /** Lowest astronomical year accepted when parsing. */
   protected int minYear = Integer.MIN_VALUE;
@@ -981,6 +988,11 @@ public class DateConverter extends DataConverter
             scale = scale / 10;
             currentIndex++;
           }
+          if (currentIndex - start > maxFractionDigits)
+          {
+            throw new ParseException("Fraction of second must contain at most "
+                + maxFractionDigits + " digits.", start + maxFractionDigits);
+          }
           if (currentIndex - start < field.minDigits)
           {
             throw new ParseException("Fraction of second must contain at least "
@@ -1177,7 +1189,7 @@ public class DateConverter extends DataConverter
       }
       if (cal.isUserSet(Calendar.SECOND))
       {
-        second = cal.get(Calendar.SECOND);
+        second = cal.isLeapSecond() ? 60 : cal.get(Calendar.SECOND);
       }
       if (cal.isUserSet(Calendar.MILLISECOND))
       {

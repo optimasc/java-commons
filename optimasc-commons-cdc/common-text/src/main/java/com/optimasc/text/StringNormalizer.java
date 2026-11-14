@@ -1228,6 +1228,118 @@ public class StringNormalizer
   }
 
   /**
+   * Maps and verifies a value of the Text syntax of IETF
+   * draft-codere-ldapsyntax (section 2.3.7).
+   * 
+   * <p>
+   * A Text value must not contain control characters (General_Category Cc)
+   * other than CHARACTER TABULATION (U+0009), LINE FEED (U+000A) and CARRIAGE
+   * RETURN (U+000D), surrogates (Cs), private use characters (Co) or
+   * non-characters. All other characters, including format characters (Cf)
+   * and space separators, are kept unchanged.
+   * </p>
+   * 
+   * @param value
+   *          [in] The value to verify
+   * @param lenient
+   *          [in] <code>true</code> to remove prohibited control characters
+   *          instead of rejecting them. Other prohibited characters are always
+   *          rejected.
+   * @return The value, without prohibited control characters when lenient.
+   * @throws ParseException
+   *           if a prohibited character is found
+   */
+  public static String mapText(CharSequence value, boolean lenient) throws ParseException
+  {
+    return mapTextCharacters(value, lenient, false);
+  }
+
+  /**
+   * Maps and verifies a value of the Normalized String syntax of IETF
+   * draft-codere-ldapsyntax (section 2.3.8).
+   * 
+   * <p>
+   * CHARACTER TABULATION (U+0009), LINE FEED (U+000A), CARRIAGE RETURN
+   * (U+000D) and the separators of General_Category Zs (other than SPACE), Zl
+   * and Zp are mapped to SPACE (U+0020); the result must then satisfy the
+   * restrictions of the Text syntax (see {@link #mapText(CharSequence, boolean)}).
+   * </p>
+   * 
+   * @param value
+   *          [in] The value to verify
+   * @param lenient
+   *          [in] <code>false</code> to accept only the canonical form, in
+   *          which SPACE is the only whitespace character, and reject other
+   *          prohibited characters; <code>true</code> to map whitespace to
+   *          SPACE and remove prohibited control characters.
+   * @return The canonical form of the value.
+   * @throws ParseException
+   *           if a prohibited character is found
+   */
+  public static String mapNormalizedString(CharSequence value, boolean lenient)
+      throws ParseException
+  {
+    return mapTextCharacters(value, lenient, true);
+  }
+
+  private static String mapTextCharacters(CharSequence value, boolean lenient,
+      boolean normalizeSpaces) throws ParseException
+  {
+    int length = value.length();
+    StringBuffer out = new StringBuffer(length);
+    for (int i = 0; i < length; i++)
+    {
+      char ch = value.charAt(i);
+      if ((ch >= 0xD800) && (ch <= 0xDBFF))
+      {
+        verifySupplementary(value, i);
+        out.append(ch).append(value.charAt(i + 1));
+        i++;
+        continue;
+      }
+      int category = Character.getType(ch);
+      if (normalizeSpaces && (ch != ' ')
+          && ((ch == '\t') || (ch == '\n') || (ch == '\r')
+              || (category == Character.SPACE_SEPARATOR)
+              || (category == Character.LINE_SEPARATOR)
+              || (category == Character.PARAGRAPH_SEPARATOR)))
+      {
+        if (lenient == false)
+        {
+          throw new ParseException("String contains a whitespace character other than SPACE at position", i);
+        }
+        out.append(' ');
+        continue;
+      }
+      switch (category)
+      {
+        case Character.CONTROL:
+          if ((ch == '\t') || (ch == '\n') || (ch == '\r'))
+          {
+            break;
+          }
+          if (lenient)
+          {
+            continue;
+          }
+          throw new ParseException("String contains a prohibited character (General category 'Cc') at position", i);
+        case Character.SURROGATE:
+          throw new ParseException("String contains a prohibited character (General category 'Cs') at position", i);
+        case Character.PRIVATE_USE:
+          throw new ParseException("String contains a prohibited character (General category 'Co') at position", i);
+        default:
+          break;
+      }
+      if (((ch >= 0xFDD0) && (ch <= 0xFDEF)) || (ch == 0xFFFE) || (ch == 0xFFFF))
+      {
+        throw new ParseException("String contains a non-character at position", i);
+      }
+      out.append(ch);
+    }
+    return out.toString();
+  }
+
+  /**
    * Checks for prohibited characters according to IETF RFC draft-codere-ldapsyntax. 
    * This is much stricter than then XML 1.1 Specification but provides better compatibility
    * (XML allows private use characters, some non-characters and text direction

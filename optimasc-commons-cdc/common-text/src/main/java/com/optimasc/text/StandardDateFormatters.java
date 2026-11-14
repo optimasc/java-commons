@@ -28,7 +28,7 @@ import com.optimasc.lang.GregorianDatetimeCalendar;
  * <tr><td>xsd:date</td><td>{@link ISO8601DateConverter}</td></tr>
  * <tr><td>xsd:dateTime</td><td>{@link XSDDateTimeConverter}</td></tr>
  * <tr><td>xsd:dateTimeStamp</td><td>{@link XSDDateTimeStampConverter}</td></tr>
- * <tr><td>xsd:duration</td><td>{@link DurationConverter}</td></tr>
+ * <tr><td>xsd:duration</td><td>{@link XSDDurationConverter}</td></tr>
  * <tr><td>xsd:gYear</td><td>{@link XSDGYearConverter}</td></tr>
  * <tr><td>xsd:time</td><td>{@link XSDTimeConverter}</td></tr>
  * </table>
@@ -37,6 +37,14 @@ import com.optimasc.lang.GregorianDatetimeCalendar;
  * The converters of the XML Schema types only accept years of 4 digits
  * (0000 to 9999); negative years and years of more than 4 digits are
  * rejected.
+ * </p>
+ * 
+ * <p>
+ * The Date-Time, Time Of Day, Time Of Day with Timezone and Generalized Time
+ * syntaxes allow a leap second (second 60), which is returned as a
+ * {@link GregorianDatetimeCalendar} whose
+ * {@link GregorianDatetimeCalendar#isLeapSecond()} is <code>true</code> and is
+ * formatted back as 60. The XML Schema types and OpenDate do not allow it.
  * </p>
  *
  * <p>
@@ -106,6 +114,33 @@ public class StandardDateFormatters
           PATTERN_ISO8601_DATETIME}
   );
 
+
+  /** Highest absolute timezone offset allowed by XML Schema (14:00). */
+  private static final int XSD_MAX_ZONE_OFFSET = 14 * 60 * 60 * 1000;
+
+  /**
+   * Verifies the constraints that XML Schema and the W3C NOTE-datetime place
+   * on a parsed value: no leap second, an end of day only when
+   * <code>allowEndOfDay</code> is true, and a timezone offset of at most
+   * 14:00 when <code>checkOffset</code> is true.
+   */
+  static void checkW3C(GregorianDatetimeCalendar cal, boolean allowEndOfDay,
+      boolean checkOffset) throws ParseException
+  {
+    if (cal.isLeapSecond())
+    {
+      throw new ParseException("A leap second (60) is not allowed.", 0);
+    }
+    if (cal.isEndOfDay() && (allowEndOfDay == false))
+    {
+      throw new ParseException("The hour 24 is not allowed.", 0);
+    }
+    if (checkOffset && cal.isUserSet(Calendar.ZONE_OFFSET)
+        && (Math.abs(cal.get(Calendar.ZONE_OFFSET)) > XSD_MAX_ZONE_OFFSET))
+    {
+      throw new ParseException("The timezone offset must be between -14:00 and +14:00.", 0);
+    }
+  }
 
   /**
    * Returns the value with the milliseconds removed (when
@@ -279,6 +314,13 @@ public class StandardDateFormatters
               "yyyy-MM"});
     }
 
+    /** The W3C NOTE-datetime allows neither hour 24 nor a leap second. */
+    protected Calendar adjust(GregorianDatetimeCalendar calendar) throws ParseException
+    {
+      checkW3C(calendar, false, false);
+      return calendar;
+    }
+
     public static DataConverter getInstance()
     {
       return instance;
@@ -289,8 +331,9 @@ public class StandardDateFormatters
   /**
    * Converter for the IETF draft-codere-ldapsyntax <code>OpenDate</code>
    * syntax (OID: 1.3.6.1.4.1.61799.5.40.14.1): the W3C NOTE-datetime formats
-   * (see {@link W3CDateTimeConverter}) with a year from 1582 to 9999. Fractions
-   * of second beyond three digits are truncated.
+   * (see {@link W3CDateTimeConverter}) with a year from 1582 to 9999 and,
+   * when present, a fraction of second of exactly 3 digits (ASN.1
+   * <code>Time=HMSF3</code>).
    */
   public static class OpenDateConverter extends W3CDateTimeConverter
   {
@@ -299,6 +342,14 @@ public class StandardDateFormatters
     public OpenDateConverter()
     {
       super();
+      applyPatterns(new String[] {
+          "yyyy",
+          "yyyy-MM-dd'T'HH:mm:ss.SSSX",
+          "yyyy-MM-dd'T'HH:mm:ssX",
+          "yyyy-MM-dd'T'HH:mmX",
+          "yyyy-MM-dd",
+          "yyyy-MM"});
+      maxFractionDigits = 3;
       minYear = LDAP_MIN_YEAR;
       maxYear = LDAP_MAX_YEAR;
     }
@@ -333,6 +384,7 @@ public class StandardDateFormatters
 
     protected Calendar adjust(GregorianDatetimeCalendar calendar) throws ParseException
     {
+      checkW3C(calendar, true, true);
       return normalizeTime(calendar, false);
     }
 
@@ -347,7 +399,8 @@ public class StandardDateFormatters
    * Converter for the IETF draft-codere-ldapsyntax <code>Date-Time</code>
    * syntax (OID: 1.3.6.1.4.1.61799.5.40.33): a date and local time in ISO 8601
    * extended format (<code>YYYY-MM-DDThh:mm:ss</code>) with a year from 1582
-   * to 9999.
+   * to 9999, an hour from 00 to 24 and a second from 00 to 60 (leap second).
+   * <code>24:00:00</code> is kept as the end of the day.
    */
   public static class LDAPDateTimeConverter extends DateConverter
   {
@@ -389,6 +442,7 @@ public class StandardDateFormatters
 
     protected Calendar adjust(GregorianDatetimeCalendar calendar) throws ParseException
     {
+      checkW3C(calendar, true, true);
       return normalizeTime(calendar, true);
     }
 
@@ -443,6 +497,7 @@ public class StandardDateFormatters
 
     protected Calendar adjust(GregorianDatetimeCalendar calendar) throws ParseException
     {
+      checkW3C(calendar, true, true);
       return normalizeTime(calendar, false);
     }
 
@@ -456,7 +511,8 @@ public class StandardDateFormatters
   /**
    * Converter for the IETF draft-codere-ldapsyntax <code>Time Of Day</code>
    * syntax (OID: 1.3.6.1.4.1.61799.5.40.32): a local time in ISO 8601 extended
-   * format (<code>hh:mm:ss</code>).
+   * format (<code>hh:mm:ss</code>), with an hour from 00 to 24 and a second
+   * from 00 to 60 (leap second).
    *
    * <p>
    * <code>24:00:00</code> is accepted and is kept distinct from
@@ -486,7 +542,9 @@ public class StandardDateFormatters
    * Converter for the IETF draft-codere-ldapsyntax
    * <code>Time Of Day with Timezone</code> syntax (OID:
    * 1.3.6.1.4.1.61799.5.40.35): a time in ISO 8601 extended format with a
-   * required timezone (<code>hh:mm:ss(Z|(+|-)hh:mm)</code>).
+   * required timezone (<code>hh:mm:ss(Z|(+|-)hh:mm)</code>), with an hour
+   * from 00 to 24, a second from 00 to 60 (leap second) and an offset from
+   * -15:00 to +15:00.
    */
   public static class TimeOfDayWithTimezoneConverter extends DateConverter
   {
@@ -520,15 +578,28 @@ public class StandardDateFormatters
    * </p>
    *
    * <p>
-   * As required by the specification, negative durations are rejected and
-   * fractions of second are truncated to three digits. The canonical string
-   * is the input with fractions of second truncated and without trailing
-   * zeros; the components are otherwise kept as written.
+   * Negative durations are rejected, and a fraction of second may have at
+   * most 3 digits, as required by the Duration syntax. Use
+   * {@link XSDDurationConverter} for <code>xsd:duration</code>, where longer
+   * fractions are truncated. The canonical string is the input without
+   * trailing zeros in the fraction of second; the components are otherwise
+   * kept as written.
+   * </p>
+   * 
+   * <p>
+   * A <code>'T'</code> designator that is not followed by a time component
+   * (such as <code>P1DT</code>) is rejected, as in ISO 8601 and XML Schema.
    * </p>
    */
   public static class DurationConverter extends DataConverter
   {
     private static final DataConverter instance = new DurationConverter();
+
+    /**
+     * <code>true</code> if fractions of second of more than 3 digits are
+     * truncated, <code>false</code> if they are rejected.
+     */
+    protected boolean truncateFraction = false;
 
     /** Designators of the date components, in order. */
     private static final String DATE_DESIGNATORS = "YMD";
@@ -604,6 +675,11 @@ public class StandardDateFormatters
           {
             throw new ParseException("Expecting digits after '.'.", i);
           }
+          if ((i - fractionStart > 3) && (truncateFraction == false))
+          {
+            throw new ParseException("A fraction of second has at most 3 digits.",
+                fractionStart + 3);
+          }
           fraction = value.subSequence(fractionStart, Math.min(i, fractionStart + 3))
               .toString();
         }
@@ -669,6 +745,29 @@ public class StandardDateFormatters
         throw new IllegalArgumentException("Illegal duration '" + value + "': "
             + e.getMessage());
       }
+    }
+  }
+
+
+  /**
+   * Converter for the W3C XML Schema Definition Language (XSD) 1.1
+   * <code>duration</code> type. It is the same as {@link DurationConverter},
+   * except that fractions of second of more than 3 digits are truncated, as
+   * required by the specification.
+   */
+  public static class XSDDurationConverter extends DurationConverter
+  {
+    private static final DataConverter instance = new XSDDurationConverter();
+
+    public XSDDurationConverter()
+    {
+      super();
+      truncateFraction = true;
+    }
+
+    public static DataConverter getInstance()
+    {
+      return instance;
     }
   }
 

@@ -138,9 +138,14 @@ public class StandardDateFormattersTest extends TestCase
     roundTrip(converter, "1975-01-19");
     roundTrip(converter, "1975-01-19T19:20Z");
     roundTrip(converter, "1975-01-19T19:20:30+01:00");
-    roundTrip(converter, "1975-01-19T19:20:30.45Z");
-    Calendar calendar = (Calendar) converter.parseObject("1975-01-19T19:20:30.4567Z");
-    assertEquals(456, calendar.get(Calendar.MILLISECOND));
+    roundTrip(converter, "1975-01-19T19:20:30.451Z");
+    roundTrip(converter, "1975-01-19T19:20:30.450+01:00");
+    // HMSF3: the fraction has exactly 3 digits.
+    assertParseFails(converter, "1975-01-19T19:20:30.45Z");
+    assertParseFails(converter, "1975-01-19T19:20:30.4567Z");
+    // The W3C NOTE allows neither a leap second nor hour 24.
+    assertParseFails(converter, "1975-01-19T19:20:60Z");
+    assertParseFails(converter, "1975-01-19T24:00:00Z");
     assertParseFails(converter, "1975-01-19T19:20");
     assertParseFails(converter, "1000");
     assertParseFails(converter, "1975-02-30");
@@ -226,7 +231,14 @@ public class StandardDateFormattersTest extends TestCase
     DataConverter converter = StandardDateFormatters.DurationConverter.getInstance();
     assertEquals("P1Y2M3DT4H5M6S", converter.parseObject("P1Y2M3DT4H5M6S"));
     assertEquals("PT1.5S", converter.parseObject("PT1.500S"));
-    assertEquals("PT1.123S", converter.parseObject("PT1.12345S"));
+    // At most 3 digits in the Duration syntax; truncated in xsd:duration.
+    assertParseFails(converter, "PT1.1234S");
+    assertEquals("PT1.123S",
+        StandardDateFormatters.XSDDurationConverter.getInstance().parseObject("PT1.12345S"));
+    // Examples of the Duration syntax.
+    assertEquals("P29M0D", converter.parseObject("P29M0D"));
+    assertEquals("P29MT0S", converter.parseObject("P29MT0S"));
+    assertEquals("PT3445.5S", converter.parseObject("PT3445.5S"));
     assertEquals("PT1S", converter.parseObject("PT1.000S"));
     assertEquals("P0D", converter.parseObject("P0D"));
     assertEquals("PT1.5S", converter.format("PT1.5S"));
@@ -241,5 +253,65 @@ public class StandardDateFormattersTest extends TestCase
     assertParseFails(converter, "P1Y1Y");
     assertParseFails(converter, "PT1.S");
     assertParseFails(converter, "1D");
+  }
+
+  public void testLeapSecond() throws ParseException
+  {
+    GregorianDatetimeCalendar calendar = (GregorianDatetimeCalendar) roundTrip(
+        StandardDateFormatters.TimeOfDayConverter.getInstance(), "23:59:60");
+    assertTrue(calendar.isLeapSecond());
+    assertEquals(60, calendar.getSecond());
+    assertEquals(59, calendar.get(Calendar.MINUTE));
+    roundTrip(StandardDateFormatters.LDAPDateTimeConverter.getInstance(),
+        "2016-12-31T23:59:60");
+    roundTrip(StandardDateFormatters.TimeOfDayWithTimezoneConverter.getInstance(),
+        "23:59:60Z");
+    roundTrip(StandardDateFormatters.GeneralizedTimeConverter.getInstance(),
+        "20161231235960Z");
+    assertParseFails(StandardDateFormatters.XSDDateTimeConverter.getInstance(),
+        "2016-12-31T23:59:60");
+    assertParseFails(StandardDateFormatters.XSDTimeConverter.getInstance(), "23:59:60");
+  }
+
+  public void testLDAPDraftExamples() throws ParseException
+  {
+    roundTrip(StandardDateFormatters.LDAPDateConverter.getInstance(), "9999-02-25");
+    roundTrip(StandardDateFormatters.LDAPDateConverter.getInstance(), "1583-01-31");
+    roundTrip(StandardDateFormatters.LDAPDateTimeConverter.getInstance(),
+        "1583-01-01T00:59:59");
+    roundTrip(StandardDateFormatters.LDAPDateTimeConverter.getInstance(),
+        "1975-01-19T23:45:34");
+    roundTrip(StandardDateFormatters.LDAPDateTimeConverter.getInstance(),
+        "1975-01-19T24:00:00");
+    roundTrip(StandardDateFormatters.TimeOfDayConverter.getInstance(), "00:59:59");
+    roundTrip(StandardDateFormatters.TimeOfDayConverter.getInstance(), "01:45:54");
+    roundTrip(StandardDateFormatters.TimeOfDayWithTimezoneConverter.getInstance(),
+        "00:59:59Z");
+    roundTrip(StandardDateFormatters.TimeOfDayWithTimezoneConverter.getInstance(),
+        "01:45:54-01:00");
+    roundTrip(StandardDateFormatters.TimeOfDayWithTimezoneConverter.getInstance(),
+        "24:00:00Z");
+    String[] openDates = { "2034", "1975-01", "1975-01-19", "1975-01-19T19:20+01:00",
+        "1975-01-19T19:20:30+01:00", "1975-01-19T19:20:30.451+01:00", "1975-01-19T18:20Z",
+        "1975-01-19T18:20:30Z", "1975-01-19T18:20:30.451Z" };
+    for (int i = 0; i < openDates.length; i++)
+    {
+      roundTrip(StandardDateFormatters.OpenDateConverter.getInstance(), openDates[i]);
+    }
+  }
+
+  public void testTimezoneRange() throws ParseException
+  {
+    // Time Of Day with Timezone: -15:00 to +15:00.
+    DataConverter converter = StandardDateFormatters.TimeOfDayWithTimezoneConverter
+        .getInstance();
+    roundTrip(converter, "10:00:00-15:00");
+    roundTrip(converter, "10:00:00+14:30");
+    roundTrip(converter, "10:00:00+15:00");
+    assertParseFails(converter, "10:00:00+15:01");
+    // XML Schema: -14:00 to +14:00.
+    converter = StandardDateFormatters.XSDDateTimeStampConverter.getInstance();
+    roundTrip(converter, "2020-01-01T10:00:00-14:00");
+    assertParseFails(converter, "2020-01-01T10:00:00+14:30");
   }
 }
