@@ -56,66 +56,13 @@ public class Parsers
    */
   public static long parseNumber(CharSequence value, int startPos, int endPos, boolean allowPlusSign, boolean allowMinusSign, boolean leadingZero) throws ParseException
   {
-      boolean negative;
-      char c;
-      // Remember endPos is the character following the last character to parse
-      int length = endPos-startPos;
-      // This is the actual number of indexes to go through
-      if (length <= 0)
-      {
-        throw new ParseException(
-            "The string length must least 1 character.",0);
-      }
-      long finalValue = 0;
-      // Get first character
-      if (value.charAt(startPos)=='+')
-      {
-        if (allowPlusSign == false)
-        {
-          throw new ParseException("Numeric value cannot start with a '+' character.",0);
-        }
-        negative = false;
-        // Skip sign when parsing number
-        startPos++;
-      } else
-      if (value.charAt(startPos)=='-')
-      {
-        if (allowMinusSign == false)
-        {
-          throw new ParseException("Numeric value cannot start with a '-' character.",0);
-        }
-        negative = true;
-        // Skip sign when parsing number
-        startPos++;
-      } else
-      {
-        negative = false;
-      }
-
-      // New length excluding start characters + and -
-      length = endPos-startPos;
-      if ((value.charAt(startPos)=='0') && (length > 1) && (leadingZero==false))
-      {
-        throw new ParseException(
-            "Numeric value cannot start with leading '0' digits.",0);
-      }
-      long multiplier = POWERS_OF_TEN[length-1];
-      for (int i=startPos; i < endPos; i++)
-      {
-        c = value.charAt(i);
-        if ((c < '0') || (c > '9'))
-        {
-          throw new ParseException(
-              "Numeric value contains non-digit values.",i);
-        }
-        finalValue = finalValue + ((c - 0x30)*multiplier);
-        multiplier = multiplier / 10;
-      }
-      if (negative)
-      {
-        finalValue = -finalValue;
-      }
-      return finalValue;  
+    BigInteger number = parseNumberAsBigInteger(value, startPos, endPos, allowPlusSign,
+        allowMinusSign, leadingZero);
+    if (number.bitLength() > 63)
+    {
+      throw new ParseException("Numeric value is out of range of a long value.", startPos);
+    }
+    return number.longValue();
   }
   
   
@@ -137,62 +84,56 @@ public class Parsers
    */
   public static BigInteger parseNumberAsBigInteger(CharSequence value, int startPos, int endPos, boolean allowPlusSign, boolean allowMinusSign, boolean leadingZero) throws ParseException
   {
-      boolean negative;
-      char c;
+      boolean negative = false;
       // Remember endPos is the character following the last character to parse
-      int length = endPos-startPos;
-      // This is the actual number of indexes to go through
-      if (length <= 0)
+      if (endPos - startPos <= 0)
       {
         throw new ParseException(
-            "The string length must least 1 character.",0);
+            "The string length must least 1 character.",startPos);
       }
-      long finalValue = 0;
       // Get first character
       if (value.charAt(startPos)=='+')
       {
         if (allowPlusSign == false)
         {
-          throw new ParseException("Numeric value cannot start with a '+' character.",0);
+          throw new ParseException("Numeric value cannot start with a '+' character.",startPos);
         }
-        negative = false;
-        // Skip sign when parsing number
         startPos++;
       } else
       if (value.charAt(startPos)=='-')
       {
         if (allowMinusSign == false)
         {
-          throw new ParseException("Numeric value cannot start with a '-' character.",0);
+          throw new ParseException("Numeric value cannot start with a '-' character.",startPos);
         }
         negative = true;
-        // Skip sign when parsing number
         startPos++;
-      } else
-      {
-        negative = false;
       }
-
-      // New length excluding start characters + and -
-      length = endPos-startPos;
-      if ((value.charAt(startPos)=='0') && (length > 1) && (leadingZero==false))
+      if (startPos >= endPos)
+      {
+        throw new ParseException("Expecting digits after the sign.", startPos);
+      }
+      if ((value.charAt(startPos)=='0') && (endPos - startPos > 1) && (leadingZero==false))
       {
         throw new ParseException(
-            "Numeric value cannot start with leading '0' digits.",0);
+            "Numeric value cannot start with leading '0' digits.",startPos);
       }
-      
-      CharSequence numbers = value.subSequence(startPos, endPos);
-      BigInteger number = null;
-      try
+      for (int i = startPos; i < endPos; i++)
       {
-         number = new BigInteger(numbers.toString());
-      } catch (NumberFormatException e)
-      {
-        throw new ParseException(
-            e.getMessage(),startPos);
+        char c = value.charAt(i);
+        if ((c < '0') || (c > '9'))
+        {
+          throw new ParseException("Numeric value contains non-digit values.", i);
+        }
       }
+      BigInteger number = new BigInteger(value.subSequence(startPos, endPos).toString());
       if (negative)
       {
+        // "-0" is not a canonical representation.
+        if ((number.signum() == 0) && (leadingZero == false))
+        {
+          throw new ParseException("Negative zero is not allowed.", startPos);
+        }
         number = number.negate();
       }
       return number;

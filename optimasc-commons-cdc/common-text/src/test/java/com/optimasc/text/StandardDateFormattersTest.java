@@ -139,10 +139,13 @@ public class StandardDateFormattersTest extends TestCase
     roundTrip(converter, "1975-01-19T19:20Z");
     roundTrip(converter, "1975-01-19T19:20:30+01:00");
     roundTrip(converter, "1975-01-19T19:20:30.451Z");
-    roundTrip(converter, "1975-01-19T19:20:30.450+01:00");
-    // HMSF3: the fraction has exactly 3 digits.
-    assertParseFails(converter, "1975-01-19T19:20:30.45Z");
+    roundTrip(converter, "1975-01-19T19:20:30.45+01:00");
+    roundTrip(converter, "1975-01-19T19:20:30.5Z");
+    // The fraction has 1 to 3 digits.
+    assertEquals("1975-01-19T19:20:30.45Z",
+        converter.format(converter.parseObject("1975-01-19T19:20:30.450Z")));
     assertParseFails(converter, "1975-01-19T19:20:30.4567Z");
+    assertParseFails(converter, "1975-01-19T19:20:30.Z");
     // The W3C NOTE allows neither a leap second nor hour 24.
     assertParseFails(converter, "1975-01-19T19:20:60Z");
     assertParseFails(converter, "1975-01-19T24:00:00Z");
@@ -172,6 +175,9 @@ public class StandardDateFormattersTest extends TestCase
     assertEquals("20200102102030-05",
         converter.format(converter.parseObject("20200102102030-05")).substring(0, 17));
     assertParseFails(converter, "20200102102030");
+    // RFC 4517: the hour is from 00 to 23.
+    assertParseFails(converter, "2020010224Z");
+    assertParseFails(converter, "20200102240000Z");
     assertParseFails(converter, "20200102102030.Z");
     assertParseFails(converter, "20201302102030Z");
   }
@@ -313,5 +319,66 @@ public class StandardDateFormattersTest extends TestCase
     converter = StandardDateFormatters.XSDDateTimeStampConverter.getInstance();
     roundTrip(converter, "2020-01-01T10:00:00-14:00");
     assertParseFails(converter, "2020-01-01T10:00:00+14:30");
+  }
+
+  /**
+   * Proposed regular expression for the Duration syntax: it requires at least
+   * one component, and at least one time component after 'T'. It uses only
+   * the features of IETF RFC 9485 (I-Regexp).
+   */
+  static final String DURATION_REGEX = "P(([0-9]+Y([0-9]+M)?([0-9]+D)?|[0-9]+M([0-9]+D)?|[0-9]+D)"
+      + "(T([0-9]+H([0-9]+M)?([0-9]+(\\.[0-9]{1,3})?S)?|[0-9]+M([0-9]+(\\.[0-9]{1,3})?S)?"
+      + "|[0-9]+(\\.[0-9]{1,3})?S))?"
+      + "|T([0-9]+H([0-9]+M)?([0-9]+(\\.[0-9]{1,3})?S)?|[0-9]+M([0-9]+(\\.[0-9]{1,3})?S)?"
+      + "|[0-9]+(\\.[0-9]{1,3})?S))";
+
+  /** Generates every string of the alphabet up to the given length. */
+  private static void generate(String prefix, String alphabet, int maxLength,
+      java.util.List out)
+  {
+    out.add(prefix);
+    if (prefix.length() == maxLength)
+    {
+      return;
+    }
+    for (int i = 0; i < alphabet.length(); i++)
+    {
+      generate(prefix + alphabet.charAt(i), alphabet, maxLength, out);
+    }
+  }
+
+  /** The converter and the proposed regular expression accept the same values. */
+  public void testDurationRegex()
+  {
+    DataConverter converter = StandardDateFormatters.DurationConverter.getInstance();
+    java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(DURATION_REGEX);
+    java.util.List values = new java.util.ArrayList();
+    generate("P", "1YMDTHS.", 7, values);
+    values.add("PT1.123S");
+    values.add("PT1.1234S");
+    values.add("P1Y2M3DT4H5M6.789S");
+    int accepted = 0;
+    for (int i = 0; i < values.size(); i++)
+    {
+      String value = (String) values.get(i);
+      boolean parsed;
+      try
+      {
+        converter.parseObject(value);
+        parsed = true;
+      } catch (ParseException e)
+      {
+        parsed = false;
+      }
+      assertEquals(value, pattern.matcher(value).matches(), parsed);
+      if (parsed)
+      {
+        accepted++;
+      }
+    }
+    assertTrue(accepted > 50);
+    assertFalse(pattern.matcher("P1DT").matches());
+    assertFalse(pattern.matcher("PT").matches());
+    assertFalse(pattern.matcher("P").matches());
   }
 }

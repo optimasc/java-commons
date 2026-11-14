@@ -260,7 +260,8 @@ public class StandardDateFormatters
    * The minutes and seconds are optional, a fraction of second may follow the
    * seconds, separated by <code>'.'</code> or <code>','</code>, and the
    * timezone (<code>Z</code> or a <code>+hh[mm]</code> / <code>-hh[mm]</code>
-   * differential) is required. Fractions of second beyond three digits are
+   * differential) is required. The hour is from 00 to 23, and the second from
+   * 00 to 60 (leap second). Fractions of second beyond three digits are
    * truncated.
    * </p>
    *
@@ -282,6 +283,16 @@ public class StandardDateFormatters
               "yyyyMMddHHmmssx",
               "yyyyMMddHHmmx",
               "yyyyMMddHHx"});
+    }
+
+    /** RFC 4517 allows a leap second, but not the hour 24. */
+    protected Calendar adjust(GregorianDatetimeCalendar calendar) throws ParseException
+    {
+      if (calendar.isEndOfDay())
+      {
+        throw new ParseException("The hour must be between 00 and 23.", 8);
+      }
+      return calendar;
     }
 
     public static DataConverter getInstance()
@@ -332,8 +343,8 @@ public class StandardDateFormatters
    * Converter for the IETF draft-codere-ldapsyntax <code>OpenDate</code>
    * syntax (OID: 1.3.6.1.4.1.61799.5.40.14.1): the W3C NOTE-datetime formats
    * (see {@link W3CDateTimeConverter}) with a year from 1582 to 9999 and,
-   * when present, a fraction of second of exactly 3 digits (ASN.1
-   * <code>Time=HMSF3</code>).
+   * when present, a fraction of second of 1 to 3 digits. The hour is from 00
+   * to 23 and the second from 00 to 59.
    */
   public static class OpenDateConverter extends W3CDateTimeConverter
   {
@@ -344,7 +355,7 @@ public class StandardDateFormatters
       super();
       applyPatterns(new String[] {
           "yyyy",
-          "yyyy-MM-dd'T'HH:mm:ss.SSSX",
+          "yyyy-MM-dd'T'HH:mm:ss.SX",
           "yyyy-MM-dd'T'HH:mm:ssX",
           "yyyy-MM-dd'T'HH:mmX",
           "yyyy-MM-dd",
