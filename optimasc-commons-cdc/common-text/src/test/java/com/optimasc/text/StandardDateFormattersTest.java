@@ -146,9 +146,15 @@ public class StandardDateFormattersTest extends TestCase
         converter.format(converter.parseObject("1975-01-19T19:20:30.450Z")));
     assertParseFails(converter, "1975-01-19T19:20:30.4567Z");
     assertParseFails(converter, "1975-01-19T19:20:30.Z");
-    // The W3C NOTE allows neither a leap second nor hour 24.
-    assertParseFails(converter, "1975-01-19T19:20:60Z");
+    // A leap second is allowed (ASN.1 TIME), but not hour 24.
+    GregorianDatetimeCalendar leap = (GregorianDatetimeCalendar) roundTrip(converter,
+        "2016-12-31T23:59:60Z");
+    assertTrue(leap.isLeapSecond());
+    roundTrip(converter, "2016-12-31T23:59:60.5+01:00");
     assertParseFails(converter, "1975-01-19T24:00:00Z");
+    // The W3C NOTE-datetime itself allows no leap second.
+    assertParseFails(StandardDateFormatters.W3CDateTimeConverter.getInstance(),
+        "2016-12-31T23:59:60Z");
     assertParseFails(converter, "1975-01-19T19:20");
     assertParseFails(converter, "1000");
     assertParseFails(converter, "1975-02-30");

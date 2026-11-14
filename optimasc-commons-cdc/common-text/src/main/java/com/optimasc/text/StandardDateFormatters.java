@@ -40,11 +40,12 @@ import com.optimasc.lang.GregorianDatetimeCalendar;
  * </p>
  * 
  * <p>
- * The Date-Time, Time Of Day, Time Of Day with Timezone and Generalized Time
- * syntaxes allow a leap second (second 60), which is returned as a
- * {@link GregorianDatetimeCalendar} whose
+ * The Date-Time, Time Of Day, Time Of Day with Timezone, OpenDate and
+ * Generalized Time syntaxes allow a leap second (second 60), which is
+ * returned as a {@link GregorianDatetimeCalendar} whose
  * {@link GregorianDatetimeCalendar#isLeapSecond()} is <code>true</code> and is
- * formatted back as 60. The XML Schema types and OpenDate do not allow it.
+ * formatted back as 60. The XML Schema types and the W3C NOTE-datetime do not
+ * allow it.
  * </p>
  *
  * <p>
@@ -344,7 +345,8 @@ public class StandardDateFormatters
    * syntax (OID: 1.3.6.1.4.1.61799.5.40.14.1): the W3C NOTE-datetime formats
    * (see {@link W3CDateTimeConverter}) with a year from 1582 to 9999 and,
    * when present, a fraction of second of 1 to 3 digits. The hour is from 00
-   * to 23 and the second from 00 to 59.
+   * to 23 and the second from 00 to 60: as in the ASN.1 TIME type, and unlike
+   * the W3C NOTE-datetime, a leap second is allowed.
    */
   public static class OpenDateConverter extends W3CDateTimeConverter
   {
@@ -363,6 +365,16 @@ public class StandardDateFormatters
       maxFractionDigits = 3;
       minYear = LDAP_MIN_YEAR;
       maxYear = LDAP_MAX_YEAR;
+    }
+
+    /** A leap second is allowed (ASN.1 TIME), but not the hour 24. */
+    protected Calendar adjust(GregorianDatetimeCalendar calendar) throws ParseException
+    {
+      if (calendar.isEndOfDay())
+      {
+        throw new ParseException("The hour 24 is not allowed.", 0);
+      }
+      return calendar;
     }
 
     public static DataConverter getInstance()
