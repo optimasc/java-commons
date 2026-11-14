@@ -969,9 +969,27 @@ public class StandardFormatters
 
     private static final DataConverter instance = new LocaleTypeConverter();
 
+    /** Minimum number of letters of the language code. */
+    protected final int minLanguageLength;
+    /** Maximum number of letters of the language code. */
+    protected final int maxLanguageLength;
+
     public LocaleTypeConverter()
     {
+      this(2, 3);
+    }
+
+    /**
+     * @param minLanguageLength
+     *          [in] Minimum number of letters of the language code
+     * @param maxLanguageLength
+     *          [in] Maximum number of letters of the language code (at most 3)
+     */
+    protected LocaleTypeConverter(int minLanguageLength, int maxLanguageLength)
+    {
       super(Locale.class, true);
+      this.minLanguageLength = minLanguageLength;
+      this.maxLanguageLength = maxLanguageLength;
     }
 
     public static DataConverter getInstance()
@@ -1007,9 +1025,9 @@ public class StandardFormatters
     }
 
     /** Returns true if the value is a valid language subtag in canonical case. */
-    private static boolean isLanguage(String language)
+    private boolean isLanguage(String language)
     {
-      if ((language.length() < 2) || (language.length() > 3))
+      if ((language.length() < minLanguageLength) || (language.length() > maxLanguageLength))
       {
         return false;
       }
@@ -1056,13 +1074,15 @@ public class StandardFormatters
         language.append(c);
         i++;
       }
-      if (language.length() < 2)
+      if (language.length() < minLanguageLength)
       {
-        throw new ParseException("Language code must have 2 or 3 letters.", i);
+        throw new ParseException("Language code must have " + minLanguageLength + " to "
+            + maxLanguageLength + " letters.", i);
       }
-      if (language.length() > 3)
+      if (language.length() > maxLanguageLength)
       {
-        throw new ParseException("Language codes of more than 3 letters are not supported.", 3);
+        throw new ParseException("Language codes of more than " + maxLanguageLength
+            + " letters are not supported.", maxLanguageLength);
       }
       if (i == length)
       {
@@ -1130,8 +1150,9 @@ public class StandardFormatters
 
       if (isLanguage(language) == false)
       {
-        throw new IllegalArgumentException("Locale language '" + language
-            + "' is not a 2 or 3 letter ISO 639 code and cannot be represented");
+        throw new IllegalArgumentException("Locale language '" + language + "' is not a "
+            + minLanguageLength + " to " + maxLanguageLength
+            + " letter ISO 639 code and cannot be represented");
       }
       if (variant.length() != 0)
       {
@@ -1156,6 +1177,52 @@ public class StandardFormatters
     public Object parseObject(String value) throws ParseException
     {
       return parseObject((CharSequence) value);
+    }
+  }
+
+
+  /**
+   * Type converter to native Java objects for a language identified by an ISO
+   * 639-2 three-letter language code, with an optional region: an ISO 3166-1
+   * two-letter country code or a UN M.49 three-digit region code. A value is
+   * represented by a Java object of type <code>Locale</code>.
+   *
+   * <pre>
+   *     langtag  = language
+   *                 ["-" region]
+   *
+   *     language = 3ALPHA            ; ISO 639-2 code
+   *     region   = 2ALPHA            ; ISO 3166-1 code
+   *              / 3DIGIT            ; UN M.49 code
+   * </pre>
+   *
+   * <p>
+   * Two-letter ISO 639-1 codes are rejected. Only the syntax of the codes is
+   * verified, not that they are assigned; both the bibliographic and the
+   * terminology codes of ISO 639-2 (such as <code>fre</code> and
+   * <code>fra</code>) are accepted. The case and the other rules are those of
+   * {@link LocaleTypeConverter}.
+   * </p>
+   *
+   * <p>
+   * Note: IETF RFC 5646 requires the two-letter ISO 639-1 code when one
+   * exists, so values such as <code>fra-CA</code> are not valid BCP 47
+   * language tags. This converter is intended for formats that use ISO 639-2
+   * codes.
+   * </p>
+   */
+  public static class ISO6392LocaleConverter extends LocaleTypeConverter
+  {
+    private static final DataConverter instance = new ISO6392LocaleConverter();
+
+    public ISO6392LocaleConverter()
+    {
+      super(3, 3);
+    }
+
+    public static DataConverter getInstance()
+    {
+      return instance;
     }
   }
   

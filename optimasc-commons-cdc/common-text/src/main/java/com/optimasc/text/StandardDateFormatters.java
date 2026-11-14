@@ -97,7 +97,16 @@ public class StandardDateFormatters
           "EEE, d MMM yyyy HH:mm Z",
           "d MMM yyyy HH:mm Z"});
 
-  /** Date/time pattern from ISO/IEC 8824 and PDF properties */
+  /**
+   * Date/time pattern of the ASN.1 (ISO/IEC 8824-1, ITU-T X.680)
+   * GeneralizedTime with seconds and a required timezone: <code>Z</code> for
+   * UTC, or a time differential <code>+hh</code>, <code>-hh</code>,
+   * <code>+hhmm</code> or <code>-hhmm</code> (pattern letter <code>x</code>).
+   * Named timezones (pattern letter <code>Z</code>, as in IETF RFC 822) are not
+   * part of ASN.1. See {@link GeneralizedTimeConverter} for the complete
+   * syntax of IETF RFC 4517. This is not the date format of PDF, which adds a
+   * <code>D:</code> prefix and apostrophes in the time differential.
+   */
   public static final DateConverter DATE_ISO_8824 = new DateConverter(
       new String[]{
           "yyyyMMddHHmmssx"}

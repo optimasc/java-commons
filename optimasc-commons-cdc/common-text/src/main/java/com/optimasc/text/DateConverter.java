@@ -274,9 +274,6 @@ public class DateConverter extends DataConverter
       | FLAG_SECOND_REQUIRED | FLAG_MILLISECOND_REQUIRED;
 
 
-  /** Unicode minus sign character (U+2212). */
-  protected static final char UNICODE_MINUS = '−';
-
   /**
    * Maximum number of digits accepted in a fraction of second when parsing.
    * Digits beyond the millisecond are truncated.
@@ -749,7 +746,7 @@ public class DateConverter extends DataConverter
   {
     int zoneIndex = index;
     char sign = value.charAt(index);
-    boolean negative = (sign == '-') || (sign == UNICODE_MINUS);
+    boolean negative = (sign == '-');
     index++;
     pos.setIndex(index);
     int houroffset = Parsers.parsePositiveNumber(value, pos, 2, 2);
@@ -876,7 +873,7 @@ public class DateConverter extends DataConverter
           zoneIndex = currentIndex;
           checkAvailable(value, currentIndex, "ISO 8601 timezone information");
           c = value.charAt(currentIndex);
-          if ((c == '-') || (c == '+') || (c == UNICODE_MINUS))
+          if ((c == '-') || (c == '+'))
           {
             zoneoffset = parseOffset(value, currentIndex,
                 field.field == TZ_ISO8601_EXTENDED, false, pos);

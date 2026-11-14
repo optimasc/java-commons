@@ -49,7 +49,7 @@ public class XSDTypesTest extends TestCase
   public void testAllTypes()
   {
     check("anyURI", URIConverter.getInstance(), new String[] { "http://example.com/a#b", "a/b" },
-        new String[] { "http://example.com/é" });
+        new String[] { "http://example.com/\u00e9" });
     check("base64Binary", XSDBase64BinaryConverter.getInstance(), new String[] { "", "AQID", "AQ ID",
         "AA==" }, new String[] { "AB==", "A" });
     check("boolean", XSDBooleanConverter.getInstance(), new String[] { "true", "false", "1", "0" },
@@ -86,22 +86,22 @@ public class XSDTypesTest extends TestCase
         new String[] { "9223372036854775808" });
     check("Name", XSDNameConverter.getInstance(), new String[] { ":a:b", "_x-1.2" },
         new String[] { "1a", "a b" });
-    check("NCName", XSDNCNameConverter.getInstance(), new String[] { "é", "a·b" },
+    check("NCName", XSDNCNameConverter.getInstance(), new String[] { "e\u0301", "a\u00b7b" },
         new String[] { "a:b", "1a" });
     check("NMTOKEN", XSDNMTOKENConverter.getInstance(), new String[] { "1a", "-.:9" },
         new String[] { "a b" });
     check("nonNegativeInteger", XSDNonNegativeIntegerConverter.getInstance(), new String[] { "0",
         "-0", "+18446744073709551616" }, new String[] { "-1" });
     check("normalizedString", XSDNormalizedStringConverter.getInstance(), new String[] { "",
-        "a\tb", " a  b " }, new String[] { "a￾b" });
+        "a\tb", " a  b " }, new String[] { "a\ufffeb" });
     check("short", XSDShortConverter.getInstance(), new String[] { "-32768", "+32767" },
         new String[] { "32768" });
     check("string", XSDStringConverter.getInstance(), new String[] { "", "a\tb\n",
-        "﷐", "😀" }, new String[] { "a￾", "a\ud83d" });
+        "\ue000\ufdd0", "\ud83d\ude00" }, new String[] { "a\ufffe", "a\ud83d" });
     check("time", XSDTimeConverter.getInstance(), new String[] { "10:20:30", "10:20:30.5",
         "24:00:00" }, new String[] { "10:20:30Z", "23:59:60" });
     check("token", XSDTokenConverter.getInstance(), new String[] { "", " a \t b " },
-        new String[] { "a￿b" });
+        new String[] { "a\uffffb" });
     check("unsignedByte", XSDUnsignedByteConverter.getInstance(), new String[] { "+255", "-0" },
         new String[] { "256", "-1" });
     check("unsignedInt", XSDUnsignedIntConverter.getInstance(), new String[] { "4294967295" },
@@ -132,7 +132,7 @@ public class XSDTypesTest extends TestCase
     canonical(XSDNormalizedStringConverter.getInstance(), "a\tb\nc", "a b c");
     canonical(XSDTokenConverter.getInstance(), "  a \t\n b  ", "a b");
     // No normalization of XML Schema strings (Text uses NFC).
-    canonical(XSDStringConverter.getInstance(), "é", "é");
+    canonical(XSDStringConverter.getInstance(), "e\u0301", "e\u0301");
     assertTrue(Arrays.equals(new byte[0],
         (byte[]) XSDBase64BinaryConverter.getInstance().parseObject("")));
   }

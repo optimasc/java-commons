@@ -49,7 +49,7 @@ public class LDAPSyntaxExamplesTest extends TestCase
     check("Duration", new DurationConverter(), new String[]{"P29M0D","P29MT0S","PT3445.5S"}, new String[]{"P","PT","P1DT","PT1.1234S","-P1D"});
     check("Real", new RealConverter(), new String[]{"3.14159","MINUS-INFINITY","0","-5.3E4","5E3"}, new String[]{"01","+1","1e5"});
     check("Time Of Day", new TimeOfDayConverter(), new String[]{"00:59:59","01:45:54","24:00:00","23:59:60"}, new String[]{"24:00:01","10:00:00Z"});
-    check("Visible String", strict(new VisibleStringConverter()), new String[]{"hello world","(x+y)=z",""}, new String[]{"café","a\u007f"});
+    check("Visible String", strict(new VisibleStringConverter()), new String[]{"hello world","(x+y)=z",""}, new String[]{"caf\u00e9","a\u007f"});
     check("Float32", new Float32Converter(), new String[]{"3.14159","MINUS-INFINITY","-5.3E4"}, new String[]{"1E39"});
     check("Float64", new Float64Converter(), new String[]{"3.1415926535897932","NOT-A-NUMBER","-5.3E4"}, new String[]{"1E400"});
     check("UInt8", unsignedByteConverter.getLDAPInstance(), new String[]{"0","34"}, new String[]{"256","-0","+1"});
@@ -64,10 +64,10 @@ public class LDAPSyntaxExamplesTest extends TestCase
     check("Language", strict(new LocaleTypeConverter()), new String[]{"en","fr-CA"}, new String[]{"e","en-"});
     check("Media Type", new MediaTypeConverter(), new String[]{"text/xhtml","application/alto-costmap+json"}, new String[]{"text/","+a/b"});
     check("OpenDate", strict(new OpenDateConverter()), new String[]{"2034","1975-01","1975-01-19","1975-01-19T19:20+01:00","1975-01-19T19:20:30+01:00","1975-01-19T19:20:30.451+01:00","1975-01-19T18:20Z","1975-01-19T18:20:30Z","1975-01-19T18:20:30.451Z","1975-01-19T24:00Z","2016-12-31T23:59:60Z"}, new String[]{"1975-01-19T19:20","1975-01-19T19:20:30.45Z","1000","1975-01-19T10:00+15:01"});
-    check("URI", new URIConverter(), new String[]{"http://www.example.com/my/picture.jpg","ldap://ldap.example.com/cn=babs%20jensen"}, new String[]{"","http://x/é"});
+    check("URI", new URIConverter(), new String[]{"http://www.example.com/my/picture.jpg","ldap://ldap.example.com/cn=babs%20jensen"}, new String[]{"","http://x/\u00e9"});
     check("NCName", new NCNameConverter(), new String[]{"MyID","attribute.0.subdivision"}, new String[]{"1a","a:b"});
     check("Qualified Name", new QualifiedNameConverter(), new String[]{"MyID","attribute.0:subdivision"}, new String[]{"a:","a:b:c"});
-    check("Text", strict(new TextConverter()), new String[]{"Hello world","Ceci est une phrase qui est encore plus longue que la précédente"}, new String[]{"a\u0001","a"});
+    check("Text", strict(new TextConverter()), new String[]{"Hello world","Ceci est une phrase qui est encore plus longue que la pr\u00e9c\u00e9dente"}, new String[]{"a\u0001","a\ue000"});
     check("Normalized String", strict(new NormalizedStringConverter()), new String[]{"   Paragraph start with some leading spaces.","This is some other text with spaces."}, new String[]{"a\tb"});
     check("Token", strict(new TokenConverter()), new String[]{"This is a token with spaces.","_Token_",""}, new String[]{" a","a  b"});
     check("Time Of Day with Timezone", new TimeOfDayWithTimezoneConverter(), new String[]{"00:59:59Z","01:45:54-01:00","10:00:00+15:00","24:00:00Z"}, new String[]{"10:00:00","10:00:00+15:01"});

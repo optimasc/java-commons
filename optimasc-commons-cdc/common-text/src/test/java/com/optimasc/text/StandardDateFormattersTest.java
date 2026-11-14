@@ -437,4 +437,26 @@ public class StandardDateFormattersTest extends TestCase
       assertTrue(e.getMessage(), e.getMessage().indexOf("day") != -1);
     }
   }
+
+  /** ASN.1 GeneralizedTime: Z or a time differential, but no timezone name. */
+  public void testISO8824() throws ParseException
+  {
+    DataConverter converter = StandardDateFormatters.DATE_ISO_8824;
+    roundTrip(converter, "20200102102030Z");
+    roundTrip(converter, "20200102102030+0530");
+    assertEquals("20200102102030-0500",
+        converter.format(converter.parseObject("20200102102030-05")));
+    assertParseFails(converter, "20200102102030GMT");
+    assertParseFails(converter, "20200102102030EST");
+    assertParseFails(converter, "20200102102030");
+  }
+
+  /** Only the ASCII minus sign is allowed in a timezone offset. */
+  public void testAsciiMinusOnly()
+  {
+    assertParseFails(StandardDateFormatters.XSDDateTimeStampConverter.getInstance(),
+        "2020-01-02T10:20:30\u221205:00");
+    assertParseFails(StandardDateFormatters.GeneralizedTimeConverter.getInstance(),
+        "20200102102030\u22120500");
+  }
 }

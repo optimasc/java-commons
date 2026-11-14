@@ -1364,4 +1364,25 @@ public class StandardFormattersTest extends TestCase
     assertEquals("(x+y)=z", converter.parseObject("(x+y)=z"));
     assertEquals("", converter.parseObject(""));
   }
+
+  public void testISO6392Locale() throws ParseException
+  {
+    DataConverter converter = StandardFormatters.ISO6392LocaleConverter.getInstance();
+    assertEquals("fra", converter.format(converter.parseObject("fra")));
+    assertEquals("fre-CA", converter.format(converter.parseObject("fre-CA")));
+    assertEquals("spa-419", converter.format(converter.parseObject("spa-419")));
+    assertEquals("eng-US", converter.format(converter.parseObject("ENG-us")));
+    assertParseFails(converter, "fr", 2);
+    assertParseFails(converter, "fr-CA", 2);
+    assertParseFails(converter, "fran", 3);
+    assertParseFails(converter, "fra-", 4);
+    assertParseFails(converter, "fra-Latn", 6);
+    try
+    {
+      converter.format(new java.util.Locale("fr", "CA"));
+      fail();
+    } catch (IllegalArgumentException e)
+    {
+    }
+  }
 }
