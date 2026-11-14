@@ -379,7 +379,7 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Numbe
     {
       return false;
     }
-    return enumHelper.isValid((BigDecimal)value);
+    return enumHelper.isValid((Number)value);
   }
   
 
