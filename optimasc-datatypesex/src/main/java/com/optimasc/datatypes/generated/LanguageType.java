@@ -13,13 +13,31 @@ import com.optimasc.datatypes.facets.EnumerationFacet;
 import com.optimasc.datatypes.primitives.PrimitiveType;
 import com.optimasc.datatypes.visitor.TypeVisitor;
 import com.optimasc.text.Parsers;
+import com.optimasc.text.StandardFormatters;
 
-/** Represents a language, which is represented by an ISO 649-1 2 letter
- *  code. It also supports the "x-default" value for language which will
- *  be equal to the default locale.
- * 
- *  <p>Internally the language is represented by the <code>Locale</code>
- *  java object.</p>
+/**
+ * Represents a language identifier. Values are <code>java.util.Locale</code>
+ * instances with a non-empty language code.
+ *
+ * <p>
+ * {@link #toValue(Object, TypeCheckResult)} accepts:
+ * </p>
+ *
+ * <ul>
+ * <li>a <code>Locale</code>: its language, country and variant are kept
+ * unchanged. A <code>Locale</code> without a language code is rejected.</li>
+ * <li>a character sequence holding a 2-letter ISO 639-1 language code, in any
+ * case, which gives a <code>Locale</code> with that language only.</li>
+ * <li>the character sequence <code>x-default</code>, in any case, which
+ * gives {@link StandardFormatters.LocaleTypeConverter#X_DEFAULT}. As in XMP,
+ * it denotes the default alternative rather than a particular language; it
+ * is not replaced by the default locale of the Java virtual machine.</li>
+ * </ul>
+ *
+ * <p>
+ * To parse a full language tag, including its region, use
+ * {@link StandardFormatters.LocaleTypeConverter}.
+ * </p>
  */
 public class LanguageType extends PrimitiveType implements EnumerationFacet, Convertable
 {
@@ -71,10 +89,11 @@ public class LanguageType extends PrimitiveType implements EnumerationFacet, Con
     if (value instanceof Locale)
     {
       // Only if the language is valid.
+      // Keep the language, country and variant; Locale is immutable.
       String langCode =  ((Locale)value).getLanguage();
       if (langCode.length()!=0)
       {
-        locale =  new Locale(langCode);
+        locale =  (Locale) value;
       } else
       {
         conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Locale value does not contain any language specifier.");
@@ -96,9 +115,9 @@ public class LanguageType extends PrimitiveType implements EnumerationFacet, Con
       {
         locale =  new Locale(buffer.toString());
       } else
-      if (langCode.equals("x-default"))
+      if (langCode.equals(StandardFormatters.LocaleTypeConverter.X_DEFAULT_TAG))
       {
-        locale =  Locale.getDefault();
+        locale =  StandardFormatters.LocaleTypeConverter.X_DEFAULT;
       } else
       {
         conversionResult.error = new DatatypeException(DatatypeException.ERROR_DATA_TYPE_MISMATCH,"Character sequence is not an ISO 639-1 language code or 'x-default'.");
