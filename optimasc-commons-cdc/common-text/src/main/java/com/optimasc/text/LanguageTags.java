@@ -27,8 +27,8 @@ import java.text.ParseException;
  * <table border="1">
  * <tr><th>Subtag</th><th>Not lenient</th><th>Lenient</th></tr>
  * <tr><td>language of 2 letters</td><td>kept</td><td>kept</td></tr>
- * <tr><td>language of 3 letters with an ISO 639-1 code</td><td>rejected (the
- * 2-letter code is required)</td><td>replaced by the ISO 639-1 code</td></tr>
+ * <tr><td>language of 3 letters with an ISO 639-1 code</td><td>replaced by the
+ * ISO 639-1 code</td><td>replaced by the ISO 639-1 code</td></tr>
  * <tr><td>language of 3 letters without an ISO 639-1 code, or of 4 to 8
  * letters</td><td>rejected</td><td>rejected</td></tr>
  * <tr><td>extended language (such as <code>zh-yue</code>)</td><td>rejected</td>
@@ -43,8 +43,10 @@ import java.text.ParseException;
  * </table>
  * 
  * <p>
- * When not lenient, the language must also be in lower case and the region in
- * upper case; when lenient, the case is converted.
+ * In both modes the language is converted to lower case and the region to
+ * upper case, since subtags are case-insensitive. Replacing a 3-letter code
+ * and converting the case keep the value of the tag; removing a subtag does
+ * not, which is why it happens only when lenient.
  * </p>
  */
 final class LanguageTags
@@ -152,19 +154,26 @@ final class LanguageTags
   }
 
   /**
-   * Parses a language tag.
+   * Parses a language tag and converts it to a normalized form. Among others,
+   * it  converts all ISO 639-2 codes to 639-1 codes and throws an error
+   * if there is no equivalent. It also rejects all other language codes.
+   * It drops all other subtabs except the ISO 3166-1 region code. 
    * 
    * @param value
-   *          [in] The language tag
+   *          [in] The language tag according to IETF BCP 47.
    * @param lenient
    *          [in] <code>true</code> to remove the subtags that cannot be
-   *          represented when this does not change the language
+   *          represented (script, UN M.49 region, variants, extensions and
+   *          private use) instead of rejecting the tag. Removing them loses
+   *          information. Changes that keep the value, such as converting the
+   *          case or replacing an ISO 639-2 code by its ISO 639-1 code, are
+   *          made in both modes.
    * @return The language (2 lower-case letters) and the region (2 upper-case
    *         letters, or the empty string)
    * @throws ParseException
    *           if the tag is not well-formed, or cannot be represented
    */
-  static String[] parse(CharSequence value, boolean lenient) throws ParseException
+  public static String[] parse(CharSequence value, boolean lenient) throws ParseException
   {
     int length = value.length();
     // Split into subtags, remembering where each one starts.
@@ -206,14 +215,8 @@ final class LanguageTags
     {
       throw new ParseException("Language subtags of 4 to 8 letters are not supported.", 0);
     }
-    for (int i = 0; i < language.length(); i++)
-    {
-      char c = language.charAt(i);
-      if ((lenient == false) && ((c < 'a') || (c > 'z')))
-      {
-        throw new ParseException("Language code character is not lower-case ascii letter", i);
-      }
-    }
+    // Subtags are case-insensitive (RFC 5646, Section 2.1.1), so changing
+    // the case does not change the value.
     language = language.toLowerCase();
     if (language.length() == 3)
     {
@@ -223,11 +226,7 @@ final class LanguageTags
         throw new ParseException("Language '" + language
             + "' has no ISO 639-1 code and cannot be represented.", 0);
       }
-      if (lenient == false)
-      {
-        throw new ParseException("The ISO 639-1 code '" + code
-            + "' must be used instead of '" + language + "'.", 0);
-      }
+      // The ISO 639-1 code denotes the same language.
       language = code;
     }
 
@@ -259,18 +258,6 @@ final class LanguageTags
       else if ((state <= REGION) && (size == 2) && isAlpha(subtag))
       {
         // ISO 3166-1 region
-        if (lenient == false)
-        {
-          for (int i = 0; i < 2; i++)
-          {
-            char c = subtag.charAt(i);
-            if ((c < 'A') || (c > 'Z'))
-            {
-              throw new ParseException("Region code character is not upper-case ascii letter",
-                  position + i);
-            }
-          }
-        }
         region = subtag.toUpperCase();
         state = VARIANT;
       }
