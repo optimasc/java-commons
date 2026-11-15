@@ -173,17 +173,8 @@ public class StandardFormattersTest extends TestCase
     String strValue;
     boolean fail;
 
-    // Empty string
-    try{
-      fail = true;
-      strValue = "";
-      String value = (String) converter.parseObject(strValue);
-    } catch (ParseException e)
-    {
-      assertEquals(0,e.getErrorOffset());
-      fail = false;
-    }
-    assertFalse(fail);
+    // The empty string is allowed by the syntax.
+    assertEquals("", converter.parseObject(""));
     
     // Empty string
     try{
@@ -540,7 +531,8 @@ public class StandardFormattersTest extends TestCase
       locale = (Locale) converter.parseObject(strValue);
     } catch (ParseException e)
     {
-      assertEquals(4,e.getErrorOffset());
+      // The error is at the invalid character.
+      assertEquals(3,e.getErrorOffset());
       fail = false;
     }
     assertFalse(fail);
@@ -580,20 +572,22 @@ public class StandardFormattersTest extends TestCase
       locale = (Locale) converter.parseObject(strValue);
     } catch (ParseException e)
     {
-      assertEquals(2,e.getErrorOffset());
+      // 3 letter languages are valid; the region is missing.
+      assertEquals(4,e.getErrorOffset());
       fail = false;
     }
     assertFalse(fail);
     
+    // "goblin" is a well-formed variant: removed in lenient mode,
+    // rejected otherwise.
+    assertEquals(new Locale("en"), converter.parseObject("en-goblin"));
+    converter.setLenient(false);
     try {
       fail = true;
-      language = "en";
-      region = "goblin";
-      strValue = language+"-"+region;
-      locale = (Locale) converter.parseObject(strValue);
+      locale = (Locale) converter.parseObject("en-goblin");
     } catch (ParseException e)
     {
-      assertEquals(5,e.getErrorOffset());
+      assertEquals(3,e.getErrorOffset());
       fail = false;
     }
     assertFalse(fail);    
@@ -761,17 +755,8 @@ public class StandardFormattersTest extends TestCase
     String strValue;
     boolean fail;
 
-    // Empty string
-    try{
-      fail = true;
-      strValue = "";
-      String value = (String) converter.parseObject(strValue);
-    } catch (ParseException e)
-    {
-      assertEquals(0,e.getErrorOffset());
-      fail = false;
-    }
-    assertFalse(fail);
+    // The empty string is allowed by the syntax.
+    assertEquals("", converter.parseObject(""));
     
     // Control character
     try{
@@ -841,17 +826,8 @@ public class StandardFormattersTest extends TestCase
     String strValue;
     boolean fail;
 
-    // Empty string
-    try{
-      fail = true;
-      strValue = "";
-      String value = (String) converter.parseObject(strValue);
-    } catch (ParseException e)
-    {
-      assertEquals(0,e.getErrorOffset());
-      fail = false;
-    }
-    assertFalse(fail);
+    // The empty string is allowed by the syntax.
+    assertEquals("", converter.parseObject(""));
     
     // Control character
     try{
@@ -939,17 +915,8 @@ public class StandardFormattersTest extends TestCase
     String strValue;
     boolean fail;
 
-    // Empty string
-    try{
-      fail = true;
-      strValue = "";
-      String value = (String) converter.parseObject(strValue);
-    } catch (ParseException e)
-    {
-      assertEquals(0,e.getErrorOffset());
-      fail = false;
-    }
-    assertFalse(fail);
+    // The empty string is allowed by the syntax.
+    assertEquals("", converter.parseObject(""));
     
     // Control character
     try{
@@ -1249,5 +1216,223 @@ public class StandardFormattersTest extends TestCase
     assertTrue(StandardFormatters.MediaTypeConverter.getInstance()
         instanceof StandardFormatters.MediaTypeConverter);
   }
+
+
+  public void testTextConverter() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.TextConverter();
+    converter.setLenient(false);
+    // Supplementary characters (U+1F600) are allowed.
+    assertEquals("a\ud83d\ude00b", converter.parseObject("a\ud83d\ude00b"));
+    // Unpaired surrogates, plane 15 private use and non-characters are not.
+    assertParseFails(converter, "a\ud83db", 1);
+    assertParseFails(converter, "a\udb80\udc00", 1);
+    assertParseFails(converter, "a\ud83f\udffe", 1);
+    assertParseFails(converter, "a\u0001", 1);
+    assertSame(StandardFormatters.TextConverter.getInstance(),
+        StandardFormatters.TextConverter.getInstance());
+  }
+
+  public void testNameCharacters() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.XSDNCNameConverter();
+    // Combining marks (Devanagari vowel sign) and supplementary characters.
+    assertEquals("\u0928\u092e\u0938\u094d\u0924\u0947",
+        converter.parseObject("\u0928\u092e\u0938\u094d\u0924\u0947"));
+    assertEquals("a\ud840\udc00", converter.parseObject("a\ud840\udc00"));
+    assertEquals("e\u0301", converter.parseObject("e\u0301"));
+    assertParseFails(converter, "\u0301e", 0);
+    assertParseFails(converter, "a:b", 1);
+    assertParseFails(converter, "a\u00d7", 1);
+  }
+
+  public void testNameConverter() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.XSDNameConverter();
+    assertEquals(false, converter.isLenient());
+    assertEquals(":a:b", converter.parseObject(":a:b"));
+    assertEquals("_x-1.2", converter.parseObject("_x-1.2"));
+    assertParseFails(converter, "1abc", 0);
+    assertParseFails(converter, "-abc", 0);
+    assertParseFails(converter, "a b", 1);
+    assertParseFails(converter, "", 0);
+    assertEquals("a:b", converter.format("a:b"));
+
+    converter = new StandardFormatters.XSDNameConverter(true);
+    assertEquals("abc", converter.parseObject(" 1abc "));
+    assertSame(StandardFormatters.XSDNameConverter.getInstance(),
+        StandardFormatters.XSDNameConverter.getInstance());
+  }
+
+  public void testNMTOKENConverter() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.XSDNMTOKENConverter();
+    assertEquals(false, converter.isLenient());
+    assertEquals("1abc", converter.parseObject("1abc"));
+    assertEquals("-.:9", converter.parseObject("-.:9"));
+    assertParseFails(converter, "a b", 1);
+    assertParseFails(converter, "a/b", 1);
+    assertParseFails(converter, "", 0);
+
+    converter = new StandardFormatters.XSDNMTOKENConverter(true);
+    assertEquals("ab", converter.parseObject(" a b "));
+  }
+
+
+  public void testMediaTypeNames() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.MediaTypeConverter();
+    assertEquals("text/xhtml", converter.format(converter.parseObject("text/xhtml")));
+    assertEquals("application/alto-costmap+json",
+        converter.format(converter.parseObject("application/alto-costmap+json")));
+    // Parameters are accepted.
+    assertEquals("text/plain;charset=utf-8",
+        converter.format(converter.parseObject("text/plain;charset=utf-8")));
+    assertParseFails(converter, "text/pl@in", 7);
+    assertParseFails(converter, "+text/plain", 0);
+    assertParseFails(converter, "text/", 5);
+    assertParseFails(converter, "textplain", 9);
+  }
+
+  public void testLanguageSubset() throws ParseException
+  {
+    DataConverter lenient = new StandardFormatters.LocaleTypeConverter();
+    DataConverter strict = new StandardFormatters.LocaleTypeConverter();
+    strict.setLenient(false);
+    String[][] cases = {
+        // input, lenient result (null: rejected), strict result (null: rejected)
+        { "en", "en", "en" },
+        { "fr-CA", "fr-CA", "fr-CA" },
+        { "FR-ca", "fr-CA", null },
+        // 3-letter code with an ISO 639-1 code: mapped when lenient
+        { "fra", "fr", null },
+        { "fre-CA", "fr-CA", null },
+        { "deu", "de", null },
+        { "heb-IL", "he-IL", null },
+        // no ISO 639-1 code: rejected in both modes
+        { "haw", null, null },
+        { "fil-PH", null, null },
+        // script, UN M.49 region, variants, extensions, private use: removed when lenient
+        { "sr-Latn-RS", "sr-RS", null },
+        { "zh-Hant", "zh", null },
+        { "es-419", "es", null },
+        { "de-CH-1996", "de-CH", null },
+        { "en-US-u-ca-gregory", "en-US", null },
+        { "en-US-x-twain", "en-US", null },
+        { "sl-rozaj-biske", "sl", null },
+        // extended language: rejected, as removing it changes the language
+        { "zh-yue", null, null },
+        { "zh-cmn-Hans-CN", null, null },
+        // private use and grandfathered tags, other languages, malformed tags
+        { "x-private", null, null },
+        { "i-klingon", null, null },
+        { "en-GB-oed", null, null },
+        { "abcd", null, null },
+        { "abcdefghi", null, null },
+        { "en--US", null, null },
+        { "en-US-", null, null },
+        { "en-a", null, null },
+        { "en-a-b", null, null },
+        { "en-x", null, null },
+        { "en_US", null, null },
+        { "en-US-Latn", null, null } };
+    for (int i = 0; i < cases.length; i++)
+    {
+      checkLocale(lenient, cases[i][0], cases[i][1]);
+      checkLocale(strict, cases[i][0], cases[i][2]);
+    }
+  }
+
+  private static void checkLocale(DataConverter converter, String value, String expected)
+  {
+    try
+    {
+      String result = converter.format(converter.parseObject(value));
+      assertEquals(value + " (lenient=" + converter.isLenient() + ")", expected, result);
+    } catch (ParseException e)
+    {
+      assertNull(value + " (lenient=" + converter.isLenient() + ") rejected: " + e.getMessage(),
+          expected);
+    }
+  }
+
+  public void testLocaleFormat()
+  {
+    DataConverter converter = StandardFormatters.LocaleTypeConverter.getInstance();
+    assertEquals("fr", converter.format(new Locale("fra")));
+    assertEquals("he", converter.format(new Locale("he")));
+    String[][] invalid = { { "haw", "" }, { "en", "419" }, { "en", "US" } };
+    for (int i = 0; i < invalid.length; i++)
+    {
+      Locale locale = (i == 2) ? new Locale("en", "US", "POSIX")
+          : new Locale(invalid[i][0], invalid[i][1]);
+      try
+      {
+        converter.format(locale);
+        fail("Formatted " + locale);
+      } catch (IllegalArgumentException e)
+      {
+      }
+    }
+  }
+
+
+  public void testLDAPNCName() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.NCNameConverter();
+    // Examples of the NCName syntax.
+    assertEquals("MyID", converter.parseObject("MyID"));
+    assertEquals("attribute.0.subdivision", converter.parseObject("attribute.0.subdivision"));
+    // [\p{L}\p{Nl}_][\p{L}\p{Nl}\p{Nd}._-]*
+    assertEquals("_\u00e9t\u00e9-1", converter.parseObject("_\u00e9t\u00e9-1"));
+    assertParseFails(converter, "e\u0301", 1);
+    assertParseFails(converter, "a\u00b7b", 1);
+    assertParseFails(converter, "a\u203fb", 1);
+    assertParseFails(converter, "a\ud840\udc00", 1);
+    assertParseFails(converter, "1a", 0);
+
+    converter = new StandardFormatters.QualifiedNameConverter();
+    assertEquals("attribute.0:subdivision", converter.parseObject("attribute.0:subdivision"));
+    assertParseFails(converter, "a:e\u0301", 3);
+  }
+
+  public void testTextDraft() throws ParseException
+  {
+    // Format characters and space separators are kept.
+    DataConverter converter = new StandardFormatters.TextConverter();
+    assertEquals("a\u200db\u00a0c\u200bd", converter.parseObject("a\u200db\u00a0c\u200bd"));
+    converter.setLenient(false);
+    assertEquals("a\u200db\u00a0c", converter.parseObject("a\u200db\u00a0c"));
+    assertParseFails(converter, "a\ufdd0", 1);
+    assertParseFails(converter, "a\ue000", 1);
+
+    // Normalized String: tab, LF, CR, Zs, Zl and Zp map to SPACE; Cf is kept.
+    converter = new StandardFormatters.NormalizedStringConverter();
+    assertEquals("a b c d\u200be", converter.parseObject("a\tb\u00a0c\u2028d\u200be"));
+    // U+0085 and U+000B are prohibited control characters, not whitespace.
+    assertEquals("ab", converter.parseObject("a\u0085\u000bb"));
+    converter.setLenient(false);
+    assertEquals("a\u200bb", converter.parseObject("a\u200bb"));
+    assertParseFails(converter, "a\u00a0b", 1);
+
+    // Token
+    converter = new StandardFormatters.TokenConverter();
+    assertEquals("a b", converter.parseObject(" a\u00a0 b "));
+    assertEquals("_Token_", converter.parseObject("_Token_"));
+    converter.setLenient(false);
+    assertEquals("", converter.parseObject(""));
+    assertEquals("This is a token with spaces.",
+        converter.parseObject("This is a token with spaces."));
+  }
+
+  public void testVisibleStringExamples() throws ParseException
+  {
+    DataConverter converter = new StandardFormatters.VisibleStringConverter();
+    converter.setLenient(false);
+    assertEquals("hello world", converter.parseObject("hello world"));
+    assertEquals("(x+y)=z", converter.parseObject("(x+y)=z"));
+    assertEquals("", converter.parseObject(""));
+  }
+
 
 }

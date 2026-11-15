@@ -763,7 +763,8 @@ public class DateConverterTest extends TestCase
         GregorianDatetimeCalendar.FIELD_UNDEFINED, 0);
 
     result = converter.format(calendar);
-    assertEquals("1 Feb 89 01:45:59 GMT", result);
+    // RFC 2822 section 3.3: "GMT" is obsolete and must not be generated.
+    assertEquals("1 Feb 89 01:45:59 +0000", result);
 
     calendar = new GregorianDatetimeCalendar(1989, Calendar.FEBRUARY, 1, 1, 45, 59,
         GregorianDatetimeCalendar.FIELD_UNDEFINED,
@@ -815,7 +816,8 @@ public class DateConverterTest extends TestCase
         979, 0);
 
     result = converter.format(calendar);
-    assertEquals("1975-01-19T01:01:12.9Z", result);
+    // The fraction is written with the digits needed to be exact.
+    assertEquals("1975-01-19T01:01:12.979Z", result);
 
     converter.applyPattern("yyyy-MM-dd'T'HH:mm:ss.SX");
 
@@ -823,7 +825,7 @@ public class DateConverterTest extends TestCase
         455, 0);
 
     result = converter.format(calendar);
-    assertEquals("1975-01-19T01:01:12.5Z", result);
+    assertEquals("1975-01-19T01:01:12.455Z", result);
 
   }
 
@@ -868,7 +870,8 @@ public class DateConverterTest extends TestCase
         979, 0);
 
     result = converter.format(calendar);
-    assertEquals("197501190101129Z", result);
+    // The fraction is written with the digits needed to be exact.
+    assertEquals("19750119010112979Z", result);
 
     converter.applyPattern("yyyyMMddHHmmss.Sx");
 
@@ -876,7 +879,7 @@ public class DateConverterTest extends TestCase
         455, 0);
 
     result = converter.format(calendar);
-    assertEquals("19750119010112.5Z", result);
+    assertEquals("19750119010112.455Z", result);
 
   }
 

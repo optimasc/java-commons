@@ -635,7 +635,8 @@ public class NumericFormattersTest extends TestCase
       assertEquals("-1", value.toString());
     } catch (ParseException e)
     {
-      assertEquals(0, e.getErrorOffset());
+      // The error is reported at the first non-digit character.
+      assertEquals(1, e.getErrorOffset());
       fail = false;
     }
 

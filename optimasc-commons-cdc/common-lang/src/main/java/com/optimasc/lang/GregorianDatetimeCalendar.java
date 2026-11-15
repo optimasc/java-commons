@@ -63,7 +63,11 @@ import java.util.TimeZone;
  *
  * <p>
  * <b>Timezone handling.</b> Timezone information must be supplied via
- * constructor arguments. Months use 0-based indexing in constructor arguments
+ * constructor arguments. A local (unzoned) value is created in UTC, not in
+ * the default timezone of the virtual machine, so that its fields are never
+ * changed by a daylight saving time transition of that timezone; its
+ * instant, as returned by {@link #getTimeInMillis()}, is therefore that of the
+ * same fields in UTC. Months use 0-based indexing in constructor arguments
  * to match {@link Calendar} conventions, but {@link #getMonth()} returns
  * 1-based values matching ISO 8601 conventions.
  * </p>
@@ -83,11 +87,11 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
 
   private static final long serialVersionUID = 3816584737503218331L;
 
-  /** Lowest zone offset accepted, in milliseconds (UTC-13:00). */
-  private static final int MIN_ZONE_OFFSET = -13 * 60 * 60 * 1000;
+  /** Lowest zone offset accepted, in milliseconds (UTC-15:00, as in ASN.1). */
+  private static final int MIN_ZONE_OFFSET = -15 * 60 * 60 * 1000;
 
-  /** Highest zone offset accepted, in milliseconds (UTC+14:00). */
-  private static final int MAX_ZONE_OFFSET = 14 * 60 * 60 * 1000;
+  /** Highest zone offset accepted, in milliseconds (UTC+15:00, as in ASN.1). */
+  private static final int MAX_ZONE_OFFSET = 15 * 60 * 60 * 1000;
 
   /** Instant used as the Gregorian change date: pure (proleptic) Gregorian. */
   private static final Date PURE_GREGORIAN = new Date(Long.MIN_VALUE);
@@ -108,6 +112,14 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
    */
   protected boolean endOfDay;
 
+  /**
+   * Indicates that the second was specified as 60 (leap second). Stored
+   * internally as second 59, so that the other fields are not rolled over to
+   * the next minute; consumers must consult this flag to reconstruct the
+   * original representation.
+   */
+  protected boolean leapSecond;
+
   /** Indicates whether this instance represents a local (unzoned) time. */
   protected boolean localTime;
 
@@ -125,7 +137,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
    */
   protected GregorianDatetimeCalendar()
   {
-    super(TimeZone.getDefault(), Locale.getDefault());
+    super(ZULU, Locale.getDefault());
     setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
@@ -143,7 +155,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
    */
   protected GregorianDatetimeCalendar(boolean localTime)
   {
-    super(TimeZone.getDefault(), Locale.getDefault());
+    super(ZULU, Locale.getDefault());
     setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
@@ -163,7 +175,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
    */
   public GregorianDatetimeCalendar(int year)
   {
-    super(TimeZone.getDefault(), Locale.getDefault());
+    super(ZULU, Locale.getDefault());
     setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
@@ -187,7 +199,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
    */
   public GregorianDatetimeCalendar(int year, int month, int dayOfMonth)
   {
-    super(TimeZone.getDefault(), Locale.getDefault());
+    super(ZULU, Locale.getDefault());
     setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
@@ -213,7 +225,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
    */
   public GregorianDatetimeCalendar(int year, int month, int dayOfMonth, TimeZone tz)
   {
-    super(TimeZone.getDefault(), Locale.getDefault());
+    super(ZULU, Locale.getDefault());
     setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
@@ -245,7 +257,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   public GregorianDatetimeCalendar(int year, int month, int dayOfMonth, int hour,
       int minute, int second)
   {
-    super(TimeZone.getDefault(), Locale.getDefault());
+    super(ZULU, Locale.getDefault());
     setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
@@ -280,7 +292,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   public GregorianDatetimeCalendar(int year, int month, int dayOfMonth, int hour,
       int minute, int second, int milliseconds, int tz)
   {
-    super(TimeZone.getDefault(), Locale.getDefault());
+    super(ZULU, Locale.getDefault());
     setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
@@ -310,7 +322,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   public GregorianDatetimeCalendar(int hour, int minute, int second, int milliseconds,
       int tz)
   {
-    super(TimeZone.getDefault(), Locale.getDefault());
+    super(ZULU, Locale.getDefault());
     setGregorianChange(PURE_GREGORIAN);
     userSet = new boolean[FIELD_COUNT];
     superClear();
@@ -458,6 +470,12 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
     return endOfDay;
   }
 
+  /** @return true if this instance represents a leap second (second 60) */
+  public boolean isLeapSecond()
+  {
+    return leapSecond;
+  }
+
   /** @return true if this instance represents a local (unzoned) time */
   public boolean isLocalTime()
   {
@@ -533,6 +551,8 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
   {
     if (!isUserSet(Calendar.SECOND))
       return FIELD_UNDEFINED;
+    if (leapSecond)
+      return 60;
     return get(Calendar.SECOND);
   }
 
@@ -596,7 +616,8 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
       out.set(Calendar.HOUR_OF_DAY, get(Calendar.HOUR_OF_DAY));
     }
     out.set(Calendar.MINUTE, get(Calendar.MINUTE));
-    out.set(Calendar.SECOND, get(Calendar.SECOND));
+    // A leap second is rolled over to the next minute by GregorianCalendar.
+    out.set(Calendar.SECOND, leapSecond ? 60 : get(Calendar.SECOND));
     out.set(Calendar.MILLISECOND, get(Calendar.MILLISECOND));
     // Trigger normalization so caller sees consistent state.
     out.getTimeInMillis();
@@ -731,6 +752,8 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
     GregorianDatetimeCalendar other = (GregorianDatetimeCalendar) obj;
     if (endOfDay != other.endOfDay)
       return false;
+    if (leapSecond != other.leapSecond)
+      return false;
     if (localTime != other.localTime)
       return false;
     if (!getTimeZone().equals(other.getTimeZone()))
@@ -767,6 +790,7 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
         result = 31 * result + get(field);
     }
     result = 31 * result + (endOfDay ? 1 : 0);
+    result = 31 * result + (leapSecond ? 1 : 0);
     result = 31 * result + (localTime ? 1 : 0);
     return result;
   }
@@ -1094,8 +1118,12 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
       }
       endOfDay = true;
       setField(Calendar.HOUR_OF_DAY, 0);
-      setField(Calendar.MINUTE, 0);
-      setField(Calendar.SECOND, 0);
+      // Only the fields that were specified are user-set, so that 24:00 and
+      // 24:00:00 keep their precision.
+      if (minute != FIELD_UNDEFINED)
+        setField(Calendar.MINUTE, 0);
+      if (second != FIELD_UNDEFINED)
+        setField(Calendar.SECOND, 0);
       if (milliseconds != FIELD_UNDEFINED)
         setField(Calendar.MILLISECOND, 0);
       return;
@@ -1118,6 +1146,12 @@ public class GregorianDatetimeCalendar extends GregorianCalendar
     // Accept up to 60 to allow ISO 8601 leap seconds.
     if (second < 0 || second > 60)
       throw new IllegalArgumentException("The second must be between 0 and 60.");
+    if (second == 60)
+    {
+      // Stored as 59 so that the minute is not rolled over.
+      leapSecond = true;
+      second = 59;
+    }
     setField(Calendar.SECOND, second);
 
     if (milliseconds == FIELD_UNDEFINED)
