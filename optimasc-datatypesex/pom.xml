@@ -58,9 +58,8 @@
 		contains minimal debug information for stack tracing and debugging if source 
 		code is available. 2) release: Used to build and generate artifacts that are 
 		for manual deployments (both through maven install) 3) debug: Uses debug classifier 
-		and contains full debug information for debug information. 4) jdk14 : The 
-		java 1.4 class formats, compatible with CDC Foundation Profile for embedded 
-		use. Requires java SDK 1.5 to be installed. 
+		and contains full debug information for debug information. This module 
+		requires Java SE 1.5 or later; there is no Java 1.4 / CDC build. 
 		-->
 	<profiles>
 		<profile>
@@ -81,61 +80,6 @@
 				<build.target>${maven.compiler.target}</build.target>
 			</properties>
 
-		</profile>
-		<profile>
-		    <!-- When this profile is activated, it builds for JDK1.4 class format,
-				it also checks with Animal sniffer for methods and classes not present in 
-				some profiles (CDC FP, JDK1.4, etc.) -->
-			<id>jdk14</id>
-			<properties>
-				<maven.compiler.source>1.5</maven.compiler.source>
-				<maven.compiler.target>1.5</maven.compiler.target>
-     		    <version.retrotranslator-transformer>1.2.9</version.retrotranslator-transformer>
-     		    <jar.classifier>jdk14</jar.classifier>
-				<project.build.directory.classes>${project.build.directory}/classes-jdk15</project.build.directory.classes>
-				<project.build.outputDirectory.retrotranslated14>${project.build.directory}/classes-jdk14</project.build.outputDirectory.retrotranslated14>
-				<project.build.outputDirectory.classes.jar>${project.build.outputDirectory.retrotranslated14}</project.build.outputDirectory.classes.jar>
-				<build.target>1.4</build.target>
-			</properties>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
-						<executions>
-							<execution>
-								<id>retrotranslated14</id>
-								<phase>process-classes</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<target>
-										<taskdef name="retrotranslator"
-											classname="net.sf.retrotranslator.transformer.RetrotranslatorTask"
-											classpathref="maven.plugin.classpath" />
-										<mkdir dir="${project.build.outputDirectory.retrotranslated14}" />
-										<retrotranslator srcdir="${project.build.outputDirectory}"
-											destdir="${project.build.outputDirectory.retrotranslated14}"
-											failonwarning="true" smart="true" stripannot="true"
-											stripsign="true" syncvolatile="true" target="1.4" verbose="true"
-											verify="false">
-										</retrotranslator>
-									</target>
-								</configuration>
-							</execution>
-						</executions>
-						<dependencies>
-							<dependency>
-								<groupId>net.sf.retrotranslator</groupId>
-								<artifactId>retrotranslator-transformer</artifactId>
-								<version>1.2.9</version>
-							</dependency>
-						</dependencies>
-					</plugin>
-				</plugins>
-			</build>
 		</profile>
 		<profile>
 			<id>debug</id>
@@ -225,7 +169,7 @@
 								</configuration>
 						<executions>
 							<execution>
-								<id>retrotranslated14</id>
+								<id>check-java15-api</id>
 								<phase>process-classes</phase>
 								<goals>
 									<goal>check</goal>
