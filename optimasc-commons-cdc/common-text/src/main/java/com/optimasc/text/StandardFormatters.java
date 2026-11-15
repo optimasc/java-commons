@@ -919,26 +919,40 @@ public class StandardFormatters
    * </pre>
    *
    * <p>
-   * A tag that is not well-formed is always rejected. The other subtags are
-   * handled as follows:
+   * A tag that is not well-formed is always rejected. In both modes, the
+   * language is converted to lower case, the region to upper case, and a
+   * 3-letter ISO 639-2 language code is replaced by its 2-letter ISO 639-1
+   * code. These changes keep the value of the tag. A tag is rejected in both
+   * modes if its language has no 2-letter ISO 639-1 code (such as
+   * <code>haw</code>), has 4 to 8 letters, or has an extended language subtag
+   * (such as <code>zh-yue</code>, Cantonese). Private use tags
+   * (<code>x-...</code>) and grandfathered tags (such as
+   * <code>i-klingon</code>) are also rejected.
+   * </p>
+   *
+   * <p>
+   * The script, a UN M.49 region, the variants, the extensions and the private
+   * use subtags cannot be represented. How they are handled depends on the
+   * <code>lenient</code> setting:
    * </p>
    *
    * <ul>
-   * <li>When <code>lenient</code> is <code>false</code>, only values of the
-   * subset above are accepted, with the language in lower case and the region
-   * in upper case, as required by the specification for values that cannot be
-   * represented without loss.</li>
-   * <li>When <code>lenient</code> is <code>true</code>, which is the default,
-   * the case is converted, a 3-letter ISO 639-2 language code is replaced by
-   * its 2-letter ISO 639-1 code, and the script, a UN M.49 region, the
-   * variants, the extensions and the private use subtags are removed.</li>
-   * <li>In both modes, a tag is rejected if its language has no 2-letter ISO
-   * 639-1 code (such as <code>haw</code>), has 4 to 8 letters, or has an
-   * extended language subtag (such as <code>zh-yue</code>, Cantonese), since
-   * removing that subtag would change the language. Private use tags
-   * (<code>x-...</code>) and grandfathered tags (such as
-   * <code>i-klingon</code>) are also rejected.</li>
+   * <li>When <code>lenient</code> is <code>false</code>, which is the default,
+   * a tag containing any of them is rejected, as the specification requires
+   * for values that cannot be represented without loss.</li>
+   * <li>When <code>lenient</code> is <code>true</code>, they are removed. This
+   * loses information: <code>zh-Hant-TW</code> becomes <code>zh-TW</code>,
+   * and <code>es-419</code> (Latin American Spanish) becomes <code>es</code>.
+   * Use this mode only when reading values, and never when writing them.</li>
    * </ul>
+   *
+   * <p>
+   * The tag <code>x-default</code>, in any case, is also accepted. As in XMP,
+   * it denotes the default alternative rather than a particular language. It
+   * is represented by {@link #X_DEFAULT}, a <code>Locale</code> whose language
+   * is <code>x-default</code>, and is never replaced by the default locale of
+   * the Java virtual machine.
+   * </p>
    *
    * <p>
    * The <code>Locale</code> constructor rewrites three language codes to their
@@ -966,6 +980,15 @@ public class StandardFormatters
   {
     public static final char TAG_SEPARATOR = '-';
 
+    /** Language tag that denotes the default alternative, as in XMP. */
+    public static final String X_DEFAULT_TAG = "x-default";
+
+    /**
+     * Value of the <code>x-default</code> tag. Any <code>Locale</code> whose
+     * language is <code>x-default</code> is equal to it.
+     */
+    public static final Locale X_DEFAULT = new Locale(X_DEFAULT_TAG);
+
     /**
      * Language codes rewritten by the <code>Locale</code> constructor, and the
      * current ISO 639-1 code each one corresponds to. The two arrays are
@@ -978,7 +1001,7 @@ public class StandardFormatters
 
     public LocaleTypeConverter()
     {
-      super(Locale.class, true);
+      super(Locale.class, false);
     }
 
     public static DataConverter getInstance()
@@ -1017,6 +1040,10 @@ public class StandardFormatters
 
     public Object parseObject(CharSequence value) throws ParseException
     {
+      if (value.toString().equalsIgnoreCase(X_DEFAULT_TAG))
+      {
+        return X_DEFAULT;
+      }
       String[] tag = LanguageTags.parse(value, lenient);
       if (tag[1].length() == 0)
       {
@@ -1033,6 +1060,10 @@ public class StandardFormatters
             + clz.getName() + "'");
       }
       Locale locale = (Locale) value;
+      if (locale.equals(X_DEFAULT))
+      {
+        return toAppendTo.append(X_DEFAULT_TAG);
+      }
       String language = toCurrentCode(locale.getLanguage());
       String region = locale.getCountry();
       String variant = locale.getVariant();
