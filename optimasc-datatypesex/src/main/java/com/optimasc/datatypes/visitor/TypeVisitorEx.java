@@ -6,6 +6,7 @@ import com.optimasc.datatypes.derived.NormalizedStringType;
 import com.optimasc.datatypes.derived.TokenType;
 import com.optimasc.datatypes.derived.UnicodeCharType;
 import com.optimasc.datatypes.primitives.CalendarDurationType;
+import com.optimasc.datatypes.primitives.MediaTypeType;
 import com.optimasc.datatypes.primitives.URIType;
 
 public interface TypeVisitorEx extends TypeVisitor
@@ -26,6 +27,8 @@ public interface TypeVisitorEx extends TypeVisitor
   /********************** Primitive types *************************/
 
   public Object visit(CalendarDurationType n, Object arg);
+  
+  public Object visit(MediaTypeType n, Object arg);
   
   
   /********************** Generated types *************************/

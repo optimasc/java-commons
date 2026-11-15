@@ -6,6 +6,7 @@ import com.optimasc.datatypes.derived.NormalizedStringType;
 import com.optimasc.datatypes.derived.TokenType;
 import com.optimasc.datatypes.derived.UnicodeCharType;
 import com.optimasc.datatypes.primitives.CalendarDurationType;
+import com.optimasc.datatypes.primitives.MediaTypeType;
 import com.optimasc.datatypes.primitives.URIType;
 
 public class DefaultDatatypeVisitorEx extends DefaultTypeVisitor implements TypeVisitorEx
@@ -36,6 +37,12 @@ public class DefaultDatatypeVisitorEx extends DefaultTypeVisitor implements Type
   }
 
   public Object visit(CalendarDurationType n, Object arg)
+  {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  public Object visit(MediaTypeType n, Object arg)
   {
     // TODO Auto-generated method stub
     return null;

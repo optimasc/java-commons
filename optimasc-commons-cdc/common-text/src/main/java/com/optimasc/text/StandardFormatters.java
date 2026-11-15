@@ -107,6 +107,23 @@ public class StandardFormatters
 
     public Object parseObject(CharSequence value) throws ParseException
     {
+      return parse(value, lenient);
+    }
+
+    /**
+     * Parses and verifies a value.
+     * 
+     * @param value
+     *          [in] The value to parse.
+     * @param lenient
+     *          [in] <code>true</code> to repair a value that does not conform,
+     *          <code>false</code> to reject it.
+     * @return The value as a <code>String</code>.
+     * @throws ParseException
+     *           If the value does not conform and cannot be repaired.
+     */
+    protected Object parse(CharSequence value, boolean lenient) throws ParseException
+    {
       return StringNormalizer.toNFC(StringNormalizer.mapText(value, lenient));
     }
 
@@ -115,6 +132,14 @@ public class StandardFormatters
       return parseObject((CharSequence) value);
     }
 
+    /**
+     * Formats a value. The value is verified as if parsed with
+     * <code>lenient</code> set to <code>false</code>, whatever the mode of this
+     * converter: a value that does not conform is rejected and never repaired.
+     * 
+     * @throws IllegalArgumentException
+     *           If the value is not a <code>String</code> or does not conform.
+     */
     public StringBuffer format(Object value, StringBuffer toAppendTo, FieldPosition pos)
     {
       if ((value instanceof String) == false)
@@ -122,7 +147,13 @@ public class StandardFormatters
         throw new IllegalArgumentException("Object value is not instance of '"
             + clz.getName() + "'");
       }
-      return toAppendTo.append((String) value);
+      try
+      {
+        return toAppendTo.append((String) parse((CharSequence) value, false));
+      } catch (ParseException e)
+      {
+        throw new IllegalArgumentException("Value cannot be represented: " + e.getMessage());
+      }
     }
     
     public static DataConverter getInstance()
@@ -475,7 +506,7 @@ public class StandardFormatters
       return parseObject((CharSequence) value);
     }
 
-    public Object parseObject(CharSequence value) throws ParseException
+    protected Object parse(CharSequence value, boolean lenient) throws ParseException
     {
       return StringNormalizer.toNFC(StringNormalizer.mapNormalizedString(value, lenient));
     }
@@ -516,7 +547,7 @@ public class StandardFormatters
       return parseObject((CharSequence) value);
     }
 
-    public Object parseObject(CharSequence value) throws ParseException
+    protected Object parse(CharSequence value, boolean lenient) throws ParseException
     {
       int inLength = value.length();
       if (lenient == false)
@@ -1622,6 +1653,23 @@ public class StandardFormatters
 
     public Object parseObject(CharSequence value) throws ParseException
     {
+      return parse(value, lenient);
+    }
+
+    /**
+     * Parses and verifies a value.
+     * 
+     * @param value
+     *          [in] The value to parse.
+     * @param lenient
+     *          [in] <code>true</code> to repair a value that does not conform,
+     *          <code>false</code> to reject it.
+     * @return The value as a <code>String</code>.
+     * @throws ParseException
+     *           If the value does not conform and cannot be repaired.
+     */
+    protected Object parse(CharSequence value, boolean lenient) throws ParseException
+    {
       int inLength = value.length();
       if ((inLength == 0) && (lenient == false))
       {
@@ -1706,6 +1754,14 @@ public class StandardFormatters
       return parseObject((CharSequence) value);
     }
 
+    /**
+     * Formats a value. The value is verified as if parsed with
+     * <code>lenient</code> set to <code>false</code>, whatever the mode of this
+     * converter: a value that does not conform is rejected and never repaired.
+     * 
+     * @throws IllegalArgumentException
+     *           If the value is not a <code>CharSequence</code> or does not conform.
+     */
     public StringBuffer format(Object value, StringBuffer toAppendTo, FieldPosition pos)
     {
       if ((value instanceof CharSequence) == false)
@@ -1713,7 +1769,13 @@ public class StandardFormatters
         throw new IllegalArgumentException("Object value is not instance of '"
             + clz.getName() + "'");
       }
-      return toAppendTo.append(value.toString());
+      try
+      {
+        return toAppendTo.append((String) parse((CharSequence) value, false));
+      } catch (ParseException e)
+      {
+        throw new IllegalArgumentException("Value cannot be represented: " + e.getMessage());
+      }
     }
   }
 
@@ -2118,6 +2180,23 @@ public class StandardFormatters
 
     public Object parseObject(CharSequence value) throws ParseException
     {
+      return parse(value, lenient);
+    }
+
+    /**
+     * Parses and verifies a value.
+     * 
+     * @param value
+     *          [in] The value to parse.
+     * @param lenient
+     *          [in] <code>true</code> to repair a value that does not conform,
+     *          <code>false</code> to reject it.
+     * @return The value as a <code>String</code>.
+     * @throws ParseException
+     *           If the value does not conform and cannot be repaired.
+     */
+    protected Object parse(CharSequence value, boolean lenient) throws ParseException
+    {
       int inLength = value.length();
       int outOffset;
       char c;
@@ -2158,6 +2237,14 @@ public class StandardFormatters
       return parseObject((CharSequence) value);
     }
 
+    /**
+     * Formats a value. The value is verified as if parsed with
+     * <code>lenient</code> set to <code>false</code>, whatever the mode of this
+     * converter: a value that does not conform is rejected and never repaired.
+     * 
+     * @throws IllegalArgumentException
+     *           If the value is not a <code>CharSequence</code> or does not conform.
+     */
     public StringBuffer format(Object value, StringBuffer toAppendTo, FieldPosition pos)
     {
       if ((value instanceof CharSequence) == false)
@@ -2165,7 +2252,13 @@ public class StandardFormatters
         throw new IllegalArgumentException("Object value is not instance of '"
             + clz.getName() + "'");
       }
-      return toAppendTo.append(value.toString());
+      try
+      {
+        return toAppendTo.append((String) parse((CharSequence) value, false));
+      } catch (ParseException e)
+      {
+        throw new IllegalArgumentException("Value cannot be represented: " + e.getMessage());
+      }
     }
 
   }
@@ -2208,6 +2301,23 @@ public class StandardFormatters
 
     public Object parseObject(CharSequence value) throws ParseException
     {
+      return parse(value, lenient);
+    }
+
+    /**
+     * Parses and verifies a value.
+     * 
+     * @param value
+     *          [in] The value to parse.
+     * @param lenient
+     *          [in] <code>true</code> to repair a value that does not conform,
+     *          <code>false</code> to reject it.
+     * @return The value as a <code>String</code>.
+     * @throws ParseException
+     *           If the value does not conform and cannot be repaired.
+     */
+    protected Object parse(CharSequence value, boolean lenient) throws ParseException
+    {
       int inLength = value.length();
       char[] outBuffer = new char[inLength];
       int outOffset = 0;
@@ -2232,6 +2342,14 @@ public class StandardFormatters
       return parseObject((CharSequence) value);
     }
 
+    /**
+     * Formats a value. The value is verified as if parsed with
+     * <code>lenient</code> set to <code>false</code>, whatever the mode of this
+     * converter: a value that does not conform is rejected and never repaired.
+     * 
+     * @throws IllegalArgumentException
+     *           If the value is not a <code>CharSequence</code> or does not conform.
+     */
     public StringBuffer format(Object value, StringBuffer toAppendTo, FieldPosition pos)
     {
       if ((value instanceof CharSequence) == false)
@@ -2239,7 +2357,13 @@ public class StandardFormatters
         throw new IllegalArgumentException("Object value is not instance of '"
             + clz.getName() + "'");
       }
-      return toAppendTo.append(value.toString());
+      try
+      {
+        return toAppendTo.append((String) parse((CharSequence) value, false));
+      } catch (ParseException e)
+      {
+        throw new IllegalArgumentException("Value cannot be represented: " + e.getMessage());
+      }
     }
   }
   
@@ -2317,6 +2441,23 @@ public class StandardFormatters
 
     public Object parseObject(CharSequence value) throws ParseException
     {
+      return parse(value, lenient);
+    }
+
+    /**
+     * Parses and verifies a value.
+     * 
+     * @param value
+     *          [in] The value to parse.
+     * @param lenient
+     *          [in] <code>true</code> to repair a value that does not conform,
+     *          <code>false</code> to reject it.
+     * @return The value as a <code>String</code>.
+     * @throws ParseException
+     *           If the value does not conform and cannot be repaired.
+     */
+    protected Object parse(CharSequence value, boolean lenient) throws ParseException
+    {
       int inLength = value.length();
       int outOffset;
       if ((inLength == 0) && (lenient == false))
@@ -2381,6 +2522,14 @@ public class StandardFormatters
       return parseObject((CharSequence) value);
     }
 
+    /**
+     * Formats a value. The value is verified as if parsed with
+     * <code>lenient</code> set to <code>false</code>, whatever the mode of this
+     * converter: a value that does not conform is rejected and never repaired.
+     * 
+     * @throws IllegalArgumentException
+     *           If the value is not a <code>CharSequence</code> or does not conform.
+     */
     public StringBuffer format(Object value, StringBuffer toAppendTo, FieldPosition pos)
     {
       if ((value instanceof CharSequence) == false)
@@ -2388,7 +2537,13 @@ public class StandardFormatters
         throw new IllegalArgumentException("Object value is not instance of '"
             + clz.getName() + "'");
       }
-      return toAppendTo.append(value.toString());
+      try
+      {
+        return toAppendTo.append((String) parse((CharSequence) value, false));
+      } catch (ParseException e)
+      {
+        throw new IllegalArgumentException("Value cannot be represented: " + e.getMessage());
+      }
     }
 
   }
