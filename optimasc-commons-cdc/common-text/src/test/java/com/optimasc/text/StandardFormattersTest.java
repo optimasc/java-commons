@@ -578,15 +578,16 @@ public class StandardFormattersTest extends TestCase
     }
     assertFalse(fail);
     
+    // "goblin" is a well-formed variant: removed in lenient mode,
+    // rejected otherwise.
+    assertEquals(new Locale("en"), converter.parseObject("en-goblin"));
+    converter.setLenient(false);
     try {
       fail = true;
-      language = "en";
-      region = "goblin";
-      strValue = language+"-"+region;
-      locale = (Locale) converter.parseObject(strValue);
+      locale = (Locale) converter.parseObject("en-goblin");
     } catch (ParseException e)
     {
-      assertEquals(5,e.getErrorOffset());
+      assertEquals(3,e.getErrorOffset());
       fail = false;
     }
     assertFalse(fail);    
@@ -1295,18 +1296,86 @@ public class StandardFormattersTest extends TestCase
 
   public void testLanguageSubset() throws ParseException
   {
-    DataConverter converter = new StandardFormatters.LocaleTypeConverter();
-    // ISO 639-2 (3 letter) languages and UN M.49 regions.
-    assertEquals("haw", converter.format(converter.parseObject("haw")));
-    assertEquals("fil-PH", converter.format(converter.parseObject("fil-PH")));
-    assertEquals("es-419", converter.format(converter.parseObject("es-419")));
-    assertEquals("fr-CA", converter.format(converter.parseObject("FR-ca")));
-    // Not representable by Locale on all platforms: rejected.
-    assertParseFails(converter, "zh-Hant-TW", 5);
-    assertParseFails(converter, "x-private", 1);
-    assertParseFails(converter, "abcd", 3);
-    assertParseFails(converter, "en-1234", 6);
+    DataConverter lenient = new StandardFormatters.LocaleTypeConverter();
+    DataConverter strict = new StandardFormatters.LocaleTypeConverter();
+    strict.setLenient(false);
+    String[][] cases = {
+        // input, lenient result (null: rejected), strict result (null: rejected)
+        { "en", "en", "en" },
+        { "fr-CA", "fr-CA", "fr-CA" },
+        { "FR-ca", "fr-CA", null },
+        // 3-letter code with an ISO 639-1 code: mapped when lenient
+        { "fra", "fr", null },
+        { "fre-CA", "fr-CA", null },
+        { "deu", "de", null },
+        { "heb-IL", "he-IL", null },
+        // no ISO 639-1 code: rejected in both modes
+        { "haw", null, null },
+        { "fil-PH", null, null },
+        // script, UN M.49 region, variants, extensions, private use: removed when lenient
+        { "sr-Latn-RS", "sr-RS", null },
+        { "zh-Hant", "zh", null },
+        { "es-419", "es", null },
+        { "de-CH-1996", "de-CH", null },
+        { "en-US-u-ca-gregory", "en-US", null },
+        { "en-US-x-twain", "en-US", null },
+        { "sl-rozaj-biske", "sl", null },
+        // extended language: rejected, as removing it changes the language
+        { "zh-yue", null, null },
+        { "zh-cmn-Hans-CN", null, null },
+        // private use and grandfathered tags, other languages, malformed tags
+        { "x-private", null, null },
+        { "i-klingon", null, null },
+        { "en-GB-oed", null, null },
+        { "abcd", null, null },
+        { "abcdefghi", null, null },
+        { "en--US", null, null },
+        { "en-US-", null, null },
+        { "en-a", null, null },
+        { "en-a-b", null, null },
+        { "en-x", null, null },
+        { "en_US", null, null },
+        { "en-US-Latn", null, null } };
+    for (int i = 0; i < cases.length; i++)
+    {
+      checkLocale(lenient, cases[i][0], cases[i][1]);
+      checkLocale(strict, cases[i][0], cases[i][2]);
+    }
   }
+
+  private static void checkLocale(DataConverter converter, String value, String expected)
+  {
+    try
+    {
+      String result = converter.format(converter.parseObject(value));
+      assertEquals(value + " (lenient=" + converter.isLenient() + ")", expected, result);
+    } catch (ParseException e)
+    {
+      assertNull(value + " (lenient=" + converter.isLenient() + ") rejected: " + e.getMessage(),
+          expected);
+    }
+  }
+
+  public void testLocaleFormat()
+  {
+    DataConverter converter = StandardFormatters.LocaleTypeConverter.getInstance();
+    assertEquals("fr", converter.format(new Locale("fra")));
+    assertEquals("he", converter.format(new Locale("he")));
+    String[][] invalid = { { "haw", "" }, { "en", "419" }, { "en", "US" } };
+    for (int i = 0; i < invalid.length; i++)
+    {
+      Locale locale = (i == 2) ? new Locale("en", "US", "POSIX")
+          : new Locale(invalid[i][0], invalid[i][1]);
+      try
+      {
+        converter.format(locale);
+        fail("Formatted " + locale);
+      } catch (IllegalArgumentException e)
+      {
+      }
+    }
+  }
+
 
   public void testLDAPNCName() throws ParseException
   {
@@ -1365,24 +1434,5 @@ public class StandardFormattersTest extends TestCase
     assertEquals("", converter.parseObject(""));
   }
 
-  public void testISO6392Locale() throws ParseException
-  {
-    DataConverter converter = StandardFormatters.ISO6392LocaleConverter.getInstance();
-    assertEquals("fra", converter.format(converter.parseObject("fra")));
-    assertEquals("fre-CA", converter.format(converter.parseObject("fre-CA")));
-    assertEquals("spa-419", converter.format(converter.parseObject("spa-419")));
-    assertEquals("eng-US", converter.format(converter.parseObject("ENG-us")));
-    assertParseFails(converter, "fr", 2);
-    assertParseFails(converter, "fr-CA", 2);
-    assertParseFails(converter, "fran", 3);
-    assertParseFails(converter, "fra-", 4);
-    assertParseFails(converter, "fra-Latn", 6);
-    try
-    {
-      converter.format(new java.util.Locale("fr", "CA"));
-      fail();
-    } catch (IllegalArgumentException e)
-    {
-    }
-  }
+
 }
