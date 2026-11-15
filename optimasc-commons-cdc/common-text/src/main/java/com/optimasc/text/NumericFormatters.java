@@ -171,23 +171,22 @@ public class NumericFormatters
      */
     protected BigInteger checkBigValue(CharSequence value) throws ParseException
     {
-      BigInteger result;
-      if (lenient == false)
-      {
-        // RFC 4517 INTEGER: no plus sign, no leading zero, no negative zero.
-        result = Parsers.parseNumberAsBigInteger(value, 0, value.length(), false, true,
-            false);
-      }
-      else
-      {
-        result = Parsers.parseNumberAsBigInteger(value, 0, value.length(), true, true,
-            true);
-      }
+      BigInteger result = getSyntax().parse(value);
       if (isInRange(result) == false)
       {
         throw new ParseException("Value is not within " + minBound + " and " + maxBound, 0);
       }
       return result;
+    }
+
+    /**
+     * Returns the syntax accepted when parsing: the XML Schema lexical
+     * representation ({@link IntegerFormat#XSD}) when lenient, otherwise the
+     * IETF RFC 4517 <code>INTEGER</code> syntax ({@link IntegerFormat#LDAP}).
+     */
+    IntegerSyntax getSyntax()
+    {
+      return lenient ? IntegerSyntax.XSD : IntegerSyntax.LDAP;
     }
 
     /** Returns true if the value is within the bounds. */
@@ -278,6 +277,216 @@ public class NumericFormatters
             + maxBound);
       }
       return toAppendTo.append(number.toString());
+    }
+  }
+
+
+  /**
+   * Syntax of the string representation of an integer, described by a pattern
+   * in the regular expression notation of IETF RFC 9485 (I-Regexp). Only the
+   * following patterns are recognised:
+   *
+   * <pre>
+   *     pattern = sign digits
+   *     sign    = ""                          ; no sign
+   *             / "[-]?"                      ; optional minus sign
+   *             / "[+-]?"                     ; optional plus or minus sign
+   *     digits  = "[0-9]+"                    ; leading zeros and -0 allowed
+   *             / "(([0-9])|([1-9][0-9]+))"   ; no leading zeros, no -0
+   * </pre>
+   */
+  static final class IntegerSyntax
+  {
+    private static final String[] SIGNS = { "[+-]?", "[-]?", "" };
+    private static final String DIGITS = "[0-9]+";
+    private static final String CANONICAL_DIGITS = "(([0-9])|([1-9][0-9]+))";
+
+    /** IETF RFC 4517 INTEGER, XML Schema canonical representation. */
+    static final IntegerSyntax LDAP = new IntegerSyntax("[-]?" + CANONICAL_DIGITS);
+    /** XML Schema lexical representation. */
+    static final IntegerSyntax XSD = new IntegerSyntax("[+-]?" + DIGITS);
+
+    final String pattern;
+    final boolean allowPlus;
+    final boolean allowMinus;
+    final boolean canonicalDigits;
+
+    /**
+     * @throws IllegalArgumentException
+     *           if the pattern is not one of the recognised patterns
+     */
+    IntegerSyntax(String pattern)
+    {
+      this.pattern = pattern;
+      String sign = null;
+      for (int i = 0; i < SIGNS.length; i++)
+      {
+        if (pattern.startsWith(SIGNS[i]))
+        {
+          sign = SIGNS[i];
+          break;
+        }
+      }
+      String digits = pattern.substring(sign.length());
+      if (digits.equals(DIGITS))
+      {
+        canonicalDigits = false;
+      }
+      else if (digits.equals(CANONICAL_DIGITS))
+      {
+        canonicalDigits = true;
+      }
+      else
+      {
+        throw new IllegalArgumentException("Unsupported integer pattern '" + pattern
+            + "': expected a sign ('', '[-]?' or '[+-]?') followed by '" + DIGITS
+            + "' or '" + CANONICAL_DIGITS + "'");
+      }
+      allowPlus = sign.equals("[+-]?");
+      allowMinus = sign.length() > 0;
+    }
+
+    /** Parses a value of this syntax. */
+    BigInteger parse(CharSequence value) throws ParseException
+    {
+      return Parsers.parseNumberAsBigInteger(value, 0, value.length(), allowPlus, allowMinus,
+          canonicalDigits == false);
+    }
+  }
+
+
+  /**
+   * Integer formatter and parser whose accepted syntax is given by a pattern,
+   * in the regular expression notation of IETF RFC 9485 (I-Regexp).
+   *
+   * <p>
+   * The following patterns are recognised; any other pattern raises an
+   * <code>IllegalArgumentException</code>:
+   * </p>
+   *
+   * <pre>
+   *     pattern = sign digits
+   *     sign    = ""                          ; no sign
+   *             / "[-]?"                      ; optional minus sign
+   *             / "[+-]?"                     ; optional plus or minus sign
+   *     digits  = "[0-9]+"                    ; leading zeros and -0 allowed
+   *             / "(([0-9])|([1-9][0-9]+))"   ; no leading zeros, no -0
+   * </pre>
+   *
+   * <p>
+   * The constants of this class give the pattern of each standard:
+   * </p>
+   *
+   * <table border="1">
+   * <tr><th>Standard</th><th>Constant</th><th>Pattern</th></tr>
+   * <tr><td>ASN.1 (ITU-T X.680)</td><td>{@link #ASN1}</td><td><code>[-]?(([0-9])|([1-9][0-9]+))</code></td></tr>
+   * <tr><td>LDAP (IETF RFC 4517)</td><td>{@link #LDAP}</td><td><code>[-]?(([0-9])|([1-9][0-9]+))</code></td></tr>
+   * <tr><td>XML Schema 1.1, canonical</td><td>{@link #XSD_CANONICAL}</td><td><code>[-]?(([0-9])|([1-9][0-9]+))</code></td></tr>
+   * <tr><td>XML Schema 1.1, lexical</td><td>{@link #XSD}</td><td><code>[+-]?[0-9]+</code></td></tr>
+   * <tr><td>ISO/IEC 11404</td><td>{@link #ISO11404}</td><td><code>[-]?[0-9]+</code></td></tr>
+   * <tr><td>SQL 99</td><td>{@link #SQL99}</td><td><code>[+-]?[0-9]+</code></td></tr>
+   * <tr><td>vCard (IETF RFC 6350)</td><td>{@link #VCARD}</td><td><code>[+-]?[0-9]+</code></td></tr>
+   * <tr><td>XMP (ISO 16684-1)</td><td>{@link #XMP}</td><td><code>[+-]?[0-9]+</code></td></tr>
+   * </table>
+   *
+   * <p>
+   * Formatting always writes the canonical representation (no plus sign, no
+   * leading zeros, no negative zero), which is valid in every syntax above.
+   * The <code>lenient</code> flag does not change the syntax accepted: it is
+   * given by the pattern only.
+   * </p>
+   *
+   * <p>
+   * Example: <code>new IntegerFormat(IntegerFormat.LDAP, Integer.class, -128, 127)</code>
+   * is the converter of the LDAP Int8 syntax.
+   * </p>
+   */
+  public static class IntegerFormat extends IntegerNumberConverter
+  {
+    /** ASN.1 (ITU-T X.680) integer value notation. */
+    public static final String ASN1 = "[-]?(([0-9])|([1-9][0-9]+))";
+    /** IETF RFC 4517 <code>INTEGER</code> syntax. */
+    public static final String LDAP = "[-]?(([0-9])|([1-9][0-9]+))";
+    /** W3C XML Schema Definition Language (XSD) 1.1 canonical representation. */
+    public static final String XSD_CANONICAL = "[-]?(([0-9])|([1-9][0-9]+))";
+    /** W3C XML Schema Definition Language (XSD) 1.1 lexical representation. */
+    public static final String XSD = "[+-]?[0-9]+";
+    /** ISO/IEC 11404 General purpose datatypes. */
+    public static final String ISO11404 = "[-]?[0-9]+";
+    /** SQL 99 signed numeric literal. */
+    public static final String SQL99 = "[+-]?[0-9]+";
+    /** vCard (IETF RFC 6350) <code>INTEGER</code> value type. */
+    public static final String VCARD = "[+-]?[0-9]+";
+    /** XMP (ISO 16684-1) <code>Integer</code> value type. */
+    public static final String XMP = "[+-]?[0-9]+";
+
+    private final IntegerSyntax syntax;
+
+    /**
+     * Creates a converter of integers of any size, returned as
+     * {@link java.math.BigInteger}.
+     *
+     * @param pattern
+     *          [in] The syntax accepted when parsing
+     * @throws IllegalArgumentException
+     *           if the pattern is not recognised
+     */
+    public IntegerFormat(String pattern)
+    {
+      this(pattern, BigInteger.class, (BigInteger) null, (BigInteger) null);
+    }
+
+    /**
+     * Creates a converter of integers within a range.
+     *
+     * @param pattern
+     *          [in] The syntax accepted when parsing
+     * @param valueClass
+     *          [in] <code>Integer.class</code>, <code>Long.class</code> or
+     *          <code>BigInteger.class</code>; the range must fit in it
+     * @param minValue
+     *          [in] Lowest value allowed
+     * @param maxValue
+     *          [in] Highest value allowed
+     * @throws IllegalArgumentException
+     *           if the pattern is not recognised
+     */
+    public IntegerFormat(String pattern, Class valueClass, long minValue, long maxValue)
+    {
+      this(pattern, valueClass, BigInteger.valueOf(minValue), BigInteger.valueOf(maxValue));
+    }
+
+    /**
+     * Creates a converter of integers within a range.
+     *
+     * @param pattern
+     *          [in] The syntax accepted when parsing
+     * @param valueClass
+     *          [in] <code>Integer.class</code>, <code>Long.class</code> or
+     *          <code>BigInteger.class</code>; the range must fit in it
+     * @param minValue
+     *          [in] Lowest value allowed, or <code>null</code> for no limit
+     * @param maxValue
+     *          [in] Highest value allowed, or <code>null</code> for no limit
+     * @throws IllegalArgumentException
+     *           if the pattern is not recognised
+     */
+    public IntegerFormat(String pattern, Class valueClass, BigInteger minValue,
+        BigInteger maxValue)
+    {
+      super(valueClass, false, minValue, maxValue);
+      this.syntax = new IntegerSyntax(pattern);
+    }
+
+    /** Returns the pattern of the syntax accepted when parsing. */
+    public String getPattern()
+    {
+      return syntax.pattern;
+    }
+
+    IntegerSyntax getSyntax()
+    {
+      return syntax;
     }
   }
 
