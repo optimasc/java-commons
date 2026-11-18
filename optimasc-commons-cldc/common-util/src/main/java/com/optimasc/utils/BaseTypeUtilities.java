@@ -55,27 +55,32 @@ public class BaseTypeUtilities
    */
    public static Object convertObject(Object input, Class target)
    {
-     if (target==Long.class)
+     // The classes are compared by name and not with class literals (for
+     // example Long.class), as for a target below Java 1.5 the compiler
+     // generates a class$ helper that calls Throwable.initCause(), which is
+     // not part of the CLDC 1.1 API.
+     String name = target.getName();
+     if (name.equals("java.lang.Long"))
      {
        return ObjectToLong(input);
      }
-     if (target==byte[].class)
+     if (name.equals("[B"))
      {
        return ObjectToBytes(input);
      }
-     if (target==Double.class)
+     if (name.equals("java.lang.Double"))
      {
        return ObjectToDouble(input);
      }
-     if (target==Boolean.class)
+     if (name.equals("java.lang.Boolean"))
      {
        return ObjectToBoolean(input);
      }
-     if (target==Calendar.class)
+     if (name.equals("java.util.Calendar"))
      {
        return ObjectToCalendar(input);
      }
-     throw new IllegalArgumentException("Unsupported class target '"+target.getName()+"'");
+     throw new IllegalArgumentException("Unsupported class target '"+name+"'");
    }
   
   

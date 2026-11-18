@@ -536,6 +536,7 @@ suffix            ::= "jar" | "zip" | "pom" | "asc"</pre>
     </ul>
   </li>
   <li>The use of the runtime library shall be verified during the build of the <code>release</code> profile, through the API signature check of the Animal Sniffer plugin.</li>
+  <li>Class literals (for example <code>Long.class</code>) shall not be used in the <code>optimasc-commons-cldc</code> modules. For a target below Java 1.5, the compiler translates them to a synthetic <code>class$</code> method that calls <code>Throwable.initCause()</code>, which is not part of the CLDC 1.1 API. Classes shall be compared by name instead, for example <code>target.getName().equals("java.lang.Long")</code>.</li>
   <li>Fields and methods used strictly internally shall be declared <code>protected</code> rather than <code>private</code>, so that derived classes may reuse them. <code>private</code> shall be used only where a subclass overriding or accessing the member could break a documented class invariant, or where a specific target runtime is demonstrated to benefit from non-virtual dispatch.</li>
   <li>The indentation style shall follow the Allman style. This style puts the block statement start character (brace) associated with a control statement on the next line, indented to the same level as the control statement. Statements within the block are indented to the next level.</li>
   <li>Each indentation level consists of 2 space characters (ASCII character 32). For example, a 2-level-deep indentation is 4 characters.</li>
