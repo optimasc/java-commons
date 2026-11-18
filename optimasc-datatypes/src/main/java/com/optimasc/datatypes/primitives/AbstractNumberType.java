@@ -453,7 +453,7 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Numbe
     {
       return getMinInclusive();
     } else
-    if ((minInclusive != null) &&  (NumberComparator.INSTANCE.compare(value,maxInclusive)==1))
+    if ((maxInclusive != null) &&  (NumberComparator.INSTANCE.compare(value,maxInclusive)==1))
     {
         return getMaxInclusive();
     }
@@ -464,7 +464,7 @@ public abstract class AbstractNumberType extends PrimitiveType  implements Numbe
   
   public void setRange(Number minInclusive, Number maxInclusive)
   {
-    enumHelper.setAllowedValues(new NumberSelectItem[]{new NumberSelectRange(minInclusive,maxInclusive)});
+    enumHelper.setAllowedValuesAsSelectItems(new NumberSelectItem[]{new NumberSelectRange(minInclusive,maxInclusive)});
   }
 
   public void setAllowedValues(long[] values)
