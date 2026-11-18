@@ -1032,7 +1032,7 @@ public class StandardFormatters
 
     public LocaleTypeConverter()
     {
-      super(Locale.class, false);
+      super(Locale.class, true);
     }
 
     public static DataConverter getInstance()
@@ -1397,9 +1397,8 @@ public class StandardFormatters
    * colons (":"), and periods (".").
    * </p>
    * 
-   * When in <code>lenient</code> mode, all invalid characters automatically
-   * removed and empty strings are allowed. By default parsing is lenient. In
-   * all whatever the mode non US-ASCII characters will cause an exception.
+   * When in <code>lenient</code> mode, when parsing, all invalid characters are automatically
+   * removed and empty strings are allowed. 
    *
    * The default mode is not lenient.
    * 
@@ -2628,7 +2627,8 @@ public class StandardFormatters
    * 
    * <p>
    * In all cases, when in lenient mode, which is the default, the comparison
-   * with the true and false tokens are done without case sensitivity.
+   * with the true and false tokens are done without case sensitivity. The
+   * default mode is lenient.
    * </p>
    * 
    * When <code>lenient</code> is <code>false</code> the converter is compliant
