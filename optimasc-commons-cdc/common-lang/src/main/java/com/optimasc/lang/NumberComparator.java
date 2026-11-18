@@ -35,7 +35,8 @@ public class NumberComparator implements Comparator
         return new BigDecimal(n.doubleValue());
     } else
     {
-      return new BigDecimal(n.longValue());
+      // BigDecimal(long) is not part of the CDC API, so go through BigInteger.
+      return new BigDecimal(BigInteger.valueOf(n.longValue()));
     }
   }
   
