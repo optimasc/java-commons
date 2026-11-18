@@ -894,15 +894,15 @@ public class XMLSchemaDeserializer implements Deserializer
           Number maxInclusiveAttr = (Number) restrictions.get("maxInclusive");
           List<Object> choicesAttr = (List<Object>) restrictions.get("choices");
           
-          int minLength = 0;
-          int maxLength = Integer.MIN_VALUE;
+          long minLength = 0;
+          long maxLength = LengthFacet.UNBOUNDED;
           if (minLengthAttr!=null)
           {
             minLength = minLengthAttr.intValue();
           }
           if (maxLengthAttr!=null)
           {
-            maxLength = maxLengthAttr.intValue();
+            maxLength = maxLengthAttr.longValue();
           }
           if (datatypeInstance instanceof LengthFacet)
           {
