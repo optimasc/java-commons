@@ -251,6 +251,45 @@ public class DateTimeType extends PrimitiveType implements BoundedProperty, Time
     return v.visit(this, arg);
   }
 
+  /** Gregorian change date that selects the proleptic Gregorian calendar. */
+  private static final Date PURE_GREGORIAN = new Date(Long.MIN_VALUE);
+
+  /**
+   * Returns a calendar that uses the proleptic Gregorian calendar and
+   * represents the same instant, in the same time zone, as the input.
+   *
+   * <p>
+   * A {@link java.util.GregorianCalendar} normally switches from the Julian to
+   * the Gregorian calendar in 1582, so the fields of earlier dates are Julian
+   * ones. This method detects that case with
+   * {@link GregorianCalendar#getGregorianChange()} and rebuilds the calendar
+   * with the pure Gregorian change date. For example, the instant that the
+   * default calendar shows as 4713-01-01 BC is shown as 4714-11-24 BC by the
+   * result. Only the calendar fields change, never the instant.
+   * </p>
+   *
+   * @param input
+   *          [in] The calendar to convert.
+   * @return <code>input</code> itself if it already is a proleptic Gregorian
+   *         calendar, otherwise a new calendar for the same instant.
+   */
+  public static GregorianCalendar toProlepticGregorian(Calendar input)
+  {
+    if (input instanceof GregorianCalendar)
+    {
+      GregorianCalendar gregorian = (GregorianCalendar) input;
+      if (gregorian.getGregorianChange().getTime() == Long.MIN_VALUE)
+      {
+        return gregorian;
+      }
+    }
+    GregorianCalendar cal = new GregorianCalendar(input.getTimeZone());
+    cal.setGregorianChange(PURE_GREGORIAN);
+    cal.setLenient(input.isLenient());
+    cal.setTimeInMillis(input.getTimeInMillis());
+    return cal;
+  }
+
   /**
    * {@inheritDoc}
    * 
@@ -263,7 +302,18 @@ public class DateTimeType extends PrimitiveType implements BoundedProperty, Time
    * <li>{@link java.util.Date}</li>
    * </ul>
    * </p>
-   * 
+   *
+   * <p>
+   * The returned value always uses the proleptic Gregorian calendar, as
+   * specified in ISO 8601. A <code>java.util.Date</code> is converted to
+   * calendar fields using that calendar. If the input is a
+   * {@link java.util.GregorianCalendar} that uses another Gregorian cutover
+   * date, such as the default Julian/Gregorian switch of 1582, it is first
+   * converted with {@link #toProlepticGregorian(Calendar)}. This preserves the
+   * instant in time, so the calendar fields of dates before the cutover may
+   * differ from those of the input calendar.
+   * </p>
+   *
    */
   public Object toValue(Object value, TypeCheckResult conversionResult)
   {
@@ -272,7 +322,10 @@ public class DateTimeType extends PrimitiveType implements BoundedProperty, Time
     if (value instanceof java.util.Date)
     {
       java.util.Date d = (Date) value;
+      // A Date is an instant, so it must be broken down into fields using the
+      // proleptic Gregorian calendar, not the default one with its 1582 cutover.
       GregorianCalendar cal = new GregorianCalendar();
+      cal.setGregorianChange(PURE_GREGORIAN);
       if (localTime == false)
       {
         cal.setTimeZone(DateTime.ZULU);
@@ -326,16 +379,9 @@ public class DateTimeType extends PrimitiveType implements BoundedProperty, Time
             Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND, Calendar.MILLISECOND };
       }
 
-      GregorianCalendar source;
-      if (inputCalendar instanceof GregorianCalendar)
-      {
-        source = (GregorianCalendar) inputCalendar;
-      }
-      else
-      {
-        source = new GregorianCalendar(inputCalendar.getTimeZone());
-        source.setTimeInMillis(inputCalendar.getTimeInMillis());
-      }
+      // The fields are copied one by one into a proleptic Gregorian calendar,
+      // so the source must use the same calendar system.
+      GregorianCalendar source = toProlepticGregorian(inputCalendar);
 
       Calendar cal = new GregorianDatetimeCalendar(source, userSetFields);
       if (isValid(cal) == false)
